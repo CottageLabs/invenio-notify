@@ -1,0 +1,15 @@
+*.egg-info
+__pycache__/
+*.pyc
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf/
+
+
+
+# file for the Gradle or Maven based projects
+.idea/modules.xml
+.idea/gradle.xml
+
+# generated from Gradle or Maven project
+.idea/libraries/

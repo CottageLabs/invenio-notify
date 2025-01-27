@@ -1,0 +1,20 @@
+[project]
+name = "invenio-notify"
+version = "0.0.1"
+requires-python = ">=3.10"
+classifiers = [ 
+"Development Status :: 3 - Alpha", 
+"Programming Language :: Python :: 3", 
+"License :: OSI Approved :: MIT License",
+]
+dependencies = []
+[[project.authors]]
+name = "someone"
+
+[build-system]
+requires = [ "setuptools",]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+
+[tool.setuptools.packages.find]
