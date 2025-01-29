@@ -36,4 +36,7 @@ oauth_noti = "invenio_notify.scopes:inbox_scope"
 notify_inbox_list = "invenio_notify.views:NotifyInboxListView"
 notify_inbox_detail = "invenio_notify.views:NotifyInboxDetailView"
 
+[project.entry-points."invenio_access.actions"]
+coarnotify_action = "invenio_notify.permissions:coarnotify_action"
+
 [tool.setuptools.packages.find]

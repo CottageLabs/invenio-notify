@@ -6,7 +6,7 @@ from invenio_records_resources.services.base import LinksTemplate
 class NotifyInboxService(RecordService):
 
     def search(self, identity, params=None, search_preference=None, expand=False, **kwargs):
-        # self.require_permission(identity, "search")
+        self.require_permission(identity, "search")
 
         params = params or {}
         # search_params = map_search_params(self.config.search, params)
@@ -27,8 +27,8 @@ class NotifyInboxService(RecordService):
 
     @unit_of_work()
     def delete(self, identity, id, uow=None):
-        # """Delete a banner from database."""
-        # self.require_permission(identity, "delete") # KTODO permission
+        """Delete a banner from database."""
+        self.require_permission(identity, "delete")
 
         record = self.record_cls.get(id)
         self.record_cls.delete(record)
@@ -36,7 +36,7 @@ class NotifyInboxService(RecordService):
         return self.result_item(self, identity, record, links_tpl=self.links_item_tpl)
 
     def read(self, identity, id):
-        # self.require_permission(identity, "read") # KTODO permission
+        self.require_permission(identity, "read")
 
         record = self.record_cls.get(id)
 

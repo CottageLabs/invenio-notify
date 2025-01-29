@@ -1,9 +1,9 @@
-from invenio_administration.generators import Administration
 from invenio_records_permissions import BasePermissionPolicy
-from invenio_records_permissions.generators import AnyUser, SystemProcess
+from invenio_records_permissions.generators import SystemProcess
 from invenio_records_resources.services import Link, RecordServiceConfig
 from invenio_records_resources.services.records.links import pagination_links
 
+from invenio_notify.permissions import Coarnotify
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify.services.results import NotifyInboxRecordList
 from invenio_notify.services.schemas import NotifyInboxSchema
@@ -18,13 +18,12 @@ class NotifyInboxLink(Link):
 
 
 class NotifyInboxPermissionPolicy(BasePermissionPolicy):
-
-    can_create = [AnyUser(), SystemProcess()]
-    can_read = [AnyUser(), SystemProcess()]
-    can_search = [AnyUser(), SystemProcess()]
-    can_update = [Administration(), SystemProcess()]
-    can_delete = [AnyUser(), SystemProcess()]
-    can_disable = [Administration(), SystemProcess()]
+    can_create = [Coarnotify(), SystemProcess()]
+    can_read = [Coarnotify(), SystemProcess()]
+    can_search = [Coarnotify(), SystemProcess()]
+    can_update = [Coarnotify(), SystemProcess()]
+    can_delete = [Coarnotify(), SystemProcess()]
+    can_disable = [Coarnotify(), SystemProcess()]
 
 
 class NotifyInboxServiceConfig(RecordServiceConfig):
