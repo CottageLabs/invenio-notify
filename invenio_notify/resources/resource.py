@@ -1,10 +1,6 @@
-from flask_resources import Resource
-
-
 from flask import g
 from flask_resources import Resource, resource_requestctx, response_handler, route
 from invenio_records_resources.resources.records.resource import (
-    request_data,
     request_headers,
     request_search_args,
     request_view_args,
@@ -31,22 +27,6 @@ class NotifyInboxResource(ErrorHandlersMixin, Resource):
             # route("PUT", routes["item"], self.update),
         ]
 
-    # @request_view_args
-    # @request_data
-    # @response_handler()
-    # def update(self):
-    #     """Update a raw notification."""
-    #     raw_noti = self.service.update(
-    #         id=resource_requestctx.view_args["rawnoti_id"],
-    #         identity=g.identity,
-    #         data=resource_requestctx.data,
-    #     )
-    #
-    #     # disable expired notifications
-    #     self.service.disable_expired(identity=g.identity)
-    #
-    #     return raw_noti.to_dict(), 200
-
     @request_view_args
     @response_handler()
     def read(self):
@@ -68,28 +48,14 @@ class NotifyInboxResource(ErrorHandlersMixin, Resource):
         )
         return result_list.to_dict(), 200
 
-    # @request_data
-    # @response_handler()
-    # def create(self):
-    #     """Create a raw notification."""
-    #     raw_noti = self.service.create(
-    #         g.identity,
-    #         resource_requestctx.data or {},
-    #         )
-    #
-    #     # disable expired notifications
-    #     self.service.disable_expired(identity=g.identity)
-    #
-    #     return raw_noti.to_dict(), 201
-
     @request_headers
     @request_view_args
     def delete(self):
         """Delete a raw notification."""
         notify_inbox_id = resource_requestctx.view_args["notify_inbox_id"]
-        raw_noti = self.service.delete(
+        result_item = self.service.delete(
             id=notify_inbox_id,
             identity=g.identity,
         )
 
-        return raw_noti.to_dict(), 204
+        return result_item.to_dict(), 204

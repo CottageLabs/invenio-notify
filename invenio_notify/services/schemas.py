@@ -1,16 +1,13 @@
-from datetime import datetime, timezone
+from datetime import timezone
 
 from invenio_records_resources.services.records.schema import BaseRecordSchema
 from marshmallow import fields, pre_load
-from marshmallow_utils.fields import SanitizedHTML, TZDateTime
+from marshmallow_utils.fields import TZDateTime
 
 
 class NotifyInboxSchema(BaseRecordSchema):
-    """Schema for banners."""
-
     raw = fields.String(required=True)
 
-    # KTODO duplicated ?
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 

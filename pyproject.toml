@@ -33,7 +33,6 @@ invenio_notify_rest = "invenio_notify.blueprints:rest_blueprint"
 oauth_noti = "invenio_notify.scopes:inbox_scope"
 
 [project.entry-points."invenio_administration.views"]
-notify_pg2 = "invenio_notify.views:Pg2View"
 notify_inbox_list = "invenio_notify.views:NotifyInboxListView"
 notify_inbox_detail = "invenio_notify.views:NotifyInboxDetailView"
 

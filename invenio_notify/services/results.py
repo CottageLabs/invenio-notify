@@ -1,4 +1,4 @@
-from invenio_records_resources.services.records.results import RecordItem, RecordList
+from invenio_records_resources.services.records.results import RecordList
 
 try:
     # flask_sqlalchemy<3.0.0
@@ -8,22 +8,21 @@ except ImportError:
     from flask_sqlalchemy.pagination import Pagination
 
 
-# KTODO rename
-class Pg1List(RecordList):
+class NotifyInboxRecordList(RecordList):
 
     def __init__(
-        self,
-        service,
-        identity,
-        banners,
-        params=None,
-        links_tpl=None,
-        links_item_tpl=None,
-        schema=None,
+            self,
+            service,
+            identity,
+            results,
+            params=None,
+            links_tpl=None,
+            links_item_tpl=None,
+            schema=None,
     ):
         """Constructor."""
         super().__init__(
-            service, identity, banners, params, links_tpl, links_item_tpl, schema
+            service, identity, results, params, links_tpl, links_item_tpl, schema
         )
 
     @property
@@ -49,7 +48,6 @@ class Pg1List(RecordList):
             yield projection
 
     def to_dict(self):
-        """Return result as a dictionary."""
         res = {
             "hits": {
                 "hits": list(self.hits),
@@ -65,7 +63,6 @@ class Pg1List(RecordList):
 
     @property
     def total(self):
-        """Get total number of banners."""
         return (
             self._results.total
             if isinstance(self._results, Pagination)
@@ -73,7 +70,6 @@ class Pg1List(RecordList):
         )
 
     def results(self):
-        """Get iterable banners list."""
         return (
             self._results.items
             if isinstance(self._results, Pagination)

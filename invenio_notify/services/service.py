@@ -3,26 +3,6 @@ from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 
 
-class Pg1Service(RecordService):
-
-    def search(self, identity, params=None, search_preference=None, expand=False, **kwargs):
-        params = params or {}
-        # search_params = map_search_params(self.config.search, params)
-        search_params = {}
-
-        filters = []
-        banners = self.record_cls.search(search_params, filters)
-
-        return self.result_list(
-            self,
-            identity,
-            banners,
-            params=search_params,
-            links_tpl=LinksTemplate(self.config.links_search, context={"args": params}),
-            links_item_tpl=self.links_item_tpl,
-        )
-
-
 class NotifyInboxService(RecordService):
 
     def search(self, identity, params=None, search_preference=None, expand=False, **kwargs):
@@ -78,9 +58,8 @@ class NotifyInboxService(RecordService):
             raise_errors=raise_errors,
         )
 
-        # create the banner with the specified data
-        banner = self.record_cls.create(valid_data)
+        record = self.record_cls.create(valid_data)
 
         return self.result_item(
-            self, identity, banner, links_tpl=self.links_item_tpl, errors=errors
+            self, identity, record, links_tpl=self.links_item_tpl, errors=errors
         )

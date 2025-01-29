@@ -5,16 +5,16 @@ from invenio_records_resources.services import Link, RecordServiceConfig
 from invenio_records_resources.services.records.links import pagination_links
 
 from invenio_notify.records.models import NotifyInboxModel
-from invenio_notify.services.results import Pg1List
+from invenio_notify.services.results import NotifyInboxRecordList
 from invenio_notify.services.schemas import NotifyInboxSchema
 
 
 class NotifyInboxLink(Link):
 
     @staticmethod
-    def vars(banner, vars):
+    def vars(record, vars):
         """Variables for the URI template."""
-        vars.update({"id": banner.id})
+        vars.update({"id": record.id})
 
 
 class NotifyInboxPermissionPolicy(BasePermissionPolicy):
@@ -30,7 +30,7 @@ class NotifyInboxPermissionPolicy(BasePermissionPolicy):
 class NotifyInboxServiceConfig(RecordServiceConfig):
     """Service factory configuration."""
 
-    result_list_cls = Pg1List
+    result_list_cls = NotifyInboxRecordList
     record_cls = NotifyInboxModel
     schema = NotifyInboxSchema
 

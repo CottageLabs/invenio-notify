@@ -4,7 +4,6 @@ from flask import g
 from invenio_administration.views.base import (
     AdminResourceListView, AdminResourceDetailView,
 )
-from invenio_administration.views.base import AdminView
 from invenio_i18n import lazy_gettext as _
 from invenio_oauth2server import require_oauth_scopes, require_api_auth
 
@@ -13,17 +12,6 @@ from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARN
 from invenio_notify.blueprints import rest_blueprint
 from invenio_notify.scopes import inbox_scope
 from invenio_notify.services.service import NotifyInboxService
-
-
-class Pg2View(AdminView):
-    """ TOBEREMOVE for study only """
-    template = "invenio_notify/pg2.html"
-    category = "Playground cat"
-    name = "playground"
-    url = "/playground"
-    icon = "home"
-    title = "Playground"
-    menu_label = "Playground"
 
 
 class NotifyInboxListView(AdminResourceListView):
@@ -50,7 +38,6 @@ class NotifyInboxListView(AdminResourceListView):
         "updated": {"text": _("Updated"), "order": 4, "width": 2},
     }
 
-    # create_view_name = "rawnoti_create"
     create_view_name = None
 
     search_config_name = "NOTIFY_SEARCH"
@@ -85,32 +72,6 @@ class NotifyInboxDetailView(AdminResourceDetailView):
     }
 
 
-@rest_blueprint.route("/hello")
-def hello():
-    # TOBEREMOVE
-    return "Hello, World!"
-
-
-# TOBEREMOVE
-@rest_blueprint.route("/inbox-example", methods=['POST'])
-def inbox_example():
-    """
-    Notify inbox for COAR notifications
-    input data will be save as raw data in the database
-    """
-
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 400
-
-    raw = request.get_json()
-
-    print(f'use input raw: {raw}')
-    notify_inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
-    notify_inbox_service.create(g.identity, {"raw": json.dumps(raw)})
-
-    return "inbox Done"
-
-
 @rest_blueprint.route("/inbox", methods=['POST'])
 @require_api_auth()
 @require_oauth_scopes(inbox_scope.id)
@@ -141,17 +102,6 @@ def inbox():
 class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
 
     def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
-        """
-        Process an incoming notification object in the following way:
-
-        1. Generate a name for the notification based on the timestamp and a random UUID
-        2. Write the notification JSON-LD  to a file in the store directory
-        3. Return a receipt for the notification using the configured response status and a location pointing to the file
-
-        :param notification:
-        :return:
-        """
-
         print('called notification_received')
 
         raw = notification.to_jsonld()
