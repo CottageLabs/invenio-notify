@@ -2,19 +2,39 @@
 name = "invenio-notify"
 version = "0.0.1"
 requires-python = ">=3.10"
-classifiers = [ 
-"Development Status :: 3 - Alpha", 
-"Programming Language :: Python :: 3", 
-"License :: OSI Approved :: MIT License",
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
 ]
 dependencies = []
 [[project.authors]]
 name = "someone"
 
 [build-system]
-requires = [ "setuptools",]
+requires = ["setuptools", ]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
+
+[project.entry-points]
+"invenio_base.api_apps" = { invenio_notify = "invenio_notify.ext:InvenioNotify" }
+"invenio_base.apps" = { invenio_notify = "invenio_notify.ext:InvenioNotify" }
+
+"invenio_db.alembic" = { invenio_notify = "invenio_notify:alembic" }
+"invenio_db.models" = { invenio_notify = "invenio_notify.records.models" }
+
+[project.entry-points."invenio_base.api_blueprints"]
+invenio_notify = "invenio_notify.views:create_notify_inbox_api_bp"
+invenio_notify_rest = "invenio_notify.blueprints:rest_blueprint"
+
+
+[project.entry-points."invenio_oauth2server.scopes"]
+oauth_noti = "invenio_notify.scopes:inbox_scope"
+
+[project.entry-points."invenio_administration.views"]
+notify_pg2 = "invenio_notify.views:Pg2View"
+notify_inbox_list = "invenio_notify.views:NotifyInboxListView"
+notify_inbox_detail = "invenio_notify.views:NotifyInboxDetailView"
 
 [tool.setuptools.packages.find]
