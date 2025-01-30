@@ -12,11 +12,14 @@ class NotifyInboxModel(db.Model, Timestamp):
 
     raw = db.Column(db.Text, nullable=False)
 
+    record_id = db.Column(db.Text, nullable=False)
+
     @classmethod
     def create(cls, data):
         with db.session.begin_nested():
             obj = cls(
                 raw=data.get("raw"),
+                record_id=data.get("record_id"),
             )
             db.session.add(obj)
 

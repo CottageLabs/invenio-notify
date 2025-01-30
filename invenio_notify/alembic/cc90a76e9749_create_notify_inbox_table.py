@@ -22,6 +22,7 @@ def upgrade() -> None:
         sa.Column("updated", sa.DateTime(), nullable=False),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("raw", sa.Text(), nullable=False),
+        sa.Column("record_id", sa.Text(), nullable=False),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_notify_inbox")),
     )
 

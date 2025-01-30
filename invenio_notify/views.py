@@ -34,8 +34,9 @@ class NotifyInboxListView(AdminResourceListView):
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "raw": {"text": _("Raw"), "order": 2, "width": 7},
-        "created": {"text": _("Created"), "order": 3, "width": 2},
-        "updated": {"text": _("Updated"), "order": 4, "width": 2},
+        "record_id": {"text": _("Record ID"), "order": 3, "width": 1},
+        "created": {"text": _("Created"), "order": 4, "width": 2},
+        "updated": {"text": _("Updated"), "order": 5, "width": 2},
     }
 
     create_view_name = None
@@ -67,15 +68,16 @@ class NotifyInboxDetailView(AdminResourceDetailView):
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "raw": {"text": _("Raw"), "order": 2, "width": 7},
-        "created": {"text": _("Created"), "order": 3, "width": 2},
-        "updated": {"text": _("Updated"), "order": 4, "width": 2},
+        "record_id": {"text": _("Record ID"), "order": 3, "width": 1},
+        "created": {"text": _("Created"), "order": 4, "width": 2},
+        "updated": {"text": _("Updated"), "order": 5, "width": 2},
     }
 
 
-@rest_blueprint.route("/inbox", methods=['POST'])
+@rest_blueprint.route("/inbox/<record_id>", methods=['POST'])
 @require_api_auth()
 @require_oauth_scopes(inbox_scope.id)
-def inbox():
+def inbox(record_id):
     """
     Notify inbox for COAR notifications
     input data will be save as raw data in the database
@@ -85,6 +87,7 @@ def inbox():
         return jsonify({"error": "Request must be JSON"}), 400
 
     raw = request.get_json()
+    raw['record_id'] = record_id
 
     server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
     try:
@@ -105,10 +108,11 @@ class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
         print('called notification_received')
 
         raw = notification.to_jsonld()
+        record_id = raw.pop('record_id')
 
         print(f'use input raw: {raw}')
         inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
-        inbox_service.create(g.identity, {"raw": json.dumps(raw)})
+        inbox_service.create(g.identity, {"raw": json.dumps(raw), 'record_id': record_id})
 
         location = 'http://127.0.0.1/tobeimplemented'  # KTODO implement this
         return COARNotifyReceipt(COARNotifyReceipt.CREATED, location)
