@@ -36,8 +36,7 @@ class NotifyInboxServiceConfig(RecordServiceConfig):
     # result_item_cls = BannerItem
     # result_list_cls = BannerList
     permission_policy_cls = NotifyInboxPermissionPolicy
-    # schema = BannerSchema
-    #
+
     # # Search configuration
     # search = SearchOptions
     #
