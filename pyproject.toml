@@ -8,6 +8,14 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = []
+
+[project.optional-dependencies]
+test = [
+    "pytest~=7.1",
+    "pytest-invenio~=3.0",
+    "pytest-black~=0.6.0",
+]
+
 [[project.authors]]
 name = "someone"
 
