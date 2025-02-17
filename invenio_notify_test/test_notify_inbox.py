@@ -2,7 +2,7 @@ import pytest
 
 from invenio_notify.errors import NotExistsError
 from invenio_notify.records.models import NotifyInboxModel
-from invenio_notify.services.conf import NotifyInboxServiceConfig
+from invenio_notify.services.config import NotifyInboxServiceConfig
 from invenio_notify.services.service import NotifyInboxService
 
 
