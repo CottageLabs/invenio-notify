@@ -9,7 +9,8 @@
             "type": "search_as_you_type"
           }
         }
-      }, {
+      },
+      {
         "i18n_description": {
           "path_match": "description.*",
           "match_mapping_type": "string",
@@ -48,61 +49,12 @@
           }
         }
       },
-      "type": {
-        "type": "object",
+      "metadata": {
         "properties": {
-          "pid_type": {
-            "type": "keyword"
-          },
-          "id": {
+          "record_id": {
             "type": "keyword"
           }
         }
-      },
-      "pid": {
-        "type": "object",
-        "properties": {
-          "pk": {
-            "type": "integer"
-          },
-          "pid_type": {
-            "type": "keyword"
-          },
-          "obj_type": {
-            "type": "keyword"
-          },
-          "status": {
-            "type": "keyword"
-          }
-        }
-      },
-      "title_sort": {
-        "type": "keyword"
-      },
-      "title": {
-        "type": "object",
-        "dynamic": "true",
-        "properties": {
-          "en": {
-            "type": "search_as_you_type",
-            "copy_to": "title_sort"
-          }
-        }
-      },
-      "description": {
-        "type": "object",
-        "dynamic": "true"
-      },
-      "icon": {
-        "type": "keyword",
-        "index": "false"
-      },
-      "tags": {
-        "type": "keyword"
-      },
-      "props": {
-        "type": "object",
-        "dynamic": "true"
       }
     }
   }

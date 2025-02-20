@@ -1,8 +1,12 @@
-from datetime import timezone
+from datetime import timezone, datetime
 
 from invenio_records_resources.services.records.schema import BaseRecordSchema
-from marshmallow import fields, pre_load
-from marshmallow_utils.fields import TZDateTime
+from marshmallow import fields, Schema
+from marshmallow_utils.fields import TZDateTime, NestedAttribute
+
+
+def create_current_utc_datetime():
+    return datetime.now(timezone.utc)
 
 
 class NotifyInboxSchema(BaseRecordSchema):
@@ -12,11 +16,21 @@ class NotifyInboxSchema(BaseRecordSchema):
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
-    @pre_load
-    def change_none_to_string(self, data, **kwargs):
-        """Fix for empty strings not in line with allow_none=True."""
-        for field in data:
-            if field == "end_datetime" or field == "category":
-                if data[field] == "":
-                    data[field] = None
-        return data
+
+class EndorsementMetadataSchema(Schema):
+    # KTODO choice fields
+    record_id = fields.String(required=True)
+
+    created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True,
+                         load_default=create_current_utc_datetime,
+                         dump_default=create_current_utc_datetime,
+                         )
+    updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True,
+                         load_default=create_current_utc_datetime,
+                         dump_default=create_current_utc_datetime,
+                         )
+
+
+class EndorsementSchema(BaseRecordSchema):
+    # KTODO choice fields
+    metadata = NestedAttribute(EndorsementMetadataSchema, required=True)

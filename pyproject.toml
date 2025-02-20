@@ -48,3 +48,7 @@ notify_inbox_detail = "invenio_notify.views:NotifyInboxDetailView"
 coarnotify_action = "invenio_notify.permissions:coarnotify_action"
 
 [tool.setuptools.packages.find]
+
+
+[project.entry-points."invenio_search.mappings"]
+endorsement = "invenio_notify.records.mappings"

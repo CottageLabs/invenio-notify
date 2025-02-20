@@ -63,3 +63,7 @@ class NotifyInboxService(RecordService):
         return self.result_item(
             self, identity, record, links_tpl=self.links_item_tpl, errors=errors
         )
+
+
+class EndorsementService(RecordService):
+    pass

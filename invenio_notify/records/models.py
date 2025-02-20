@@ -1,11 +1,30 @@
 from invenio_db import db
+from invenio_records.models import RecordMetadataBase
 from sqlalchemy import or_
 from sqlalchemy_utils.models import Timestamp
 
 from invenio_notify.errors import NotExistsError
 
 
-class NotifyInboxModel(db.Model, Timestamp):
+class DbOperationMixin:
+    @classmethod
+    def commit(cls):
+        db.session.commit()
+
+    @classmethod
+    def delete(cls, obj):
+        with db.session.begin_nested():
+            db.session.delete(obj)
+
+    @classmethod
+    def get(cls, id):
+        if obj := db.session.get(cls, id):
+            return obj
+
+        raise NotExistsError(id)
+
+
+class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     __tablename__ = "notify_inbox"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -26,10 +45,6 @@ class NotifyInboxModel(db.Model, Timestamp):
         return obj
 
     @classmethod
-    def commit(cls):
-        db.session.commit()
-
-    @classmethod
     def search(cls, search_params, filters):
         if filters == []:
             results = db.session.query(NotifyInboxModel).filter()
@@ -38,14 +53,10 @@ class NotifyInboxModel(db.Model, Timestamp):
 
         return results
 
-    @classmethod
-    def get(cls, id):
-        if obj := db.session.get(cls, id):
-            return obj
 
-        raise NotExistsError(id)
+class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
+    __tablename__ = "endorsement_metadata"
 
-    @classmethod
-    def delete(cls, obj):
+    def create(self):
         with db.session.begin_nested():
-            db.session.delete(obj)
+            db.session.add(self)
