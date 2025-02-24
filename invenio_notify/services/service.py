@@ -1,6 +1,12 @@
+import json
+from flask import current_app
+from flask import g
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
+
+from coarnotify.core.notify import NotifyPattern
+from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
 
 
 class NotifyInboxService(RecordService):
@@ -63,6 +69,32 @@ class NotifyInboxService(RecordService):
         return self.result_item(
             self, identity, record, links_tpl=self.links_item_tpl, errors=errors
         )
+
+    def receive_notification(self, record_id: str, raw: dict):
+        raw['record_id'] = record_id
+
+        # TODO use RecordIdProviderV2 to validate record_id
+        server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
+        print(f'input announcement:')
+        result = server.receive(raw, validate=True)
+        print(f'result: {result}')
+        return result
+
+
+class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
+
+    def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
+        print('called notification_received')
+
+        raw = notification.to_jsonld()
+        record_id = raw.pop('record_id')
+
+        print(f'use input raw: {raw}')
+        inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
+        inbox_service.create(g.identity, {"raw": json.dumps(raw), 'record_id': record_id})
+
+        location = 'http://127.0.0.1/tobeimplemented'  # KTODO implement this
+        return COARNotifyReceipt(COARNotifyReceipt.CREATED, location)
 
 
 class EndorsementService(RecordService):

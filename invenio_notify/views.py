@@ -1,14 +1,11 @@
-import json
 from flask import current_app, request, jsonify
-from flask import g
 from invenio_administration.views.base import (
     AdminResourceListView, AdminResourceDetailView,
 )
 from invenio_i18n import lazy_gettext as _
 from invenio_oauth2server import require_oauth_scopes, require_api_auth
 
-from coarnotify.core.notify import NotifyPattern
-from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer, COARNotifyServerError
+from coarnotify.server import COARNotifyServerError
 from invenio_notify.blueprints import rest_blueprint
 from invenio_notify.scopes import inbox_scope
 from invenio_notify.services.service import NotifyInboxService
@@ -86,35 +83,14 @@ def inbox(record_id):
     if not request.is_json:
         return jsonify({"error": "Request must be JSON"}), 400
 
-    raw = request.get_json()
-    raw['record_id'] = record_id
+    inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
 
-    # TODO use RecordIdProviderV2 to validate record_id
-
-    server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
     try:
         print(f'input announcement:')
-        # rich.print_json(data=announcement.to_jsonld(), highlight=True, indent=4, )
-        result = server.receive(raw, validate=True)
+        result = inbox_service.receive_notification(record_id, request.get_json())
         print(f'result: {result}')
         return jsonify({"message": "inbox Done", "location": result.location,
                         "status": result.status}), result.status
     except COARNotifyServerError as e:
         print(f'Error: {e.message}')
         return jsonify({"error": e.message}), e.status
-
-
-class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
-
-    def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
-        print('called notification_received')
-
-        raw = notification.to_jsonld()
-        record_id = raw.pop('record_id')
-
-        print(f'use input raw: {raw}')
-        inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
-        inbox_service.create(g.identity, {"raw": json.dumps(raw), 'record_id': record_id})
-
-        location = 'http://127.0.0.1/tobeimplemented'  # KTODO implement this
-        return COARNotifyReceipt(COARNotifyReceipt.CREATED, location)
