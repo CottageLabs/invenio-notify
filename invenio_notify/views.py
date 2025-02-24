@@ -89,6 +89,8 @@ def inbox(record_id):
     raw = request.get_json()
     raw['record_id'] = record_id
 
+    # TODO use RecordIdProviderV2 to validate record_id
+
     server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
     try:
         print(f'input announcement:')
