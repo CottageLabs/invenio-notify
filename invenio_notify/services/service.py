@@ -75,21 +75,21 @@ class NotifyInboxService(RecordService):
 
         # TODO use RecordIdProviderV2 to validate record_id
         server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
-        print(f'input announcement:')
+        current_app.logger.debug(f'input announcement:')
         result = server.receive(raw, validate=True)
-        print(f'result: {result}')
+        current_app.logger.debug(f'result: {result}')
         return result
 
 
 class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
 
     def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
-        print('called notification_received')
+        current_app.logger.debug('called notification_received')
 
         raw = notification.to_jsonld()
         record_id = raw.pop('record_id')
 
-        print(f'use input raw: {raw}')
+        current_app.logger.debug(f'client input raw: {raw}')
         inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
         inbox_service.create(g.identity, {"raw": json.dumps(raw), 'record_id': record_id})
 

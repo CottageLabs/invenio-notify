@@ -13,6 +13,11 @@ class InvenioNotify:
         if app:
             self.init_app(app)
 
+            # set logger level to debug
+            log_level = app.config.get('LOGGING_GENERAL_LEVEL')
+            if log_level:
+                app.logger.setLevel(log_level)
+
     def init_app(self, app):
         self.init_config(app)
         self.init_services(app)

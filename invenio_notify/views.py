@@ -86,11 +86,9 @@ def inbox(record_id):
     inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
 
     try:
-        print(f'input announcement:')
         result = inbox_service.receive_notification(record_id, request.get_json())
-        print(f'result: {result}')
         return jsonify({"message": "inbox Done", "location": result.location,
                         "status": result.status}), result.status
     except COARNotifyServerError as e:
-        print(f'Error: {e.message}')
+        current_app.logger.error(f'Error: {e.message}')
         return jsonify({"error": e.message}), e.status
