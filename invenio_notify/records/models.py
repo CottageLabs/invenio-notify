@@ -30,8 +30,11 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     id = db.Column(db.Integer, primary_key=True)
 
     raw = db.Column(db.Text, nullable=False)
+    """ Coar notification data as json string """
 
     record_id = db.Column(db.Text, nullable=False)
+
+    process_date = db.Column(db.DateTime, nullable=True)
 
     @classmethod
     def create(cls, data):
@@ -45,11 +48,12 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
         return obj
 
     @classmethod
-    def search(cls, search_params, filters):
-        if filters == []:
-            results = db.session.query(NotifyInboxModel).filter()
+    def search(cls, search_params=None, filters=None):
+        query = db.session.query(NotifyInboxModel)
+        if filters:
+            results = query.filter(or_(*filters))
         else:
-            results = db.session.query(NotifyInboxModel).filter(or_(*filters))
+            results = query.filter()
 
         return results
 
