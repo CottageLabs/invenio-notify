@@ -11,10 +11,10 @@ def create_notify_inbox_service():
 
 
 
-def test_create_model(db):
+def test_create_model(db, superuser_identity):
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
-    m = NotifyInboxModel.create({'raw': 'test', 'record_id': record_id})
+    m = NotifyInboxModel.create({'raw': 'test', 'record_id': record_id, 'user_id': superuser_identity.id})
     m.commit()
 
     # find record by record_id
@@ -38,7 +38,7 @@ def test_service_create(test_app, superuser_identity):
 def test_delete(test_app, superuser_identity):
     notify_inbox_serv = create_notify_inbox_service()
 
-    m = NotifyInboxModel.create({'raw': 'test', 'record_id': 'kajsdlkasjk'})
+    m = NotifyInboxModel.create({'raw': 'test', 'record_id': 'kajsdlkasjk', 'user_id': superuser_identity.id})
     assert NotifyInboxModel.query.count() == 1
     notify_inbox_serv.delete(superuser_identity, m.id)
     assert NotifyInboxModel.query.count() == 0

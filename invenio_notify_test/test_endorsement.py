@@ -1,5 +1,5 @@
-from invenio_records_resources.services.records.results import RecordList
 import json
+from invenio_records_resources.services.records.results import RecordList
 
 from invenio_notify.records.models import EndorsementMetadataModel
 from invenio_notify.records.records import EndorsementRecord
@@ -50,7 +50,6 @@ def test_service_create(db, superuser_identity):
     print(json.dumps(s.to_dict(), indent=2))
 
 
-
 def test_service_update(db, superuser_identity):
     service = EndorsementService(EndorsementServiceConfig)
 
@@ -70,20 +69,16 @@ def test_service_update(db, superuser_identity):
         }
     })
 
-
     assert EndorsementMetadataModel.query.count() == 1
 
     EndorsementRecord.index.refresh()
 
-    s: RecordList = service.search(superuser_identity)
+    s: RecordList = service.search(superuser_identity,
+                                   params={'q': 'metadata.record_id:r2'},
+                                   )
 
     print(json.dumps(s.to_dict(), indent=2))
 
     hits = list(s.hits)
 
     assert len(hits) == 1
-
-
-
-
-
