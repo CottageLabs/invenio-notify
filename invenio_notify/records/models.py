@@ -1,3 +1,4 @@
+from invenio_accounts.models import User
 from invenio_db import db
 from invenio_records.models import RecordMetadataBase
 from sqlalchemy import or_
@@ -36,12 +37,22 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
     process_date = db.Column(db.DateTime, nullable=True)
 
+    user_id = db.Column(
+        db.Integer(),
+        db.ForeignKey(User.id, ondelete="NO ACTION"),
+        nullable=False,
+        index=True,
+    )
+
+    user = db.relationship(
+        "User", backref=db.backref("inbox_messages", cascade="all, delete-orphan")
+    )
+
     @classmethod
     def create(cls, data):
         with db.session.begin_nested():
             obj = cls(
-                raw=data.get("raw"),
-                record_id=data.get("record_id"),
+                **data
             )
             db.session.add(obj)
 

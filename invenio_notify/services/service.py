@@ -57,6 +57,8 @@ class NotifyInboxService(RecordService):
     def create(self, identity, data, raise_errors=True, uow=None):
         self.require_permission(identity, "create")
 
+        data['user_id'] = identity.id
+
         # validate data
         valid_data, errors = self.schema.load(
             data,

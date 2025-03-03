@@ -32,8 +32,10 @@ class NotifyInboxListView(AdminResourceListView):
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "raw": {"text": _("Raw"), "order": 2, "width": 7},
         "record_id": {"text": _("Record ID"), "order": 3, "width": 1},
-        "created": {"text": _("Created"), "order": 4, "width": 2},
-        "updated": {"text": _("Updated"), "order": 5, "width": 2},
+        "user_id": {"text": _("User ID"), "order": 4, "width": 1},
+        "process_date": {"text": _("Process Date"), "order": 5, "width": 2},
+        "created": {"text": _("Created"), "order": 6, "width": 2},
+        "updated": {"text": _("Updated"), "order": 7, "width": 2},
     }
 
     create_view_name = None
@@ -66,8 +68,10 @@ class NotifyInboxDetailView(AdminResourceDetailView):
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "raw": {"text": _("Raw"), "order": 2, "width": 7},
         "record_id": {"text": _("Record ID"), "order": 3, "width": 1},
-        "created": {"text": _("Created"), "order": 4, "width": 2},
-        "updated": {"text": _("Updated"), "order": 5, "width": 2},
+        "user_id": {"text": _("User ID"), "order": 4, "width": 1},
+        "process_date": {"text": _("Process Date"), "order": 5, "width": 2},
+        "created": {"text": _("Created"), "order": 6, "width": 2},
+        "updated": {"text": _("Updated"), "order": 7, "width": 2},
     }
 
 

@@ -1,7 +1,7 @@
 from datetime import timezone, datetime
 
 from invenio_records_resources.services.records.schema import BaseRecordSchema
-from marshmallow import fields, Schema
+from marshmallow import fields, Schema, pre_load
 from marshmallow_utils.fields import TZDateTime, NestedAttribute
 
 
@@ -12,6 +12,8 @@ def create_current_utc_datetime():
 class NotifyInboxSchema(BaseRecordSchema):
     raw = fields.String(required=True)
     record_id = fields.String(required=True)
+
+    user_id = fields.Integer(required=True)
 
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)

@@ -7,10 +7,8 @@
 
 """add process_date"""
 
-from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import mysql
-from sqlalchemy.dialects import postgresql
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = '1740578602'
@@ -23,7 +21,32 @@ def upgrade():
     """Upgrade database."""
     op.add_column('notify_inbox', sa.Column('process_date', sa.DateTime(), nullable=True))
 
+    # Add the user_id column with foreign key constraint
+    op.add_column('notify_inbox', sa.Column('user_id', sa.Integer(), nullable=False))
+
+    # Add foreign key constraint with ON DELETE CASCADE
+    op.create_foreign_key(
+        'fk_notify_inbox_user',  # Constraint name
+        'notify_inbox',  # Table name
+        'accounts_user',  # Referenced table
+        ['user_id'],  # Column in notify_inbox
+        ['id'],  # Column in users
+        ondelete='NO ACTION'  # Enables cascade delete
+    )
+
+    # Create an index on user_id for performance
+    op.create_index('idx_notify_inbox_user_id', 'notify_inbox', ['user_id'])
+
 
 def downgrade():
     """Downgrade database."""
     op.drop_column('notify_inbox', 'process_date')
+
+    # Drop the foreign key constraint first
+    op.drop_constraint('fk_notify_inbox_user', 'notify_inbox', type_='foreignkey')
+
+    # Drop the index
+    op.drop_index('idx_notify_inbox_user_id', table_name='notify_inbox')
+
+    # Remove the column
+    op.drop_column('notify_inbox', 'user_id')
