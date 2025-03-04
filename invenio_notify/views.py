@@ -4,6 +4,8 @@ from invenio_administration.views.base import (
 )
 from invenio_i18n import lazy_gettext as _
 from invenio_oauth2server import require_oauth_scopes, require_api_auth
+from invenio_pidstore.errors import PIDDoesNotExistError
+from invenio_rdm_records.services import RDMRecordService
 
 from coarnotify.server import COARNotifyServerError
 from invenio_notify.blueprints import rest_blueprint
@@ -84,8 +86,18 @@ def inbox(record_id):
     input data will be save as raw data in the database
     """
 
+    # TODO record id might be provided from json.object.id
+
     if not request.is_json:
         return jsonify({"error": "Request must be JSON"}), 400
+
+    # check if record exists
+    try:
+        records_service: RDMRecordService = current_app.extensions["invenio-rdm-records"].records_service
+        records_service.record_cls.pid.resolve(record_id)
+    except PIDDoesNotExistError as e:
+        current_app.logger.debug(f'inbox PIDDoesNotExistError {record_id}')
+        return jsonify({"error": "Record not found"}), 404
 
     inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
 
