@@ -77,34 +77,28 @@ class NotifyInboxDetailView(AdminResourceDetailView):
     }
 
 
-@rest_blueprint.route("/inbox/<record_id>", methods=['POST'])
+@rest_blueprint.route("/inbox", methods=['POST'])
 @require_api_auth()
 @require_oauth_scopes(inbox_scope.id)
-def inbox(record_id):
+def inbox():
     """
     Notify inbox for COAR notifications
     input data will be save as raw data in the database
     """
 
-    # TODO record id might be provided from json.object.id
-
     if not request.is_json:
         return jsonify({"error": "Request must be JSON"}), 400
 
-    # check if record exists
-    try:
-        records_service: RDMRecordService = current_app.extensions["invenio-rdm-records"].records_service
-        records_service.record_cls.pid.resolve(record_id)
-    except PIDDoesNotExistError as e:
-        current_app.logger.debug(f'inbox PIDDoesNotExistError {record_id}')
-        return jsonify({"error": "Record not found"}), 404
 
     inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
 
     try:
-        result = inbox_service.receive_notification(record_id, request.get_json())
+        result = inbox_service.receive_notification(request.get_json())
         return jsonify({"message": "inbox Done", "location": result.location,
                         "status": result.status}), result.status
     except COARNotifyServerError as e:
         current_app.logger.error(f'Error: {e.message}')
         return jsonify({"error": e.message}), e.status
+    except PIDDoesNotExistError as e:
+        current_app.logger.debug(f'inbox PIDDoesNotExistError {e.pid_type}:{e.pid_value}')
+        return jsonify({"error": "Record not found"}), 404

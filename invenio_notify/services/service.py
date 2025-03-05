@@ -1,12 +1,17 @@
 import json
+import regex
+import urllib.parse
 from flask import current_app
 from flask import g
 from invenio_db.uow import unit_of_work
+from invenio_rdm_records.services import RDMRecordService
 from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
+
+re_url_record_id = regex.compile(r'/records/(.*?)$')
 
 
 class NotifyInboxService(RecordService):
@@ -72,15 +77,18 @@ class NotifyInboxService(RecordService):
             self, identity, record, links_tpl=self.links_item_tpl, errors=errors
         )
 
-    def receive_notification(self, record_id: str, raw: dict):
-        raw['record_id'] = record_id
-
-        # TODO use RecordIdProviderV2 to validate record_id
+    def receive_notification(self, notification_raw: dict):
         server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
         current_app.logger.debug(f'input announcement:')
-        result = server.receive(raw, validate=True)
+        result = server.receive(notification_raw, validate=True)
         current_app.logger.debug(f'result: {result}')
         return result
+
+
+def get_record_id_by_record_url(record_url: str) -> str:
+    url_path = urllib.parse.urlparse(record_url).path
+    record_id = re_url_record_id.match(url_path)
+    return record_id and record_id.group(1)
 
 
 class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
@@ -89,7 +97,11 @@ class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
         current_app.logger.debug('called notification_received')
 
         raw = notification.to_jsonld()
-        record_id = raw.pop('record_id')
+        record_id = get_record_id_by_record_url(raw['context']['id'])
+
+        # check if record exists
+        records_service: RDMRecordService = current_app.extensions["invenio-rdm-records"].records_service
+        records_service.record_cls.pid.resolve(record_id)  # raises PIDDoesNotExistError if not found
 
         current_app.logger.debug(f'client input raw: {raw}')
         inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
