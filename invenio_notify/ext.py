@@ -2,8 +2,8 @@ from invenio_notify import config
 from invenio_notify.blueprints import blueprint
 from invenio_notify.resources.config import NotifyInboxResourceConfig
 from invenio_notify.resources.resource import NotifyInboxResource
-from invenio_notify.services.config import NotifyInboxServiceConfig
-from invenio_notify.services.service import NotifyInboxService
+from invenio_notify.services.config import NotifyInboxServiceConfig, EndorsementServiceConfig
+from invenio_notify.services.service import NotifyInboxService, EndorsementService
 
 
 class InvenioNotify:
@@ -34,6 +34,7 @@ class InvenioNotify:
     def init_services(self, app):
         """Initialize the services for notifications."""
         self.notify_inbox_service = NotifyInboxService(config=NotifyInboxServiceConfig)
+        self.endorsement_service = EndorsementService(config=EndorsementServiceConfig.build(app))
 
     def init_resources(self, app):
         """Initialize the resources for notifications."""
