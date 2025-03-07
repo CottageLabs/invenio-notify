@@ -124,3 +124,150 @@ def admin_role_need(db):
     db.session.commit()
 
     return action_role.need
+
+import json
+import pytest
+from invenio_rdm_records.records import RDMParent, RDMRecord
+from invenio_notify.records.models import NotifyInboxModel
+
+
+@pytest.fixture
+def minimal_record():
+    """Minimal record data as dict coming from the external world."""
+    return {
+        "pids": {},
+        "access": {
+            "record": "public",
+            "files": "public",
+        },
+        "files": {
+            "enabled": False,  # Most tests don't care about files
+        },
+        "metadata": {
+            "creators": [
+                {
+                    "person_or_org": {
+                        "family_name": "Brown",
+                        "given_name": "Troy",
+                        "type": "personal",
+                    }
+                },
+                {
+                    "person_or_org": {
+                        "name": "Troy Inc.",
+                        "type": "organizational",
+                    },
+                },
+            ],
+            "publication_date": "2020-06-01",
+            # because DATACITE_ENABLED is True, this field is required
+            "publisher": "Acme Inc",
+            "resource_type": {"id": "image-photo"},
+            "title": "A Romans story",
+        },
+    }
+
+
+def prepare_test_rdm_record(db, record_data):
+    parent = RDMParent.create({})
+    record = RDMRecord.create(record_data, parent=parent)
+    db.session.commit()
+    return record
+
+
+@pytest.fixture
+def create_rdm_record(db, minimal_record):
+    """Create an RDM record and return its ID."""
+    parent = RDMParent.create({})
+    record = RDMRecord.create(minimal_record, parent=parent)
+    db.session.commit()
+    return str(record.id)
+
+
+def create_endorsement_service_data(record_id, inbox_id, user_id):
+    return {
+        'metadata': {
+            'record_id': record_id
+        },
+        'record_id': record_id,
+        'reviewer_id': 'reviewer-123',
+        'review_type': 'endorsement',
+        'user_id': user_id,
+        'inbox_id': inbox_id,
+    }
+
+
+@pytest.fixture
+def notification_data(create_rdm_record, app):
+    """Create notification data with a real record ID."""
+    record_id = create_rdm_record
+    server_name = app.config.get("SERVER_NAME", "localhost:5000")
+    
+    return {
+        "id": "http://example.org/notifications/1",
+        "type": ["Announce", "Review"],
+        "actor": {
+            "id": "http://example.org/users/reviewer-123",
+            "name": "Reviewer Name"
+        },
+        "context": {
+            "id": f"http://{server_name}/api/records/{record_id}",
+            "type": "Document"
+        },
+        "object": {
+            "id": "http://example.org/endorsements/1",
+            "type": "Endorsement"
+        }
+    }
+
+
+@pytest.fixture
+def notification_data_unknown_type(notification_data):
+    """Create notification data with unknown type."""
+    data = notification_data.copy()
+    data["type"] = ["Announce", "UnknownType"]
+    return data
+
+
+@pytest.fixture
+def notification_data_invalid_record(app):
+    """Create notification data with a non-existent record ID."""
+    server_name = app.config.get("SERVER_NAME", "localhost:5000")
+    
+    return {
+        "id": "http://example.org/notifications/1",
+        "type": ["Announce", "Review"],
+        "actor": {
+            "id": "http://example.org/users/reviewer-123",
+            "name": "Reviewer Name"
+        },
+        "context": {
+            "id": f"http://{server_name}/api/records/non-existent-id",
+            "type": "Document"
+        },
+        "object": {
+            "id": "http://example.org/endorsements/1",
+            "type": "Endorsement"
+        }
+    }
+
+
+@pytest.fixture
+def notification_data_invalid_url(app):
+    """Create notification data with invalid context URL."""
+    return {
+        "id": "http://example.org/notifications/1",
+        "type": ["Announce", "Review"],
+        "actor": {
+            "id": "http://example.org/users/reviewer-123",
+            "name": "Reviewer Name"
+        },
+        "context": {
+            "id": "http://invalid-url/no-record-id",
+            "type": "Document"
+        },
+        "object": {
+            "id": "http://example.org/endorsements/1",
+            "type": "Endorsement"
+        }
+    }

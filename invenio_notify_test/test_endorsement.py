@@ -1,6 +1,4 @@
 import json
-import pytest
-from invenio_rdm_records.records import RDMParent, RDMRecord
 from invenio_rdm_records.records.models import RDMRecordMetadata
 from invenio_records_resources.services.records.results import RecordList
 
@@ -8,57 +6,15 @@ from invenio_notify.records.models import EndorsementMetadataModel, NotifyInboxM
 from invenio_notify.records.records import EndorsementRecord
 from invenio_notify.services.config import EndorsementServiceConfig
 from invenio_notify.services.service import EndorsementService
-
-
-@pytest.fixture
-def minimal_record():
-    """Minimal record data as dict coming from the external world."""
-    return {
-        "pids": {},
-        "access": {
-            "record": "public",
-            "files": "public",
-        },
-        "files": {
-            "enabled": False,  # Most tests don't care about files
-        },
-        "metadata": {
-            "creators": [
-                {
-                    "person_or_org": {
-                        "family_name": "Brown",
-                        "given_name": "Troy",
-                        "type": "personal",
-                    }
-                },
-                {
-                    "person_or_org": {
-                        "name": "Troy Inc.",
-                        "type": "organizational",
-                    },
-                },
-            ],
-            "publication_date": "2020-06-01",
-            # because DATACITE_ENABLED is True, this field is required
-            "publisher": "Acme Inc",
-            "resource_type": {"id": "image-photo"},
-            "title": "A Romans story",
-        },
-    }
+from invenio_notify_test.conftest import prepare_test_rdm_record, create_endorsement_service_data
 
 
 def test_a(db, minimal_record):
+    # TODO to be review
     prepare_test_rdm_record(db, minimal_record)
     for r in RDMRecordMetadata.query.all():
         print(r.id)
     print(RDMRecordMetadata.query.count())
-
-
-def prepare_test_rdm_record(db, record_data):
-    parent = RDMParent.create({})
-    record = RDMRecord.create(record_data, parent=parent)
-    db.session.commit()
-    return record
 
 
 def test_model_create(db, superuser_identity, minimal_record):
@@ -83,19 +39,6 @@ def test_model_create(db, superuser_identity, minimal_record):
 
     new_model = model.get(model.id)
     assert new_model.json == data
-
-
-def create_endorsement_service_data(record_id, inbox_id, user_id):
-    return {
-        'metadata': {
-            'record_id': record_id
-        },
-        'record_id': record_id,
-        'reviewer_id': 'reviewer-123',
-        'review_type': 'endorsement',
-        'user_id': user_id,
-        'inbox_id': inbox_id,
-    }
 
 
 def test_service_create(db, superuser_identity, minimal_record, test_app):
