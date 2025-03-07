@@ -1,6 +1,5 @@
 import json
 import regex
-import urllib.parse
 from flask import current_app
 from flask import g
 from invenio_db.uow import unit_of_work
@@ -10,6 +9,7 @@ from invenio_records_resources.services.base import LinksTemplate
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
+from invenio_notify.utils.notify_utils import get_record_id_by_record_url
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
 
@@ -83,12 +83,6 @@ class NotifyInboxService(RecordService):
         result = server.receive(notification_raw, validate=True)
         current_app.logger.debug(f'result: {result}')
         return result
-
-
-def get_record_id_by_record_url(record_url: str) -> str:
-    url_path = urllib.parse.urlparse(record_url).path
-    record_id = re_url_record_id.match(url_path)
-    return record_id and record_id.group(1)
 
 
 class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
