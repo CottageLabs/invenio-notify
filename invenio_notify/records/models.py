@@ -1,7 +1,9 @@
 from invenio_accounts.models import User
 from invenio_db import db
+from invenio_rdm_records.records.models import RDMRecordMetadata
 from invenio_records.models import RecordMetadataBase
 from sqlalchemy import or_
+from sqlalchemy_utils import UUIDType
 from sqlalchemy_utils.models import Timestamp
 
 from invenio_notify.errors import NotExistsError
@@ -71,6 +73,33 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
 class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
     __tablename__ = "endorsement_metadata"
+
+    record_id = db.Column(UUIDType, db.ForeignKey(
+        RDMRecordMetadata.id, ondelete="CASCADE",
+    ), index=True, nullable = True,)
+
+    record = db.relationship(RDMRecordMetadata, foreign_keys=[record_id])
+    """ id of the record, id that save in postgres instead of recid that used in json and /records  """
+
+    reviewer_id = db.Column(db.Text, nullable=True)
+    """ id of Review service provider (e.g. id of PCI) """
+    # TOBE to be defined contain of reviewer_id
+
+    review_type = db.Column(db.Text, nullable=True)
+    """ review or endorsement """
+
+    user_id = db.Column(
+        db.Integer(),
+        db.ForeignKey(User.id, ondelete="NO ACTION"),
+        nullable=True,
+        index=True,
+    )
+    """ user id of the sender """
+
+    inbox_id = db.Column(db.Integer, db.ForeignKey(
+        NotifyInboxModel.id, ondelete="NO ACTION"
+    ), nullable=True)
+    inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id])
 
     def create(self):
         with db.session.begin_nested():

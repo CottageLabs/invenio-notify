@@ -1,11 +1,13 @@
 from invenio_records_permissions import BasePermissionPolicy
 from invenio_records_permissions.generators import SystemProcess, AnyUser
 from invenio_records_resources.services import Link, RecordServiceConfig
+from invenio_records_resources.services.base.config import FromConfig, ConfiguratorMixin
 from invenio_records_resources.services.records.links import pagination_links
 
 from invenio_notify.permissions import Coarnotify
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify.records.records import EndorsementRecord
+from invenio_notify.services.components import DefaultEndorsementComponents
 from invenio_notify.services.links import EndorsementLink
 from invenio_notify.services.results import NotifyInboxRecordList
 from invenio_notify.services.schemas import NotifyInboxSchema, EndorsementSchema
@@ -60,7 +62,7 @@ class EndorsementPermissionPolicy(BasePermissionPolicy):
     can_disable = [AnyUser(), SystemProcess()]
 
 
-class EndorsementServiceConfig(RecordServiceConfig):
+class EndorsementServiceConfig(RecordServiceConfig, ConfiguratorMixin):
     record_cls = EndorsementRecord
     permission_policy_cls = EndorsementPermissionPolicy
 
@@ -69,3 +71,10 @@ class EndorsementServiceConfig(RecordServiceConfig):
     links_item = {
         "self": EndorsementLink("{+api}/endorsement/{id}"),   # TODO to be updated
     }
+    # components =  DefaultEndorsementComponents
+    components = FromConfig(
+        "ENDORSEMENT_SERVICE_COMPONENTS", default=DefaultEndorsementComponents
+    )
+
+
+
