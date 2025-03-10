@@ -61,6 +61,9 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
         'record_id': record_id,
         'reviewer_id': reviewer_id,
         'review_type': 'endorsement',  # Assuming this is an endorsement
+        # TODO should we use review_type of REVIEW_TYPES
+        # TODO handle type for review
+
         'user_id': user_id,
         'inbox_id': inbox_id,
     }
@@ -70,6 +73,9 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
 
 def inbox_processing():
+    # TODO handle review record
+    # TODO should we send coar notification to the user if fail or rejected
+
     records_service = current_app.extensions["invenio-rdm-records"].records_service
 
 
@@ -95,7 +101,7 @@ def inbox_processing():
 
             # Get the record using the PID resolver
             try:
-                # TODO study register_only=False
+                # TODO study register_only=False, should we use registered_only=False
                 record = records_service.record_cls.pid.resolve(record_id, registered_only=False)
                 log.info(f"Successfully retrieved record with ID: {record_id}")
 
