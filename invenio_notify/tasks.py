@@ -2,22 +2,20 @@
 import json
 import logging
 from datetime import datetime
-
-from flask import current_app, g
-from flask_principal import Identity
-from invenio_access.permissions import system_process, system_identity
+from flask import current_app
+from invenio_access.permissions import system_identity
+from invenio_db import db
 from invenio_pidstore.errors import PIDDoesNotExistError
 
 from coarnotify.factory import COARNotifyFactory
 from invenio_notify.constants import REVIEW_TYPES
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify.utils.notify_utils import get_record_id_by_record_url
-from invenio_db import db
 
 log = logging.getLogger(__name__)
 
 
-def mark_as_processed(inbox_record: db.Model , comment=None):
+def mark_as_processed(inbox_record: db.Model, comment=None):
     """
     Mark an inbox record as processed by setting its process_date to today
     and optionally adding a comment.
@@ -78,7 +76,6 @@ def inbox_processing():
 
     records_service = current_app.extensions["invenio-rdm-records"].records_service
 
-
     # Get a system identity for creating records
     # system_identity = g.identity if hasattr(g, 'identity') else current_app.extensions['invenio-accounts'].datastore.search_user(email='admin@invenio.org').identity
 
@@ -96,24 +93,23 @@ def inbox_processing():
 
         # Extract record_id from notification context id
         record_id = get_record_id_by_record_url(notification_raw['context']['id'])
-        if record_id:
-            log.info(f"Extracted record_id: {record_id} from notification {inbox_record.id}")
-
-            # Get the record using the PID resolver
-            try:
-                # TODO study register_only=False, should we use registered_only=False
-                record = records_service.record_cls.pid.resolve(record_id, registered_only=False)
-                log.info(f"Successfully retrieved record with ID: {record_id}")
-
-            except PIDDoesNotExistError:
-                log.error(f"Record with ID {record_id} not found in the system")
-                mark_as_processed(inbox_record, f"Record with ID {record_id} not found")
-                continue
-        else:
+        if not record_id:
             log.error(f"Could not extract record_id from notification {inbox_record.id}")
             mark_as_processed(inbox_record, "Could not extract record_id from notification")
             continue
 
+        log.info(f"Extracted record_id: {record_id} from notification {inbox_record.id}")
+
+        # Get the record using the PID resolver
+        try:
+            # TODO study register_only=False, should we use registered_only=False
+            record = records_service.record_cls.pid.resolve(record_id, registered_only=False)
+            log.info(f"Successfully retrieved record with ID: {record_id}")
+
+        except PIDDoesNotExistError:
+            log.error(f"Record with ID {record_id} not found in the system")
+            mark_as_processed(inbox_record, f"Record with ID {record_id} not found")
+            continue
 
         # Create endorsement record
         endorsement = create_endorsement_record(
