@@ -36,6 +36,8 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     """ Coar notification data as json string """
 
     record_id = db.Column(db.Text, nullable=False)
+    """ record id (recid) instead of object id of record """
+    # TODO use object id instead
 
     process_date = db.Column(db.DateTime, nullable=True)
 
