@@ -70,6 +70,7 @@ def superuser_identity(admin, superuser_role_need):
     identity.provides.add(superuser_role_need)
     return identity
 
+
 @pytest.fixture
 def superuser_role_need(db):
     """Store 1 role with 'superuser-access' ActionNeed.
@@ -88,6 +89,7 @@ def superuser_role_need(db):
     db.session.commit()
 
     return action_role.need
+
 
 @pytest.fixture()
 def admin(UserFixture, app, db, admin_role_need):
@@ -125,10 +127,9 @@ def admin_role_need(db):
 
     return action_role.need
 
-import json
+
 import pytest
 from invenio_rdm_records.records import RDMParent, RDMRecord
-from invenio_notify.records.models import NotifyInboxModel
 
 
 @pytest.fixture
@@ -181,7 +182,7 @@ def create_rdm_record(db, minimal_record):
     parent = RDMParent.create({})
     record = RDMRecord.create(minimal_record, parent=parent)
     db.session.commit()
-    return str(record.id)
+    return record
 
 
 def create_endorsement_service_data(record_id, inbox_id, user_id):
@@ -197,77 +198,44 @@ def create_endorsement_service_data(record_id, inbox_id, user_id):
     }
 
 
-@pytest.fixture
-def notification_data(create_rdm_record, app):
+def create_notification_data(record_id):
     """Create notification data with a real record ID."""
-    record_id = create_rdm_record
-    server_name = app.config.get("SERVER_NAME", "localhost:5000")
-    
+
     return {
-        "id": "http://example.org/notifications/1",
-        "type": ["Announce", "Review"],
+        "@context": [
+            "https://www.w3.org/ns/activitystreams",
+            "https://coar-notify.net"
+        ],
         "actor": {
-            "id": "http://example.org/users/reviewer-123",
-            "name": "Reviewer Name"
+            "id": "https://evolbiol.peercommunityin.org/coar_notify/",
+            "name": "Peer Community in Evolutionary Biology",
+            "type": "Service"
         },
         "context": {
-            "id": f"http://{server_name}/api/records/{record_id}",
-            "type": "Document"
+            "id": f"https://127.0.0.1:5000/records/{record_id}"
         },
+        "id": "urn:uuid:94ecae35-dcfd-4182-8550-22c7164fe23f",
+        "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
         "object": {
-            "id": "http://example.org/endorsements/1",
-            "type": "Endorsement"
-        }
-    }
-
-
-@pytest.fixture
-def notification_data_unknown_type(notification_data):
-    """Create notification data with unknown type."""
-    data = notification_data.copy()
-    data["type"] = ["Announce", "UnknownType"]
-    return data
-
-
-@pytest.fixture
-def notification_data_invalid_record(app):
-    """Create notification data with a non-existent record ID."""
-    server_name = app.config.get("SERVER_NAME", "localhost:5000")
-    
-    return {
-        "id": "http://example.org/notifications/1",
-        "type": ["Announce", "Review"],
-        "actor": {
-            "id": "http://example.org/users/reviewer-123",
-            "name": "Reviewer Name"
+            "id": "https://evolbiol.peercommunityin.org/articles/rec?articleId=794#review-3136",
+            "ietf:cite-as": "",
+            "type": [
+                "Page",
+                "sorg:WebPage"
+            ]
         },
-        "context": {
-            "id": f"http://{server_name}/api/records/non-existent-id",
-            "type": "Document"
+        "origin": {
+            "id": "https://evolbiol.peercommunityin.org/coar_notify/",
+            "inbox": "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
+            "type": "Service"
         },
-        "object": {
-            "id": "http://example.org/endorsements/1",
-            "type": "Endorsement"
-        }
-    }
-
-
-@pytest.fixture
-def notification_data_invalid_url(app):
-    """Create notification data with invalid context URL."""
-    return {
-        "id": "http://example.org/notifications/1",
-        "type": ["Announce", "Review"],
-        "actor": {
-            "id": "http://example.org/users/reviewer-123",
-            "name": "Reviewer Name"
+        "target": {
+            "id": "https://research-organisation.org/repository",
+            "inbox": "https://research-organisation.org/inbox/",
+            "type": "Service"
         },
-        "context": {
-            "id": "http://invalid-url/no-record-id",
-            "type": "Document"
-        },
-        "object": {
-            "id": "http://example.org/endorsements/1",
-            "type": "Endorsement"
-        }
+        "type": [
+            "Announce",
+            "coar-notify:ReviewAction"
+        ]
     }
