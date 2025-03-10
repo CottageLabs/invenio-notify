@@ -95,7 +95,8 @@ def inbox_processing():
 
             # Get the record using the PID resolver
             try:
-                record = records_service.record_cls.pid.resolve(record_id)
+                # TODO study register_only=False
+                record = records_service.record_cls.pid.resolve(record_id, registered_only=False)
                 log.info(f"Successfully retrieved record with ID: {record_id}")
 
             except PIDDoesNotExistError:
