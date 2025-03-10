@@ -3,8 +3,13 @@ from collections import namedtuple
 import pytest
 from invenio_access.models import ActionRoles, Role
 from invenio_access.permissions import superuser_access
+from invenio_access.permissions import system_identity
 from invenio_administration.permissions import administration_access_action
 from invenio_app.factory import create_app as _create_app
+from invenio_files_rest.models import Location
+from invenio_rdm_records.proxies import current_rdm_records
+from invenio_vocabularies.proxies import current_service as vocabulary_service
+from invenio_vocabularies.records.api import Vocabulary
 
 RunningApp = namedtuple(
     "RunningApp",
@@ -176,13 +181,13 @@ def prepare_test_rdm_record(db, record_data):
     return record
 
 
-@pytest.fixture
-def create_rdm_record(db, minimal_record):
-    """Create an RDM record and return its ID."""
-    parent = RDMParent.create({})
-    record = RDMRecord.create(minimal_record, parent=parent)
-    db.session.commit()
-    return record
+# @pytest.fixture
+# def create_rdm_record(db, minimal_record):
+#     """Create an RDM record and return its ID."""
+#     parent = RDMParent.create({})
+#     record = RDMRecord.create(minimal_record, parent=parent)
+#     db.session.commit()
+#     return record
 
 
 def create_endorsement_service_data(record_id, inbox_id, user_id):
@@ -239,3 +244,122 @@ def create_notification_data(record_id):
             "coar-notify:ReviewAction"
         ]
     }
+
+#
+# @pytest.fixture
+# def notification_data_unknown_type(notification_data):
+#     """Create notification data with unknown type."""
+#     data = notification_data.copy()
+#     data["type"] = ["Announce", "UnknownType"]
+#     return data
+#
+#
+# @pytest.fixture
+# def notification_data_invalid_record(app):
+#     """Create notification data with a non-existent record ID."""
+#     server_name = app.config.get("SERVER_NAME", "localhost:5000")
+#
+#     return {
+#         "id": "http://example.org/notifications/1",
+#         "type": ["Announce", "Review"],
+#         "actor": {
+#             "id": "http://example.org/users/reviewer-123",
+#             "name": "Reviewer Name"
+#         },
+#         "context": {
+#             "id": f"http://{server_name}/api/records/non-existent-id",
+#             "type": "Document"
+#         },
+#         "object": {
+#             "id": "http://example.org/endorsements/1",
+#             "type": "Endorsement"
+#         }
+#     }
+#
+#
+# @pytest.fixture
+# def notification_data_invalid_url(app):
+#     """Create notification data with invalid context URL."""
+#     return {
+#         "id": "http://example.org/notifications/1",
+#         "type": ["Announce", "Review"],
+#         "actor": {
+#             "id": "http://example.org/users/reviewer-123",
+#             "name": "Reviewer Name"
+#         },
+#         "context": {
+#             "id": "http://invalid-url/no-record-id",
+#             "type": "Document"
+#         },
+#         "object": {
+#             "id": "http://example.org/endorsements/1",
+#             "type": "Endorsement"
+#         }
+#     }
+
+# # Add any existing create_notification_data function or import it
+# def create_notification_data(recid):
+#     """Create notification data for testing."""
+#     return {
+#         "record_id": recid,
+#         "type": "endorsement",
+#         "metadata": {
+#             "key1": "value1",
+#             "key2": "value2"
+#         }
+#     }
+
+@pytest.fixture(scope="module")
+def resource_type_type(app):
+    """Resource type vocabulary type."""
+    return vocabulary_service.create_type(system_identity, "resourcetypes", "rsrct")
+
+
+@pytest.fixture(scope="module")
+def resource_type_v(app, resource_type_type):
+    """Resource type vocabulary record."""
+    vocab = vocabulary_service.create(
+        system_identity,
+        {
+            "id": "image-photo",
+            "props": {
+                "csl": "graphic",
+                "datacite_general": "Image",
+                "datacite_type": "Photo",
+                "openaire_resourceType": "25",
+                "openaire_type": "dataset",
+                "eurepo": "info:eu-repo/semantics/other",
+                "schema.org": "https://schema.org/Photograph",
+                "subtype": "image-photo",
+                "type": "image",
+                "marc21_type": "image",
+                "marc21_subtype": "photo",
+            },
+            "icon": "chart bar outline",
+            "title": {"en": "Photo"},
+            "tags": ["depositable", "linkable"],
+            "type": "resourcetypes",
+        },
+    )
+
+    Vocabulary.index.refresh()
+
+    return vocab
+
+
+@pytest.fixture
+def location(db):
+    """Create a default location for file upload."""
+    loc = Location(name='local', uri='tmpxxx', default=True)
+    db.session.add(loc)
+    db.session.commit()
+    return loc
+
+
+@pytest.fixture
+def rdm_record(db, superuser_identity, minimal_record, resource_type_v, location):
+    """Create and publish an RDM record for testing."""
+    draft = current_rdm_records.records_service.create(superuser_identity, minimal_record)
+    record = current_rdm_records.records_service.publish(superuser_identity, draft.id)
+
+    return record

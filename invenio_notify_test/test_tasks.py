@@ -1,125 +1,11 @@
 import json
-import pytest
 from datetime import datetime
-from invenio_access.permissions import system_identity
-from invenio_files_rest.models import Location
 from invenio_rdm_records.proxies import current_rdm_records
-from invenio_vocabularies.proxies import current_service as vocabulary_service
-from invenio_vocabularies.records.api import Vocabulary
 
-from conftest import create_notification_data
 from invenio_notify.records.models import NotifyInboxModel, EndorsementMetadataModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
 
-
-@pytest.fixture(scope="module")
-def resource_type_type(app):
-    """Resource type vocabulary type."""
-    return vocabulary_service.create_type(system_identity, "resourcetypes", "rsrct")
-
-
-@pytest.fixture(scope="module")
-def resource_type_v(app, resource_type_type):
-    """Resource type vocabulary record."""
-    # vocabulary_service.create(
-    #     system_identity,
-    #     {
-    #         "id": "dataset",
-    #         "icon": "table",
-    #         "props": {
-    #             "csl": "dataset",
-    #             "datacite_general": "Dataset",
-    #             "datacite_type": "",
-    #             "openaire_resourceType": "21",
-    #             "openaire_type": "dataset",
-    #             "eurepo": "info:eu-repo/semantics/other",
-    #             "schema.org": "https://schema.org/Dataset",
-    #             "subtype": "",
-    #             "type": "dataset",
-    #             "marc21_type": "dataset",
-    #             "marc21_subtype": "",
-    #         },
-    #         "title": {"en": "Dataset"},
-    #         "tags": ["depositable", "linkable"],
-    #         "type": "resourcetypes",
-    #     },
-    # )
-    #
-    # vocabulary_service.create(
-    #     system_identity,
-    #     {  # create base resource type
-    #         "id": "image",
-    #         "props": {
-    #             "csl": "figure",
-    #             "datacite_general": "Image",
-    #             "datacite_type": "",
-    #             "openaire_resourceType": "25",
-    #             "openaire_type": "dataset",
-    #             "eurepo": "info:eu-repo/semantics/other",
-    #             "schema.org": "https://schema.org/ImageObject",
-    #             "subtype": "",
-    #             "type": "image",
-    #             "marc21_type": "image",
-    #             "marc21_subtype": "",
-    #         },
-    #         "icon": "chart bar outline",
-    #         "title": {"en": "Image"},
-    #         "tags": ["depositable", "linkable"],
-    #         "type": "resourcetypes",
-    #     },
-    # )
-    #
-    # vocabulary_service.create(
-    #     system_identity,
-    #     {  # create base resource type
-    #         "id": "software",
-    #         "props": {
-    #             "csl": "figure",
-    #             "datacite_general": "Software",
-    #             "datacite_type": "",
-    #             "openaire_resourceType": "0029",
-    #             "openaire_type": "software",
-    #             "eurepo": "info:eu-repo/semantics/other",
-    #             "schema.org": "https://schema.org/SoftwareSourceCode",
-    #             "subtype": "",
-    #             "type": "image",
-    #             "marc21_type": "software",
-    #             "marc21_subtype": "",
-    #         },
-    #         "icon": "code",
-    #         "title": {"en": "Software"},
-    #         "tags": ["depositable", "linkable"],
-    #         "type": "resourcetypes",
-    #     },
-    # )
-
-    vocab = vocabulary_service.create(
-        system_identity,
-        {
-            "id": "image-photo",
-            "props": {
-                "csl": "graphic",
-                "datacite_general": "Image",
-                "datacite_type": "Photo",
-                "openaire_resourceType": "25",
-                "openaire_type": "dataset",
-                "eurepo": "info:eu-repo/semantics/other",
-                "schema.org": "https://schema.org/Photograph",
-                "subtype": "image-photo",
-                "type": "image",
-                "marc21_type": "image",
-                "marc21_subtype": "photo",
-            },
-            "icon": "chart bar outline",
-            "title": {"en": "Photo"},
-            "tags": ["depositable", "linkable"],
-            "type": "resourcetypes",
-        },
-    )
-
-    Vocabulary.index.refresh()
-
-    return vocab
+from invenio_notify_test.conftest import create_notification_data
 
 
 def test_mark_as_processed(db, superuser_identity):
@@ -138,17 +24,9 @@ def test_mark_as_processed(db, superuser_identity):
     assert isinstance(inbox.process_date, datetime)
 
 
-def test_inbox_processing_success(db, create_rdm_record, superuser_identity, minimal_record, resource_type_v):
+def test_inbox_processing_success(db, rdm_record, superuser_identity):
     """Test successful inbox processing that creates an endorsement."""
-
-    loc = Location(name='local', uri='tmpxxx', default=True)
-    db.session.add(loc)
-    db.session.commit()
-
-    draft = current_rdm_records.records_service.create(superuser_identity, minimal_record)
-    record = current_rdm_records.records_service.publish(superuser_identity, draft.id, )
-
-    recid = create_rdm_record['id']
+    recid = rdm_record.id
 
     notification_data = create_notification_data(recid)
 
@@ -177,7 +55,7 @@ def test_inbox_processing_success(db, create_rdm_record, superuser_identity, min
 
     # Verify the endorsement has the correct data
     endorsement = endorsements[0]
-    assert endorsement.record_id == create_rdm_record.id
+    assert endorsement.record_id == current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id).id
     assert endorsement.user_id == 1
     assert endorsement.inbox_id == inbox.id
     assert endorsement.review_type == 'endorsement'
