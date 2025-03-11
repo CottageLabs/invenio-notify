@@ -53,6 +53,12 @@
         "properties": {
           "record_id": {
             "type": "keyword"
+          },
+          "record_url": {
+            "type": "keyword"
+          },
+          "result_url": {
+            "type": "keyword"
           }
         }
       }

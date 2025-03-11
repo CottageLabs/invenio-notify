@@ -165,15 +165,18 @@ def prepare_test_rdm_record(db, record_data):
 
 
 def create_endorsement_service_data(record_id, inbox_id, user_id):
+    """Create data for endorsement service tests."""
     return {
         'metadata': {
-            'record_id': record_id
+            'record_id': record_id,
+            'record_url': f'https://example.com/records/{record_id}',
+            'result_url': f'https://example.com/endorsements/results/{record_id}',
         },
         'record_id': record_id,
         'reviewer_id': 'reviewer-123',
         'review_type': 'endorsement',
         'user_id': user_id,
-        'inbox_id': inbox_id,
+        'inbox_id': inbox_id
     }
 
 

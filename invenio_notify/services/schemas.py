@@ -1,7 +1,7 @@
 from datetime import timezone, datetime
 
 from invenio_records_resources.services.records.schema import BaseRecordSchema
-from marshmallow import fields, Schema, pre_load
+from marshmallow import fields, Schema
 from marshmallow_utils.fields import TZDateTime, NestedAttribute
 
 
@@ -20,8 +20,11 @@ class NotifyInboxSchema(BaseRecordSchema):
 
 
 class EndorsementMetadataSchema(Schema):
-    # KTODO choice fields
+    # TODO review fields
     record_id = fields.String(required=True)
+
+    record_url = fields.String(required=True)
+    result_url = fields.String(required=True)
 
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True,
                          load_default=create_current_utc_datetime,
@@ -34,7 +37,7 @@ class EndorsementMetadataSchema(Schema):
 
 
 class EndorsementSchema(BaseRecordSchema):
-    # TODO choice fields
+    # TODO review fields
     metadata = NestedAttribute(EndorsementMetadataSchema, required=True)
 
     record_id = fields.String(required=True)

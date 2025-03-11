@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from invenio_rdm_records.proxies import current_rdm_records
 
+from invenio_notify import constants
 from invenio_notify.records.models import NotifyInboxModel, EndorsementMetadataModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
 
@@ -58,7 +59,7 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity):
     assert endorsement.record_id == current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id).id
     assert endorsement.user_id == superuser_identity.id
     assert endorsement.inbox_id == inbox.id
-    assert endorsement.review_type == 'endorsement'
+    assert endorsement.review_type == constants.TYPE_REVIEW
 
 
 def test_inbox_processing_record_not_found(db, superuser_identity):

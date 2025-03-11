@@ -8,6 +8,7 @@ from invenio_db import db
 from invenio_pidstore.errors import PIDDoesNotExistError
 
 from coarnotify.factory import COARNotifyFactory
+from invenio_notify import constants
 from invenio_notify.constants import REVIEW_TYPES
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify.utils.notify_utils import get_record_id_by_record_url
@@ -49,18 +50,24 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     # Extract reviewer ID from notification if available, otherwise use a default
     reviewer_id = notification_raw.get('actor', {}).get('id', 'unknown-reviewer')
 
+    reviewer_type = 'unknown'
+    for t in constants.REVIEW_TYPES:
+        if t in notification_raw.get('type', []):
+            reviewer_type = t
+            break
+
     record_id = str(record_id)
 
     # Create the endorsement record data
     endorsement_data = {
         'metadata': {
             'record_id': record_id,
+            'record_url': notification_raw['context']['id'],
+            'result_url': notification_raw['object']['id'],
         },
         'record_id': record_id,
         'reviewer_id': reviewer_id,
-        'review_type': 'endorsement',  # Assuming this is an endorsement
-        # TODO should we use review_type of REVIEW_TYPES
-        # TODO handle type for review
+        'review_type': reviewer_type,
 
         'user_id': user_id,
         'inbox_id': inbox_id,
@@ -73,11 +80,9 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 def inbox_processing():
     # TODO handle review record
     # TODO should we send coar notification to the user if fail or rejected
+    # TODO validate actor.id whether match with the user_id
 
     records_service = current_app.extensions["invenio-rdm-records"].records_service
-
-    # Get a system identity for creating records
-    # system_identity = g.identity if hasattr(g, 'identity') else current_app.extensions['invenio-accounts'].datastore.search_user(email='admin@invenio.org').identity
 
     for inbox_record in NotifyInboxModel.search(None, [
         NotifyInboxModel.process_date.is_(None),
@@ -85,13 +90,14 @@ def inbox_processing():
         notification = COARNotifyFactory.get_by_object(json.loads(inbox_record.raw))
         notification_raw: dict = notification.to_jsonld()
 
+        # Check if the notification type is supported
         if all(t not in REVIEW_TYPES for t in notification_raw.get('type', [])):
             # TODO how to handle if type is not in REVIEW_TYPES
             log.error(f'Unknown type: [{inbox_record.id=}]{notification_raw.get("type")}')
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
 
-        # Extract record_id from notification context id
+        # Check if the notification context contains a record ID
         record_id = get_record_id_by_record_url(notification_raw['context']['id'])
         if not record_id:
             log.error(f"Could not extract record_id from notification {inbox_record.id}")
