@@ -1,4 +1,4 @@
-from invenio_notify import config
+from invenio_notify import config, cli
 from invenio_notify.blueprints import blueprint
 from invenio_notify.resources.config import NotifyInboxResourceConfig
 from invenio_notify.resources.resource import NotifyInboxResource
@@ -24,6 +24,8 @@ class InvenioNotify:
         self.init_resources(app)
         app.extensions["invenio-notify"] = self
         app.register_blueprint(blueprint)
+
+        app.cli.add_command(cli.notify)
 
     def init_config(self, app):
         """Initialize configuration."""
