@@ -18,6 +18,8 @@ class NotifyInboxSchema(BaseRecordSchema):
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
+    process_date = TZDateTime(timezone=timezone.utc, format="iso", required=False)
+
 
 class EndorsementMetadataSchema(Schema):
     # TODO review fields
