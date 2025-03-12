@@ -1,3 +1,4 @@
+from invenio_administration.generators import Administration
 from invenio_records_permissions import BasePermissionPolicy
 from invenio_records_permissions.generators import SystemProcess, AnyUser
 from invenio_records_resources.services import Link, RecordServiceConfig
@@ -54,12 +55,12 @@ class NotifyInboxServiceConfig(RecordServiceConfig):
 
 class EndorsementPermissionPolicy(BasePermissionPolicy):
     # TODO to be review
-    can_create = [AnyUser(), SystemProcess()]
-    can_read = [AnyUser(), SystemProcess()]
-    can_search = [AnyUser(), SystemProcess()]
-    can_update = [AnyUser(), SystemProcess()]
-    can_delete = [AnyUser(), SystemProcess()]
-    can_disable = [AnyUser(), SystemProcess()]
+    can_create = [Administration(), SystemProcess()]
+    can_read = [Administration(), SystemProcess()]
+    can_search = [Administration(), SystemProcess()]
+    can_update = [Administration(), SystemProcess()]
+    can_delete = [Administration(), SystemProcess()]
+    can_disable = [Administration(), SystemProcess()]
 
 
 class EndorsementServiceConfig(RecordServiceConfig, ConfiguratorMixin):

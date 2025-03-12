@@ -1,5 +1,4 @@
 import json
-from invenio_rdm_records.records.models import RDMRecordMetadata
 from invenio_records_resources.services.records.results import RecordList
 
 from invenio_notify.records.models import EndorsementMetadataModel, NotifyInboxModel
@@ -7,14 +6,6 @@ from invenio_notify.records.records import EndorsementRecord
 from invenio_notify.services.config import EndorsementServiceConfig
 from invenio_notify.services.service import EndorsementService
 from invenio_notify_test.conftest import prepare_test_rdm_record, create_endorsement_service_data
-
-
-def test_a(db, minimal_record):
-    # TODO to be review
-    prepare_test_rdm_record(db, minimal_record)
-    for r in RDMRecordMetadata.query.all():
-        print(r.id)
-    print(RDMRecordMetadata.query.count())
 
 
 def test_model_create(db, superuser_identity, minimal_record):

@@ -1,4 +1,3 @@
-# TODO try to add CELERYBEAT_SCHEDULE, ref invenio_accounts/tasks.py, invenio_celery/__init__.py
 import json
 import logging
 from celery import shared_task
