@@ -52,3 +52,8 @@ coarnotify_action = "invenio_notify.permissions:coarnotify_action"
 
 [project.entry-points."invenio_search.mappings"]
 endorsement = "invenio_notify.records.mappings"
+
+
+[project.entry-points."invenio_jobs.jobs"]
+process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
+

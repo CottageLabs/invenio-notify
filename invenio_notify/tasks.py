@@ -1,6 +1,7 @@
 # TODO try to add CELERYBEAT_SCHEDULE, ref invenio_accounts/tasks.py, invenio_celery/__init__.py
 import json
 import logging
+from celery import shared_task
 from datetime import datetime
 from flask import current_app
 from invenio_access.permissions import system_identity
@@ -129,3 +130,8 @@ def inbox_processing():
 
         # Mark inbox as processed after successful endorsement creation
         mark_as_processed(inbox_record, "Endorsement record created")
+
+
+@shared_task
+def shared_task_inbox_processing():
+    inbox_processing()
