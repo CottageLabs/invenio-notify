@@ -5,14 +5,13 @@ from invenio_rdm_records.proxies import current_rdm_records
 from invenio_notify import constants
 from invenio_notify.records.models import NotifyInboxModel, EndorsementMetadataModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
-
 from invenio_notify_test.conftest import create_notification_data
 
 
 def test_mark_as_processed(db, superuser_identity):
     """Test the mark_as_processed function."""
     # Create a test inbox record
-    inbox = NotifyInboxModel.create({'raw': 'test', 'record_id': 'r1', 'user_id': superuser_identity.id})
+    inbox = NotifyInboxModel.create({'raw': 'test', 'recid': 'r1', 'user_id': superuser_identity.id})
 
     # Initially, process_date should be None
     assert inbox.process_date is None
@@ -34,7 +33,7 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity):
     # Create inbox record with real notification data
     inbox = NotifyInboxModel.create({
         'raw': json.dumps(notification_data),
-        'record_id': recid,
+        'recid': recid,
         'user_id': superuser_identity.id,
     })
 
@@ -72,7 +71,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity):
     # Create inbox record with notification pointing to non-existent record
     inbox = NotifyInboxModel.create({
         'raw': json.dumps(notification_data),
-        'record_id': recid,
+        'recid': recid,
         'user_id': superuser_identity.id,
     })
 

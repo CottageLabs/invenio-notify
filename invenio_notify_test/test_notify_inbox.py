@@ -14,11 +14,11 @@ def create_notify_inbox_service():
 def test_create_model(db, superuser_identity):
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
-    m = NotifyInboxModel.create({'raw': 'test', 'record_id': record_id, 'user_id': superuser_identity.id})
+    m = NotifyInboxModel.create({'raw': 'test', 'recid': record_id, 'user_id': superuser_identity.id})
     m.commit()
 
     # find record by record_id
-    new_m = NotifyInboxModel.search({'record_id': record_id}, [])
+    new_m = NotifyInboxModel.search({'recid': record_id}, [])
     assert m == new_m[0]
     assert NotifyInboxModel.query.count() == 1
 
@@ -28,9 +28,9 @@ def test_service_create(test_app, superuser_identity):
 
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
-    result = notify_inbox_serv.create(superuser_identity, {'raw': 'test', 'record_id': record_id})
+    result = notify_inbox_serv.create(superuser_identity, {'raw': 'test', 'recid': record_id})
     result_dict = result.to_dict()
-    assert result_dict['record_id'] == record_id
+    assert result_dict['recid'] == record_id
     assert 'links' in result_dict
     assert NotifyInboxModel.query.count() == 1
 
@@ -38,7 +38,7 @@ def test_service_create(test_app, superuser_identity):
 def test_delete(test_app, superuser_identity):
     notify_inbox_serv = create_notify_inbox_service()
 
-    m = NotifyInboxModel.create({'raw': 'test', 'record_id': 'kajsdlkasjk', 'user_id': superuser_identity.id})
+    m = NotifyInboxModel.create({'raw': 'test', 'recid': 'kajsdlkasjk', 'user_id': superuser_identity.id})
     assert NotifyInboxModel.query.count() == 1
     notify_inbox_serv.delete(superuser_identity, m.id)
     assert NotifyInboxModel.query.count() == 0
@@ -62,9 +62,9 @@ def test_service_search(test_app, superuser_identity):
     record_id_3 = 'record3'
 
     # Create test records
-    notify_inbox_serv.create(superuser_identity, {'raw': 'test1', 'record_id': record_id_1, 'process_date': today})
-    notify_inbox_serv.create(superuser_identity, {'raw': 'test2', 'record_id': record_id_2, 'process_date': today})
-    notify_inbox_serv.create(superuser_identity, {'raw': 'test3', 'record_id': record_id_3, 'process_date': today})
+    notify_inbox_serv.create(superuser_identity, {'raw': 'test1', 'recid': record_id_1, 'process_date': today})
+    notify_inbox_serv.create(superuser_identity, {'raw': 'test2', 'recid': record_id_2, 'process_date': today})
+    notify_inbox_serv.create(superuser_identity, {'raw': 'test3', 'recid': record_id_3, 'process_date': today})
 
     assert NotifyInboxModel.query.count() == 3
 
@@ -75,7 +75,7 @@ def test_service_search(test_app, superuser_identity):
     assert result_list[0].get('process_date') == today
 
     # Verify record_ids are in the results
-    record_ids = [item['record_id'] for item in result_list]
+    record_ids = [item['recid'] for item in result_list]
     assert record_id_1 in record_ids
     assert record_id_2 in record_ids
     assert record_id_3 in record_ids

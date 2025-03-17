@@ -9,7 +9,7 @@ from invenio_records_resources.services.base import LinksTemplate
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
-from invenio_notify.utils.notify_utils import get_record_id_by_record_url
+from invenio_notify.utils.notify_utils import get_recid_by_record_url
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
 
@@ -91,15 +91,15 @@ class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
         current_app.logger.debug('called notification_received')
 
         raw = notification.to_jsonld()
-        record_id = get_record_id_by_record_url(raw['context']['id'])
+        recid = get_recid_by_record_url(raw['context']['id'])
 
         # check if record exists
         records_service: RDMRecordService = current_app.extensions["invenio-rdm-records"].records_service
-        records_service.record_cls.pid.resolve(record_id)  # raises PIDDoesNotExistError if not found
+        records_service.record_cls.pid.resolve(recid)  # raises PIDDoesNotExistError if not found
 
         current_app.logger.debug(f'client input raw: {raw}')
         inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
-        inbox_service.create(g.identity, {"raw": json.dumps(raw), 'record_id': record_id})
+        inbox_service.create(g.identity, {"raw": json.dumps(raw), 'recid': recid})
 
         location = 'http://127.0.0.1/tobeimplemented'  # KTODO implement this
         return COARNotifyReceipt(COARNotifyReceipt.CREATED, location)

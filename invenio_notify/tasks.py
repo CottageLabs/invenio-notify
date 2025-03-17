@@ -11,7 +11,7 @@ from coarnotify.factory import COARNotifyFactory
 from invenio_notify import constants
 from invenio_notify.constants import REVIEW_TYPES
 from invenio_notify.records.models import NotifyInboxModel
-from invenio_notify.utils.notify_utils import get_record_id_by_record_url
+from invenio_notify.utils.notify_utils import get_recid_by_record_url
 
 log = logging.getLogger(__name__)
 
@@ -98,7 +98,7 @@ def inbox_processing():
             continue
 
         # Check if the notification context contains a record ID
-        record_id = get_record_id_by_record_url(notification_raw['context']['id'])
+        record_id = get_recid_by_record_url(notification_raw['context']['id'])
         if not record_id:
             log.error(f"Could not extract record_id from notification {inbox_record.id}")
             mark_as_processed(inbox_record, "Could not extract record_id from notification")

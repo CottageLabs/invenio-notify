@@ -4,7 +4,7 @@ import urllib.parse
 re_url_record_id = regex.compile(r'/records/(.*?)$')
 re_url_record_id_alt = regex.compile(r'/records/([^/]+)/?')
 
-def get_record_id_by_record_url(url):
+def get_recid_by_record_url(url):
     """Extract record ID from URL.
     
     Args:

@@ -35,11 +35,13 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     raw = db.Column(db.Text, nullable=False)
     """ Coar notification data as json string """
 
-    record_id = db.Column(db.Text, nullable=False)
+    recid = db.Column(db.Text, nullable=False)
     """ record id (recid) instead of object id of record """
-    # TODO use object id instead
 
     process_date = db.Column(db.DateTime, nullable=True)
+
+    process_note = db.Column(db.Text, nullable=True, )
+    """ additional note (such as error message) after processed """
 
     user_id = db.Column(
         db.Integer(),
@@ -78,7 +80,7 @@ class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
 
     record_id = db.Column(UUIDType, db.ForeignKey(
         RDMRecordMetadata.id, ondelete="CASCADE",
-    ), index=True, nullable = True,)
+    ), index=True, nullable=True, )
 
     record = db.relationship(RDMRecordMetadata, foreign_keys=[record_id])
     """ id of the record, id that save in postgres instead of recid that used in json and /records  """
