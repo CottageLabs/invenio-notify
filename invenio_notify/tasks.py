@@ -5,6 +5,7 @@ from datetime import datetime
 from flask import current_app
 from invenio_access.permissions import system_identity
 from invenio_db import db
+from invenio_db.uow import unit_of_work
 from invenio_pidstore.errors import PIDDoesNotExistError
 
 from coarnotify.factory import COARNotifyFactory
@@ -16,7 +17,8 @@ from invenio_notify.utils.notify_utils import get_recid_by_record_url
 log = logging.getLogger(__name__)
 
 
-def mark_as_processed(inbox_record: db.Model, comment=None):
+@unit_of_work()
+def mark_as_processed(inbox_record: NotifyInboxModel, comment=None, uow=None):
     """
     Mark an inbox record as processed by setting its process_date to today
     and optionally adding a comment.
@@ -26,10 +28,8 @@ def mark_as_processed(inbox_record: db.Model, comment=None):
         comment: Optional comment to add to the record
     """
     inbox_record.process_date = datetime.today()
-    # TODO add comment field to NotifyInboxModel to store the error message
-    # if comment is not None:
-    #     inbox_record.comment = comment
-    inbox_record.commit()
+    if comment is not None:
+        inbox_record.process_note = comment
 
 
 def create_endorsement_record(identity, user_id, record_id, inbox_id, notification_raw):
@@ -128,7 +128,7 @@ def inbox_processing():
         log.info(f"Created endorsement record: {endorsement.id}")
 
         # Mark inbox as processed after successful endorsement creation
-        mark_as_processed(inbox_record, "Endorsement record created")
+        mark_as_processed(inbox_record)
 
 
 @shared_task

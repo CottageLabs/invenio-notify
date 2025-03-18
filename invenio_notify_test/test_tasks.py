@@ -86,6 +86,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity):
 
     # Check that the inbox record was marked as processed
     assert updated_inbox.process_date is not None
+    assert updated_inbox.process_note is not None
 
     # Verify no endorsement was created
     assert EndorsementMetadataModel.query.count() == 0
