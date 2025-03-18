@@ -4,7 +4,6 @@ from celery import shared_task
 from datetime import datetime
 from flask import current_app
 from invenio_access.permissions import system_identity
-from invenio_db import db
 from invenio_db.uow import unit_of_work
 from invenio_pidstore.errors import PIDDoesNotExistError
 
@@ -92,7 +91,6 @@ def inbox_processing():
 
         # Check if the notification type is supported
         if all(t not in REVIEW_TYPES for t in notification_raw.get('type', [])):
-            # TODO how to handle if type is not in REVIEW_TYPES
             log.error(f'Unknown type: [{inbox_record.id=}]{notification_raw.get("type")}')
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
