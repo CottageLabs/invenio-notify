@@ -1,4 +1,6 @@
 import click
+import json
+import rich
 from flask.cli import with_appcontext
 from sqlalchemy import desc
 
@@ -33,19 +35,31 @@ def get_sorted_records(model_class, size=None, order_field=None):
 @click.option('--size', '-s', type=int, default=1000, help='Maximum number of records to display')
 @with_appcontext
 def list_notify(size):
-    print('Endorsement: ')
+    console = rich.get_console()
+    console.print('** Endorsement: **', style='bold')
     for r in get_sorted_records(EndorsementMetadataModel, size, order_field=desc('created')):
         print('----------------------------')
-        for k, v in vars(r).items():
+        key_values = vars(r).items()
+        key_values = (i for i in key_values if i[0] != 'json')
+        key_values = (i for i in key_values if not i[0].startswith('_'))
+        for k, v in key_values:
             print_key_value(k, v)
+        console.print('Json:')
+        console.print_json(json.dumps(r.json))
+        print()
     print()
 
-    print('NotifyInboxModel: ')
+    console.print('** Notify Inbox: **', style='bold')
     for r in get_sorted_records(NotifyInboxModel, size, order_field=desc('created')):
         print('----------------------------')
-        for k, v in vars(r).items():
+        key_values = vars(r).items()
+        key_values = (i for i in key_values if i[0] != 'raw')
+        key_values = (i for i in key_values if not i[0].startswith('_'))
+        for k, v in key_values:
             print_key_value(k, v)
-    print()
+        console.print('Raw:')
+        console.print_json(r.raw)
+        print()
 
 
 def print_key_value(k, v):
