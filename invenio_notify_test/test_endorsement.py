@@ -6,6 +6,7 @@ from invenio_notify.records.records import EndorsementRecord
 from invenio_notify.services.config import EndorsementServiceConfig
 from invenio_notify.services.service import EndorsementService
 from invenio_notify_test.conftest import prepare_test_rdm_record, create_endorsement_service_data
+from invenio_notify_test.inbox_fixture import create_inbox
 
 
 def test_model_create(db, superuser_identity, minimal_record):
@@ -38,7 +39,7 @@ def test_service_create(db, superuser_identity, minimal_record, test_app, create
 
     assert EndorsementMetadataModel.query.count() == 0
 
-    inbox = create_inbox(record_id='r1')
+    inbox = create_inbox(recid='r1')
 
     record_id = str(record.id)
     endorsement_service_data = create_endorsement_service_data(record_id, inbox.id, superuser_identity.id)
@@ -62,7 +63,7 @@ def test_service_create(db, superuser_identity, minimal_record, test_app, create
 def test_service_update(db, superuser_identity, minimal_record, test_app, create_inbox):
     record = prepare_test_rdm_record(db, minimal_record)
     end_service = EndorsementService(EndorsementServiceConfig.build(test_app))
-    inbox = create_inbox(record_id='r1')
+    inbox = create_inbox(recid='r1')
 
     endorsement_service_data = create_endorsement_service_data(str(record.id), inbox.id, superuser_identity.id)
     end_service.create(superuser_identity, endorsement_service_data)

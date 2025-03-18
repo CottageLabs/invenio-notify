@@ -5,6 +5,7 @@ from invenio_notify.errors import NotExistsError
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify.services.config import NotifyInboxServiceConfig
 from invenio_notify.services.service import NotifyInboxService
+from invenio_notify_test.inbox_fixture import create_inbox
 
 
 def create_notify_inbox_service():
@@ -14,7 +15,7 @@ def create_notify_inbox_service():
 def test_create_model(db, superuser_identity, create_inbox):
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
-    m = create_inbox(record_id=record_id)
+    m = create_inbox(recid=record_id)
     m.commit()
 
     # find record by record_id
@@ -38,7 +39,7 @@ def test_service_create(test_app, superuser_identity):
 def test_delete(test_app, superuser_identity, create_inbox):
     notify_inbox_serv = create_notify_inbox_service()
 
-    m = create_inbox(record_id='kajsdlkasjk') 
+    m = create_inbox(recid='kajsdlkasjk') 
     assert NotifyInboxModel.query.count() == 1
     notify_inbox_serv.delete(superuser_identity, m.id)
     assert NotifyInboxModel.query.count() == 0
