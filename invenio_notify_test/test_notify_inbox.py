@@ -11,10 +11,10 @@ def create_notify_inbox_service():
     return NotifyInboxService(config=NotifyInboxServiceConfig)
 
 
-def test_create_model(db, superuser_identity):
+def test_create_model(db, superuser_identity, create_inbox):
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
-    m = NotifyInboxModel.create({'raw': 'test', 'recid': record_id, 'user_id': superuser_identity.id})
+    m = create_inbox(record_id=record_id)
     m.commit()
 
     # find record by record_id
@@ -35,10 +35,10 @@ def test_service_create(test_app, superuser_identity):
     assert NotifyInboxModel.query.count() == 1
 
 
-def test_delete(test_app, superuser_identity):
+def test_delete(test_app, superuser_identity, create_inbox):
     notify_inbox_serv = create_notify_inbox_service()
 
-    m = NotifyInboxModel.create({'raw': 'test', 'recid': 'kajsdlkasjk', 'user_id': superuser_identity.id})
+    m = create_inbox(record_id='kajsdlkasjk') 
     assert NotifyInboxModel.query.count() == 1
     notify_inbox_serv.delete(superuser_identity, m.id)
     assert NotifyInboxModel.query.count() == 0

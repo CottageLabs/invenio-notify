@@ -32,14 +32,13 @@ def test_model_create(db, superuser_identity, minimal_record):
     assert new_model.json == data
 
 
-def test_service_create(db, superuser_identity, minimal_record, test_app):
+def test_service_create(db, superuser_identity, minimal_record, test_app, create_inbox):
     record = prepare_test_rdm_record(db, minimal_record)
     service = EndorsementService(EndorsementServiceConfig.build(test_app))
 
     assert EndorsementMetadataModel.query.count() == 0
 
-    # inbox = NotifyInboxModel.create({})
-    inbox = NotifyInboxModel.create({'raw': 'test', 'recid': 'r1', 'user_id': superuser_identity.id})
+    inbox = create_inbox(record_id='r1')
 
     record_id = str(record.id)
     endorsement_service_data = create_endorsement_service_data(record_id, inbox.id, superuser_identity.id)
@@ -60,10 +59,10 @@ def test_service_create(db, superuser_identity, minimal_record, test_app):
     print(json.dumps(s.to_dict(), indent=2))
 
 
-def test_service_update(db, superuser_identity, minimal_record, test_app):
+def test_service_update(db, superuser_identity, minimal_record, test_app, create_inbox):
     record = prepare_test_rdm_record(db, minimal_record)
     end_service = EndorsementService(EndorsementServiceConfig.build(test_app))
-    inbox = NotifyInboxModel.create({'raw': 'test', 'recid': 'r1', 'user_id': superuser_identity.id})
+    inbox = create_inbox(record_id='r1')
 
     endorsement_service_data = create_endorsement_service_data(str(record.id), inbox.id, superuser_identity.id)
     end_service.create(superuser_identity, endorsement_service_data)

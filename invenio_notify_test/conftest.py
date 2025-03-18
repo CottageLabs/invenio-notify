@@ -12,6 +12,8 @@ from invenio_rdm_records.records import RDMParent, RDMRecord
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
 
+from invenio_notify.records.models import NotifyInboxModel
+
 RunningApp = namedtuple(
     "RunningApp",
     [
@@ -277,3 +279,32 @@ def rdm_record(db, superuser_identity, minimal_record, resource_type_v, location
     record = current_rdm_records.records_service.publish(superuser_identity, draft.id)
 
     return record
+
+
+@pytest.fixture
+def create_inbox(db, superuser_identity):
+    """Fixture to create a NotifyInboxModel instance."""
+    def _create_inbox(record_id='r1', raw='test', user_id=None, identity=None):
+        """Create a NotifyInboxModel instance.
+        
+        Args:
+            record_id: Record ID to associate with the inbox
+            raw: Raw data content (default: 'test')
+            user_id: User ID to associate with the inbox (overrides identity)
+            identity: Identity object to get user_id from (defaults to superuser_identity)
+            
+        Returns:
+            NotifyInboxModel instance
+        """
+        if user_id is None:
+            if identity is None:
+                identity = superuser_identity
+            user_id = identity.id
+            
+        inbox = NotifyInboxModel.create({
+            'raw': raw, 
+            'recid': record_id, 
+            'user_id': user_id
+        })
+        return inbox
+    return _create_inbox
