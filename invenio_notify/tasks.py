@@ -57,12 +57,18 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
     record_id = str(record_id)
 
+    review_url = notification_raw['object'].get(constants.KEY_INBOX_REVIEW_URL)
+    if not review_url:
+        log.warning(f"Could not extract review_url from notification {inbox_id} use object.id instead")
+        review_url = notification_raw['object']['id']
+
+
     # Create the endorsement record data
     endorsement_data = {
         'metadata': {
             'record_id': record_id,
             'record_url': notification_raw['context']['id'],
-            'result_url': notification_raw['object']['id'],
+            'result_url': review_url,
         },
         'record_id': record_id,
         'reviewer_id': reviewer_id,
