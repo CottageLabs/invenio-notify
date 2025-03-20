@@ -59,14 +59,9 @@ class BasicDbService(RecordService):
             links_tpl=self.links_item_tpl,
         )
 
-
-class NotifyInboxService(BasicDbService):
-
     @unit_of_work()
     def create(self, identity, data, raise_errors=True, uow=None):
         self.require_permission(identity, "create")
-
-        data['user_id'] = identity.id
 
         # validate data
         valid_data, errors = self.schema.load(
@@ -80,6 +75,14 @@ class NotifyInboxService(BasicDbService):
         return self.result_item(
             self, identity, record, links_tpl=self.links_item_tpl, errors=errors
         )
+
+
+class NotifyInboxService(BasicDbService):
+
+    @unit_of_work()
+    def create(self, identity, data, raise_errors=True, uow=None):
+        data['user_id'] = identity.id
+        return super().create(identity, data, raise_errors=raise_errors, uow=uow)
 
     def receive_notification(self, notification_raw: dict):
         server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
