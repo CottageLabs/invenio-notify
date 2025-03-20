@@ -1,5 +1,6 @@
 import pytest
 from invenio_notify.records.models import NotifyInboxModel
+from invenio_notify_test.utils import resolve_user_id
 
 
 @pytest.fixture
@@ -17,10 +18,7 @@ def create_inbox(db, superuser_identity):
         Returns:
             NotifyInboxModel instance
         """
-        if user_id is None:
-            if identity is None:
-                identity = superuser_identity
-            user_id = identity.id
+        user_id = resolve_user_id(user_id, identity, superuser_identity)
             
         inbox = NotifyInboxModel.create({
             'raw': raw, 
