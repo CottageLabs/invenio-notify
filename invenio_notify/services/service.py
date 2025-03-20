@@ -15,7 +15,7 @@ from invenio_notify.utils.notify_utils import get_recid_by_record_url
 re_url_record_id = regex.compile(r'/records/(.*?)$')
 
 
-class NotifyInboxService(RecordService):
+class BasicDbService(RecordService):
 
     def search(self, identity, params=None, search_preference=None, expand=False, **kwargs):
         self.require_permission(identity, "search")
@@ -58,6 +58,9 @@ class NotifyInboxService(RecordService):
             record,
             links_tpl=self.links_item_tpl,
         )
+
+
+class NotifyInboxService(BasicDbService):
 
     @unit_of_work()
     def create(self, identity, data, raise_errors=True, uow=None):
