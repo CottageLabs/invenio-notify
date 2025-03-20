@@ -26,6 +26,26 @@ class DbOperationMixin:
 
         raise NotExistsError(id)
 
+    @classmethod
+    def create(cls, data):
+        with db.session.begin_nested():
+            obj = cls(
+                **data
+            )
+            db.session.add(obj)
+
+        return obj
+
+    @classmethod
+    def search(cls, search_params=None, filters=None):
+        query = db.session.query(cls)
+        if filters:
+            results = query.filter(or_(*filters))
+        else:
+            results = query.filter()
+
+        return results
+
 
 class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     __tablename__ = "notify_inbox"
@@ -54,26 +74,6 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
         "User", backref=db.backref("inbox_messages", cascade="all, delete-orphan")
     )
 
-    @classmethod
-    def create(cls, data):
-        with db.session.begin_nested():
-            obj = cls(
-                **data
-            )
-            db.session.add(obj)
-
-        return obj
-
-    @classmethod
-    def search(cls, search_params=None, filters=None):
-        query = db.session.query(NotifyInboxModel)
-        if filters:
-            results = query.filter(or_(*filters))
-        else:
-            results = query.filter()
-
-        return results
-
 
 class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
     __tablename__ = "reviewer_map"
@@ -93,14 +93,6 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
 
     reviewer_id = db.Column(db.Text, nullable=False)
     """ ID of the reviewer in an external system """
-
-    @classmethod
-    def create_new(cls, data):
-        with db.session.begin_nested():
-            obj = cls(**data)
-            db.session.add(obj)
-
-        return obj
 
 
 class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
