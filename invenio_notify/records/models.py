@@ -79,7 +79,7 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
     __tablename__ = "reviewer_map"
 
     id = db.Column(db.Integer, primary_key=True)
-    
+
     user_id = db.Column(
         db.Integer(),
         db.ForeignKey(User.id, ondelete="CASCADE"),
@@ -93,14 +93,13 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
 
     reviewer_id = db.Column(db.Text, nullable=False)
     """ ID of the reviewer in an external system """
-    
 
     @classmethod
-    def create(cls, data):
+    def create_new(cls, data):
         with db.session.begin_nested():
             obj = cls(**data)
             db.session.add(obj)
-        
+
         return obj
 
 
@@ -137,6 +136,3 @@ class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
     def create(self):
         with db.session.begin_nested():
             db.session.add(self)
-
-
-
