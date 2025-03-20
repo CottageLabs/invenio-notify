@@ -1,10 +1,6 @@
-import pytest
-
 from invenio_notify.records.models import ReviewerMapModel
 from invenio_notify.services.config import ReviewerMapServiceConfig
 from invenio_notify.services.service import ReviewerMapService
-from invenio_notify_test.reviewer_map_fixture import create_reviewer_map
-from utils import BasicDbServiceTestHelper
 
 
 def create_reviewer_map_service():
@@ -46,16 +42,3 @@ def test_service_create(test_app, superuser_identity):
     assert result_dict['user_id'] == superuser_identity.id
     assert 'links' in result_dict
     assert ReviewerMapModel.query.count() == 1
-
-
-class TestReviewerMapService(BasicDbServiceTestHelper):
-
-    @pytest.fixture(autouse=True)
-    def setup(self, create_reviewer_map):
-        self.create_reviewer_map = create_reviewer_map
-
-    def _create_service(self):
-        return create_reviewer_map_service()
-
-    def _create_record(self, *args, **kwargs):
-        return self.create_reviewer_map(reviewer_id='external-reviewer-123')

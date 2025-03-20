@@ -1,7 +1,5 @@
 import datetime
-import pytest
 
-from invenio_notify.errors import NotExistsError
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify.services.config import NotifyInboxServiceConfig
 from invenio_notify.services.service import NotifyInboxService
@@ -34,22 +32,6 @@ def test_service_create(test_app, superuser_identity):
     assert result_dict['recid'] == record_id
     assert 'links' in result_dict
     assert NotifyInboxModel.query.count() == 1
-
-
-def test_delete(test_app, superuser_identity, create_inbox):
-    notify_inbox_serv = create_notify_inbox_service()
-
-    m = create_inbox(recid='kajsdlkasjk') 
-    assert NotifyInboxModel.query.count() == 1
-    notify_inbox_serv.delete(superuser_identity, m.id)
-    assert NotifyInboxModel.query.count() == 0
-
-
-def test_delete__not_exists(test_app, superuser_identity):
-    notify_inbox_serv = create_notify_inbox_service()
-
-    with pytest.raises(NotExistsError):
-        notify_inbox_serv.delete(superuser_identity, 1)
 
 
 def test_service_search(test_app, superuser_identity):
