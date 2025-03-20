@@ -115,3 +115,7 @@ class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
 
 class EndorsementService(RecordService):
     pass
+
+
+class ReviewerMapService(BasicDbService):
+    pass
