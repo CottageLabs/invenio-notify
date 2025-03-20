@@ -1,25 +1,17 @@
 from invenio_administration.generators import Administration
 from invenio_records_permissions import BasePermissionPolicy
-from invenio_records_permissions.generators import SystemProcess, AnyUser
-from invenio_records_resources.services import Link, RecordServiceConfig
+from invenio_records_permissions.generators import SystemProcess
+from invenio_records_resources.services import RecordServiceConfig
 from invenio_records_resources.services.base.config import FromConfig, ConfiguratorMixin
 from invenio_records_resources.services.records.links import pagination_links
 
 from invenio_notify.permissions import Coarnotify
-from invenio_notify.records.models import NotifyInboxModel
+from invenio_notify.records.models import NotifyInboxModel, ReviewerMapModel
 from invenio_notify.records.records import EndorsementRecord
 from invenio_notify.services.components import DefaultEndorsementComponents
-from invenio_notify.services.links import EndorsementLink
-from invenio_notify.services.results import NotifyInboxRecordList
-from invenio_notify.services.schemas import NotifyInboxSchema, EndorsementSchema
-
-
-class NotifyInboxLink(Link):
-
-    @staticmethod
-    def vars(record, vars):
-        """Variables for the URI template."""
-        vars.update({"id": record.id})
+from invenio_notify.services.links import EndorsementLink, NotifyInboxLink, IdLink
+from invenio_notify.services.results import BasicDbModelRecordList
+from invenio_notify.services.schemas import NotifyInboxSchema, EndorsementSchema, ReviewerMapSchema
 
 
 class NotifyInboxPermissionPolicy(BasePermissionPolicy):
@@ -34,26 +26,23 @@ class NotifyInboxPermissionPolicy(BasePermissionPolicy):
 class NotifyInboxServiceConfig(RecordServiceConfig):
     """Service factory configuration."""
 
-    result_list_cls = NotifyInboxRecordList
+    result_list_cls = BasicDbModelRecordList
     record_cls = NotifyInboxModel
     schema = NotifyInboxSchema
 
-    # result_item_cls = BannerItem
-    # result_list_cls = BannerList
     permission_policy_cls = NotifyInboxPermissionPolicy
 
     # # Search configuration
     # search = SearchOptions
-    #
+
     # # links configuration
     links_item = {
         "self": NotifyInboxLink("{+api}/notify-inbox/{id}"),
     }
     links_search = pagination_links("{+api}/notify-inbox{?args*}")
-    # record_cls = BannerModel
 
 
-class EndorsementPermissionPolicy(BasePermissionPolicy):
+class AdminPermissionPolicy(BasePermissionPolicy):
     # TODO to be review
     can_create = [Administration(), SystemProcess()]
     can_read = [Administration(), SystemProcess()]
@@ -63,6 +52,15 @@ class EndorsementPermissionPolicy(BasePermissionPolicy):
     can_disable = [Administration(), SystemProcess()]
 
 
+class ReviewerMapPermissionPolicy(AdminPermissionPolicy):
+    pass
+
+
+class EndorsementPermissionPolicy(AdminPermissionPolicy):
+    # TODO to be review
+    pass
+
+
 class EndorsementServiceConfig(RecordServiceConfig, ConfiguratorMixin):
     record_cls = EndorsementRecord
     permission_policy_cls = EndorsementPermissionPolicy
@@ -70,7 +68,7 @@ class EndorsementServiceConfig(RecordServiceConfig, ConfiguratorMixin):
     schema = EndorsementSchema
 
     links_item = {
-        "self": EndorsementLink("{+api}/endorsement/{id}"),   # TODO to be updated
+        "self": EndorsementLink("{+api}/endorsement/{id}"),  # TODO to be updated
     }
     # components =  DefaultEndorsementComponents
     components = FromConfig(
@@ -78,4 +76,18 @@ class EndorsementServiceConfig(RecordServiceConfig, ConfiguratorMixin):
     )
 
 
+class ReviewerMapServiceConfig(RecordServiceConfig):
+    result_list_cls = BasicDbModelRecordList
+    record_cls = ReviewerMapModel
+    schema = ReviewerMapSchema
 
+    permission_policy_cls = AdminPermissionPolicy
+
+    # # Search configuration
+    # search = SearchOptions
+
+    # # links configuration
+    links_item = {
+        "self": IdLink("{+api}/reviewer-map/{id}"),
+    }
+    links_search = pagination_links("{+api}/reviewer-map{?args*}")
