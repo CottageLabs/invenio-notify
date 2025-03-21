@@ -89,7 +89,7 @@ def inbox(record_id):
     raw = request.get_json()
     raw['record_id'] = record_id
 
-    server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
+    server = COARNotifyServer(InboxCOARBinding())
     try:
         print(f'input announcement:')
         # rich.print_json(data=announcement.to_jsonld(), highlight=True, indent=4, )
@@ -102,7 +102,7 @@ def inbox(record_id):
         return jsonify({"error": e.message}), e.status
 
 
-class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
+class InboxCOARBinding(COARNotifyServiceBinding):
 
     def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
         print('called notification_received')
