@@ -26,11 +26,11 @@ build-backend = "setuptools.build_meta"
 [project.scripts]
 
 [project.entry-points."invenio_access.actions"]
-coarnotify_action = "invenio_notify.permissions:coarnotify_action
+coarnotify_action = "invenio_notify.permissions:coarnotify_action"
 
 [project.entry-points."invenio_administration.views"]
-notify_inbox_detail = "invenio_notify.views:NotifyInboxDetailView"
-notify_inbox_list = "invenio_notify.views:NotifyInboxListView"
+notify_inbox_detail = "invenio_notify.views.inbox_admin_views:NotifyInboxDetailView"
+notify_inbox_list = "invenio_notify.views.inbox_admin_views:NotifyInboxListView"
 
 [project.entry-points."invenio_base.api_apps"]
 invenio_notify = "invenio_notify.ext:InvenioNotify"
@@ -50,7 +50,6 @@ invenio_notify = "invenio_notify.records.models"
 
 [project.entry-points."invenio_oauth2server.scopes"]
 oauth_noti = "invenio_notify.scopes:inbox_scope"
-
 
 
 [tool.setuptools.packages.find]
