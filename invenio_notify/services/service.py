@@ -39,7 +39,6 @@ class BasicDbService(RecordService):
 
     @unit_of_work()
     def delete(self, identity, id, uow=None):
-        """Delete a banner from database."""
         self.require_permission(identity, "delete")
 
         record = self.record_cls.get(id)
@@ -85,14 +84,14 @@ class NotifyInboxService(BasicDbService):
         return super().create(identity, data, raise_errors=raise_errors, uow=uow)
 
     def receive_notification(self, notification_raw: dict):
-        server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
+        server = COARNotifyServer(InboxCOARBinding())
         current_app.logger.debug(f'input announcement:')
         result = server.receive(notification_raw, validate=True)
         current_app.logger.debug(f'result: {result}')
         return result
 
 
-class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
+class InboxCOARBinding(COARNotifyServiceBinding):
 
     def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
         current_app.logger.debug('called notification_received')
