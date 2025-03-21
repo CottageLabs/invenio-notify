@@ -1,7 +1,7 @@
 from invenio_notify import config, cli
 from invenio_notify.blueprints import blueprint
-from invenio_notify.resources.config import NotifyInboxResourceConfig
-from invenio_notify.resources.resource import NotifyInboxResource
+from invenio_notify.resources.config import NotifyInboxResourceConfig, ReviewerMapResourceConfig
+from invenio_notify.resources.resource import NotifyInboxResource, ReviewerMapResource
 from invenio_notify.services.config import NotifyInboxServiceConfig, EndorsementServiceConfig, ReviewerMapServiceConfig
 from invenio_notify.services.service import NotifyInboxService, EndorsementService, ReviewerMapService
 
@@ -44,4 +44,8 @@ class InvenioNotify:
         self.notify_inbox_resource = NotifyInboxResource(
             service=self.notify_inbox_service,
             config=NotifyInboxResourceConfig,
+        )
+        self.reviewer_map_resource = ReviewerMapResource(
+            service=self.reviewer_map_service,
+            config=ReviewerMapResourceConfig,
         )
