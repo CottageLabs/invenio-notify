@@ -16,12 +16,12 @@ class NotifyInboxResourceConfig(RecordResourceConfig):
     blueprint_name = "notify_inbox"
     url_prefix = "/notify-inbox"
     routes = {
-        "item": "/<notify_inbox_id>",
+        "item": "/<record_id>",
         "list": "/",
     }
 
     request_view_args = {
-        "notify_inbox_id": ma.fields.String(),
+        "record_id": ma.fields.String(),
     }
 
     # request_extra_args = {
