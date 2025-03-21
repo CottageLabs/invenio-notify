@@ -27,7 +27,6 @@ class NotifyInboxService(RecordService):
 
     @unit_of_work()
     def delete(self, identity, id, uow=None):
-        """Delete a banner from database."""
         self.require_permission(identity, "delete")
 
         record = self.record_cls.get(id)
