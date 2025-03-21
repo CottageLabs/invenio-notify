@@ -6,6 +6,7 @@ from invenio_db.uow import unit_of_work
 from invenio_rdm_records.services import RDMRecordService
 from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
+from invenio_records_resources.services.base.utils import map_search_params
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
@@ -17,14 +18,18 @@ re_url_record_id = regex.compile(r'/records/(.*?)$')
 
 class BasicDbService(RecordService):
 
-    def search(self, identity, params=None, search_preference=None, expand=False, **kwargs):
+    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
         self.require_permission(identity, "search")
 
         params = params or {}
-        # search_params = map_search_params(self.config.search, params)
-        search_params = {}
+
+        search_params = map_search_params(self.config.search, params)
+        query_param = search_params["q"]
 
         filters = []
+        if filter_maker:
+            filters.extend(filter_maker(query_param))
+
         record_list = self.record_cls.search(search_params, filters)
         record_list = list(record_list)
 
@@ -120,4 +125,17 @@ class EndorsementService(RecordService):
 
 
 class ReviewerMapService(BasicDbService):
-    pass
+
+    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
+        if filter_maker is None:
+            def filter_maker(query_param):
+                filters = []
+                if query_param:
+                    filters.extend(
+                        [
+                            self.record_cls.reviewer_id == query_param,
+                        ]
+                    )
+                return filters
+
+        return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)

@@ -1,3 +1,4 @@
+from invenio_i18n import gettext as _
 from invenio_records_resources.services import RecordServiceConfig
 from invenio_records_resources.services.base.config import FromConfig, ConfiguratorMixin
 from invenio_records_resources.services.records.links import pagination_links
@@ -5,6 +6,7 @@ from invenio_records_resources.services.records.links import pagination_links
 from invenio_notify.records.models import NotifyInboxModel, ReviewerMapModel
 from invenio_notify.records.records import EndorsementRecord
 from invenio_notify.services.components import DefaultEndorsementComponents
+from invenio_notify.services.config_utils import DefaultSearchOptions
 from invenio_notify.services.links import EndorsementLink, NotifyInboxLink, IdLink
 from invenio_notify.services.policies import NotifyInboxPermissionPolicy, AdminPermissionPolicy, \
     EndorsementPermissionPolicy
@@ -21,8 +23,8 @@ class NotifyInboxServiceConfig(RecordServiceConfig):
 
     permission_policy_cls = NotifyInboxPermissionPolicy
 
-    # # Search configuration
-    # search = SearchOptions
+    # Search configuration
+    search = DefaultSearchOptions
 
     # # links configuration
     links_item = {
@@ -46,6 +48,20 @@ class EndorsementServiceConfig(RecordServiceConfig, ConfiguratorMixin):
     )
 
 
+class ReviewerMapSearchOptions(DefaultSearchOptions):
+    sort_default = "user_id"
+    sort_options = {
+        "user_id": dict(
+            title=_("User id"),
+            fields=["user_id"],
+        ),
+        "reviewer_id": dict(
+            title=_("Reviewer id"),
+            fields=["reviewer_id"],
+        ),
+    }
+
+
 class ReviewerMapServiceConfig(RecordServiceConfig):
     result_list_cls = BasicDbModelRecordList
     record_cls = ReviewerMapModel
@@ -54,7 +70,7 @@ class ReviewerMapServiceConfig(RecordServiceConfig):
     permission_policy_cls = AdminPermissionPolicy
 
     # # Search configuration
-    # search = SearchOptions
+    search = ReviewerMapSearchOptions
 
     # # links configuration
     links_item = {
