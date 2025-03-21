@@ -36,7 +36,7 @@ notify_inbox_list = "invenio_notify.views:NotifyInboxListView"
 invenio_notify = "invenio_notify.ext:InvenioNotify"
 
 [project.entry-points."invenio_base.api_blueprints"]
-invenio_notify = "invenio_notify.views:create_notify_inbox_api_bp"
+invenio_notify = "invenio_notify.blueprints:create_notify_inbox_api_bp"
 invenio_notify_rest = "invenio_notify.blueprints:rest_blueprint"
 
 [project.entry-points."invenio_base.apps"]

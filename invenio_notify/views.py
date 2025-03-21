@@ -48,10 +48,6 @@ class NotifyInboxListView(AdminResourceListView):
     search_sort_config_name = "NOTIFY_SORT_OPTIONS"
 
 
-def create_notify_inbox_api_bp(app):
-    return app.extensions["invenio-notify"].notify_inbox_resource.as_blueprint()
-
-
 class NotifyInboxDetailView(AdminResourceDetailView):
     """Admin notify inbox detail view."""
 
