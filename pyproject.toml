@@ -25,27 +25,33 @@ build-backend = "setuptools.build_meta"
 
 [project.scripts]
 
-[project.entry-points]
-"invenio_base.api_apps" = { invenio_notify = "invenio_notify.ext:InvenioNotify" }
-"invenio_base.apps" = { invenio_notify = "invenio_notify.ext:InvenioNotify" }
+[project.entry-points."invenio_access.actions"]
+coarnotify_action = "invenio_notify.permissions:coarnotify_action
 
-"invenio_db.alembic" = { invenio_notify = "invenio_notify:alembic" }
-"invenio_db.models" = { invenio_notify = "invenio_notify.records.models" }
+[project.entry-points."invenio_administration.views"]
+notify_inbox_detail = "invenio_notify.views:NotifyInboxDetailView"
+notify_inbox_list = "invenio_notify.views:NotifyInboxListView"
+
+[project.entry-points."invenio_base.api_apps"]
+invenio_notify = "invenio_notify.ext:InvenioNotify"
 
 [project.entry-points."invenio_base.api_blueprints"]
 invenio_notify = "invenio_notify.views:create_notify_inbox_api_bp"
 invenio_notify_rest = "invenio_notify.blueprints:rest_blueprint"
 
+[project.entry-points."invenio_base.apps"]
+invenio_notify = "invenio_notify.ext:InvenioNotify"
+
+[project.entry-points."invenio_db.alembic"]
+invenio_notify = "invenio_notify:alembic"
+
+[project.entry-points."invenio_db.models"]
+invenio_notify = "invenio_notify.records.models"
 
 [project.entry-points."invenio_oauth2server.scopes"]
 oauth_noti = "invenio_notify.scopes:inbox_scope"
 
-[project.entry-points."invenio_administration.views"]
-notify_inbox_list = "invenio_notify.views:NotifyInboxListView"
-notify_inbox_detail = "invenio_notify.views:NotifyInboxDetailView"
 
-[project.entry-points."invenio_access.actions"]
-coarnotify_action = "invenio_notify.permissions:coarnotify_action"
 
 [tool.setuptools.packages.find]
 
