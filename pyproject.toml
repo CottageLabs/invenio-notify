@@ -33,6 +33,8 @@ notify_inbox_list = "invenio_notify.views.inbox_admin_views:NotifyInboxListView"
 notify_inbox_detail = "invenio_notify.views.inbox_admin_views:NotifyInboxDetailView"
 reviewer_map_list = "invenio_notify.views.reviewer_map_views:ReviewerMapListView"
 reviewer_map_detail = "invenio_notify.views.reviewer_map_views:ReviewerMapDetailView"
+reviewer_map_create = "invenio_notify.views.reviewer_map_views:ReviewerMapCreateView"
+reviewer_map_edit = "invenio_notify.views.reviewer_map_views:ReviewerMapEditView"
 
 [project.entry-points."invenio_base.api_apps"]
 invenio_notify = "invenio_notify.ext:InvenioNotify"
@@ -64,4 +66,3 @@ endorsement = "invenio_notify.records.mappings"
 
 [project.entry-points."invenio_jobs.jobs"]
 process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
-
