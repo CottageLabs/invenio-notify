@@ -1,6 +1,7 @@
 from flask import g
 from flask_resources import Resource, resource_requestctx, response_handler, route
 from invenio_records_resources.resources.records.resource import (
+    request_data,
     request_headers,
     request_search_args,
     request_view_args,
@@ -47,6 +48,29 @@ class BasicDbResource(ErrorHandlersMixin, Resource):
 
         return result_item.to_dict(), 204
 
+    @request_view_args
+    @request_data
+    @response_handler()
+    def update(self):
+        record = self.service.update(
+            id=resource_requestctx.view_args["record_id"],
+            identity=g.identity,
+            data=resource_requestctx.data,
+        )
+
+        return record.to_dict(), 200
+
+    @request_data
+    @response_handler()
+    def create(self):
+        breakpoint()
+        record = self.service.create(
+            g.identity,
+            resource_requestctx.data or {},
+        )
+
+        return record.to_dict(), 201
+
 
 class NotifyInboxResource(BasicDbResource):
 
@@ -68,9 +92,20 @@ class ReviewerMapResource(BasicDbResource):
         """Create the URL rules for the record resource."""
         routes = self.config.routes
         return [
-            # route("POST", routes["list"], self.create),
+            route("POST", routes["list"], self.create),
             route("GET", routes["item"], self.read),
             route("GET", routes["list"], self.search),
             route("DELETE", routes["item"], self.delete),
-            # route("PUT", routes["item"], self.update),
+            route("PUT", routes["item"], self.update),
         ]
+
+    @request_data
+    @response_handler()
+    def create(self):
+        resource_requestctx.data.pop('id', None)
+        record = self.service.create(
+            g.identity,
+            resource_requestctx.data or {},
+        )
+
+        return record.to_dict(), 201
