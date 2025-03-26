@@ -1,6 +1,7 @@
 import pytest
 
 from invenio_notify_test.reviewer_map_fixture import create_reviewer_map
+from invenio_notify_test.inbox_fixture import create_inbox
 from invenio_notify_test.test_notify_inbox import create_notify_inbox_service
 from invenio_notify_test.test_reviewer_map import create_reviewer_map_service
 from invenio_notify_test.utils import BasicDbServiceTestHelper
