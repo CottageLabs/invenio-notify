@@ -12,9 +12,6 @@ from invenio_rdm_records.records import RDMParent, RDMRecord
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
 
-from invenio_notify.records.models import NotifyInboxModel
-from invenio_notify_test.inbox_fixture import create_inbox
-
 RunningApp = namedtuple(
     "RunningApp",
     [
@@ -180,49 +177,6 @@ def create_endorsement_service_data(record_id, inbox_id, user_id):
         'review_type': 'endorsement',
         'user_id': user_id,
         'inbox_id': inbox_id
-    }
-
-
-def create_notification_data(record_id):
-    """Create notification data with a real record ID."""
-
-    return {
-        "@context": [
-            "https://www.w3.org/ns/activitystreams",
-            "https://coar-notify.net"
-        ],
-        "actor": {
-            "id": "https://evolbiol.peercommunityin.org/coar_notify/",
-            "name": "Peer Community in Evolutionary Biology",
-            "type": "Service"
-        },
-        "context": {
-            "id": f"https://127.0.0.1:5000/records/{record_id}"
-        },
-        "id": "urn:uuid:94ecae35-dcfd-4182-8550-22c7164fe23f",
-        "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
-        "object": {
-            "id": "https://evolbiol.peercommunityin.org/articles/rec?articleId=794#review-3136",
-            "ietf:cite-as": "",
-            "type": [
-                "Page",
-                "sorg:WebPage"
-            ]
-        },
-        "origin": {
-            "id": "https://evolbiol.peercommunityin.org/coar_notify/",
-            "inbox": "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
-            "type": "Service"
-        },
-        "target": {
-            "id": "https://research-organisation.org/repository",
-            "inbox": "https://research-organisation.org/inbox/",
-            "type": "Service"
-        },
-        "type": [
-            "Announce",
-            "coar-notify:ReviewAction"
-        ]
     }
 
 
