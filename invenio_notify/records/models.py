@@ -94,6 +94,17 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
     reviewer_id = db.Column(db.Text, nullable=False)
     """ ID of the reviewer in an external system """
 
+    @classmethod
+    def find_by_email(cls, email):
+        return (cls.query
+                .join(User, cls.user_id == User.id)
+                .filter(User.email == email)
+                .all())
+
+    @classmethod
+    def find_by_reviewer_id(cls, reviewer_id):
+        return cls.query.filter(cls.reviewer_id == reviewer_id).all()
+
 
 class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
     __tablename__ = "endorsement_metadata"
@@ -128,3 +139,4 @@ class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
     def create(self):
         with db.session.begin_nested():
             db.session.add(self)
+

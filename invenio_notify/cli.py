@@ -82,14 +82,9 @@ def user():
 def list(user, reviewer_id):
     """ List user and reviewer id mapping """
     if user:
-        rows = (ReviewerMapModel.query
-                .join(User, ReviewerMapModel.user_id == User.id)
-                .filter(User.email == user)
-                .all())
+        rows = ReviewerMapModel.find_by_email(user)
     elif reviewer_id:
-        rows = (ReviewerMapModel.query
-                .filter(ReviewerMapModel.reviewer_id == reviewer_id)
-                .all())
+        rows = ReviewerMapModel.find_by_reviewer_id(reviewer_id)
     else:
         print('Please provide either email or reviewer_id to query.')
         return
@@ -124,3 +119,4 @@ def add(email, reviewer_id):
         'reviewer_id': reviewer_id,
     })
     db.session.commit()
+
