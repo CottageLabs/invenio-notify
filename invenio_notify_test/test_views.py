@@ -1,5 +1,6 @@
 from invenio_oauth2server.models import Token
 
+from invenio_notify.scopes import inbox_scope
 from invenio_notify.utils import user_utils
 from invenio_notify_test import inbox_fixture
 
@@ -21,7 +22,9 @@ def test_inbox__success(client, db, superuser_identity, rdm_record):
 
     user_utils.add_user_action(db, user.id)
 
-    token = Token.create_personal('token-name-1', user.id, scopes=['notify:inbox'])
+    token = Token.create_personal('token-name-1', user.id, scopes=[inbox_scope.id])
+
+
     access_token = token.access_token
 
     notify_review_data = inbox_fixture.create_notification_data(rdm_record.id)
