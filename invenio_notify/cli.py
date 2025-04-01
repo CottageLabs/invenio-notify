@@ -4,6 +4,7 @@ import rich
 from flask.cli import with_appcontext
 from invenio_accounts.models import User
 from invenio_db import db
+from rich.markdown import Markdown
 from sqlalchemy import desc
 
 from invenio_notify import tasks
@@ -44,7 +45,7 @@ def list_notify(size):
     """ List latest endorsement and notify inbox records """
 
     console = rich.get_console()
-    console.print('** Endorsement: **', style='bold')
+    console.print(Markdown('# Endorsement'))
     for r in get_sorted_records(EndorsementMetadataModel, size, order_field=desc('created')):
         print('----------------------------')
         key_values = vars(r).items()
@@ -57,7 +58,7 @@ def list_notify(size):
         print()
     print()
 
-    console.print('** Notify Inbox: **', style='bold')
+    console.print(Markdown('# Notify Inbox'))
     for r in get_sorted_records(NotifyInboxModel, size, order_field=desc('created')):
         print('----------------------------')
         key_values = vars(r).items()
@@ -91,7 +92,7 @@ def list(user, reviewer_id):
 
     print('List of users and reviewer ids:')
     for r in rows:
-        print(f'{r.user.email:<40} -> {r.reviewer_id}')
+        print(f'{r.user.email:<40} -> [{r.reviewer_id}]')
 
 
 @user.command()
