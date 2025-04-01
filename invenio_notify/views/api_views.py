@@ -5,6 +5,7 @@ from invenio_pidstore.errors import PIDDoesNotExistError
 from coarnotify.server import COARNotifyServerError, COARNotifyReceipt
 from invenio_notify import constants
 from invenio_notify.blueprints import rest_blueprint
+from invenio_notify.errors import COARProcessFail
 from invenio_notify.scopes import inbox_scope
 from invenio_notify.services.service import NotifyInboxService
 
@@ -19,7 +20,8 @@ def inbox():
     """
 
     if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 400
+        # return jsonify({"error": "Request must be JSON"}), 400
+        return create_fail_response(constants.STATUS_BAD_REQUEST, "Request must be JSON")
 
     inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
 
@@ -29,11 +31,37 @@ def inbox():
 
     except COARNotifyServerError as e:
         current_app.logger.error(f'Error: {e.message}')
-        return response_coar_notify_receipt(COARNotifyReceipt(constants.STATUS_BAD_REQUEST))
+        return create_fail_response(constants.STATUS_BAD_REQUEST)
+
+    except COARProcessFail as e:
+        return create_fail_response(e.status, e.msg)
 
     except PIDDoesNotExistError as e:
         current_app.logger.debug(f'inbox PIDDoesNotExistError {e.pid_type}:{e.pid_value}')
-        return response_coar_notify_receipt(COARNotifyReceipt(constants.STATUS_NOT_FOUND), msg="Record not found")
+        return create_fail_response(constants.STATUS_NOT_FOUND, "Record not found")
+
+
+def create_default_msg_by_status(status):
+    if status == COARNotifyReceipt.ACCEPTED:
+        msg = "Accepted"
+    elif status == COARNotifyReceipt.CREATED:
+        msg = "Created"
+    elif status == constants.STATUS_NOT_ACCEPTED:
+        msg = "Not Accepted"
+    elif status == constants.STATUS_FORBIDDEN:
+        msg = "Forbidden"
+    elif status == constants.STATUS_BAD_REQUEST:
+        msg = "Bad Request"
+    elif status == constants.STATUS_NOT_FOUND:
+        msg = "Not Found"
+    else:
+        msg = "Error"
+    return msg
+
+
+def create_fail_response(status, msg=None):
+    msg = msg or create_default_msg_by_status(status)
+    return jsonify({"status": status, "message": msg}), status
 
 
 def response_coar_notify_receipt(receipt: COARNotifyReceipt, msg=None):
@@ -43,18 +71,5 @@ def response_coar_notify_receipt(receipt: COARNotifyReceipt, msg=None):
     if receipt.location:
         data["location"] = receipt.location
 
-    if msg:
-        data["message"] = msg
-    else:
-        if receipt.status == COARNotifyReceipt.ACCEPTED:
-            data["message"] = "Accepted"
-        elif receipt.status == COARNotifyReceipt.CREATED:
-            data["message"] = "Created"
-        elif receipt.status == constants.STATUS_NOT_ACCEPTED:
-            data["message"] = "Not Accepted"
-        elif receipt.status == constants.STATUS_FORBIDDEN:
-            data["message"] = "Forbidden"
-        elif receipt.status == constants.STATUS_BAD_REQUEST:
-            data["message"] = "Bad Request"
-
+    data["message"] = msg or create_default_msg_by_status(receipt.status)
     return jsonify(data), receipt.status

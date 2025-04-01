@@ -11,6 +11,8 @@ from invenio_records_resources.services.base.utils import map_search_params
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
 from invenio_notify import constants
+from invenio_notify.errors import COARProcessFail
+from invenio_notify.records.models import ReviewerMapModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
@@ -88,7 +90,7 @@ class NotifyInboxService(BasicDbService):
         data['user_id'] = identity.id
         return super().create(identity, data, raise_errors=raise_errors, uow=uow)
 
-    def receive_notification(self, notification_raw: dict):
+    def receive_notification(self, notification_raw: dict) -> COARNotifyReceipt:
         server = COARNotifyServer(InboxCOARBinding())
         current_app.logger.debug(f'input announcement:')
         result = server.receive(notification_raw, validate=True)
@@ -104,10 +106,16 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         raw = notification.to_jsonld()
         recid = get_recid_by_record_url(raw['context']['id'])
 
+        # Check actor_id match with user
+        reviewer_id_list = ReviewerMapModel.find_review_id_by_user_id(g.identity.id)
+        if raw['actor']['id'] not in reviewer_id_list:
+            current_app.logger.warning(f'Actor id not match with user: {raw["actor"]["id"]}, {reviewer_id_list}')
+            raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
+
         # Check if the notification type is supported
         if all(t not in constants.REVIEW_TYPES for t in raw.get('type', [])):
             current_app.logger.info(f'Unknown type: [{recid=}]{raw.get("type")}')
-            return COARNotifyReceipt(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
+            raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
 
         # check if record exists
         records_service: RDMRecordService = current_app.extensions["invenio-rdm-records"].records_service
