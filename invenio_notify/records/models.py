@@ -76,6 +76,12 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
 
 class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
+    """
+    used to store mapping between user and actor id
+
+    prevent user to send notification with different actor id
+    """
+
     __tablename__ = "reviewer_map"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -92,7 +98,7 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
     )
 
     reviewer_id = db.Column(db.Text, nullable=False)
-    """ ID of the reviewer in an external system """
+    """ ID of the reviewer in an external system, in COAR this is the actor.id """
 
     @classmethod
     def find_by_email(cls, email):
@@ -104,6 +110,11 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
     @classmethod
     def find_by_reviewer_id(cls, reviewer_id):
         return cls.query.filter(cls.reviewer_id == reviewer_id).all()
+
+    @classmethod
+    def find_review_id_by_user_id(cls, user_id):
+        """ find list of reviewer_id by user_id """
+        return [r[0] for r in db.session.query(cls.reviewer_id).filter(cls.user_id == user_id).all()]
 
 
 class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
@@ -139,4 +150,3 @@ class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
     def create(self):
         with db.session.begin_nested():
             db.session.add(self)
-
