@@ -25,3 +25,19 @@ def create_reviewer_map(db, superuser_identity):
         })
         return reviewer_map
     return _create_reviewer_map
+
+
+def create_reviewer_map_dict(reviewer_id, user_id):
+    """Create a dictionary representing a reviewer map.
+
+    Args:
+        reviewer_id: External reviewer identifier
+        user_id: Internal user identifier
+
+    Returns:
+        Dict with reviewer_id and user_id
+    """
+    return {
+        'reviewer_id': reviewer_id,
+        'user_id': user_id
+    }

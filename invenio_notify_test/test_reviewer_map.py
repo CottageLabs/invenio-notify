@@ -1,6 +1,7 @@
 from invenio_notify.records.models import ReviewerMapModel
 from invenio_notify.services.config import ReviewerMapServiceConfig
 from invenio_notify.services.service import ReviewerMapService
+from reviewer_map_fixture import create_reviewer_map_dict
 
 
 def create_reviewer_map_service():
@@ -12,10 +13,9 @@ def test_create_model(db, superuser_identity):
     reviewer_id = 'external-reviewer-123'
 
     # Create a new reviewer map entry
-    reviewer_map = ReviewerMapModel.create({
-        'reviewer_id': reviewer_id,
-        'user_id': superuser_identity.id
-    })
+    reviewer_map = ReviewerMapModel.create(
+        create_reviewer_map_dict(reviewer_id, superuser_identity.id)
+    )
 
     # Verify record was created
     assert ReviewerMapModel.query.count() == 1
@@ -32,10 +32,10 @@ def test_service_create(test_app, superuser_identity):
     assert ReviewerMapModel.query.count() == 0
     reviewer_id = 'external-reviewer-123'
 
-    result = reviewer_map_serv.create(superuser_identity, {
-        'reviewer_id': reviewer_id,
-        'user_id': superuser_identity.id
-    })
+    result = reviewer_map_serv.create(
+        superuser_identity, 
+        create_reviewer_map_dict(reviewer_id, superuser_identity.id)
+    )
 
     result_dict = result.to_dict()
     assert result_dict['reviewer_id'] == reviewer_id
@@ -55,18 +55,18 @@ def test_service_search(test_app, superuser_identity):
     reviewer_id_3 = 'external-reviewer-789'
 
     # Create test records
-    reviewer_map_serv.create(superuser_identity, {
-        'reviewer_id': reviewer_id_1,
-        'user_id': superuser_identity.id
-    })
-    reviewer_map_serv.create(superuser_identity, {
-        'reviewer_id': reviewer_id_2,
-        'user_id': superuser_identity.id
-    })
-    reviewer_map_serv.create(superuser_identity, {
-        'reviewer_id': reviewer_id_3,
-        'user_id': superuser_identity.id
-    })
+    reviewer_map_serv.create(
+        superuser_identity, 
+        create_reviewer_map_dict(reviewer_id_1, superuser_identity.id)
+    )
+    reviewer_map_serv.create(
+        superuser_identity, 
+        create_reviewer_map_dict(reviewer_id_2, superuser_identity.id)
+    )
+    reviewer_map_serv.create(
+        superuser_identity, 
+        create_reviewer_map_dict(reviewer_id_3, superuser_identity.id)
+    )
 
     assert ReviewerMapModel.query.count() == 3
 
