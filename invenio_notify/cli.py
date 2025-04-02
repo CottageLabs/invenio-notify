@@ -97,13 +97,13 @@ def list(user, reviewer_id):
 
 @user.command()
 @click.argument('email')
-@click.argument('reviewer_id')
+@click.argument('reviewer_ids', nargs=-1, required=True)
 @with_appcontext
-def add(email, reviewer_id):
-    """ assign coarnotify role and reviewer id to user """
+def add(email, reviewer_ids):
+    """ assign coarnotify role and reviewer ids to user """
     from invenio_notify.utils import user_utils
 
-    print(f'Assign reviewer_id[{reviewer_id}] to user[{email}]')
+    print(f'Assigning reviewer_id(s) {reviewer_ids} to user[{email}]')
     user = User.query.filter_by(email=email).first()
     if user is None:
         print(f'User with email {email} not found.')
@@ -111,13 +111,18 @@ def add(email, reviewer_id):
 
     user_utils.add_user_action(db, user.id)
 
-    if ReviewerMapModel.query.filter_by(user_id=user.id, reviewer_id=reviewer_id).scalar():
-        print(f'User {user.email} already has a reviewer ID ({reviewer_id}) assigned.')
-        return
+    assigned_count = 0
+    for reviewer_id in reviewer_ids:
+        if ReviewerMapModel.query.filter_by(user_id=user.id, reviewer_id=reviewer_id).scalar():
+            print(f'User {user.email} already has reviewer ID ({reviewer_id}) assigned.')
+            continue
 
-    ReviewerMapModel.create({
-        'user_id': user.id,
-        'reviewer_id': reviewer_id,
-    })
-    db.session.commit()
+        ReviewerMapModel.create({
+            'user_id': user.id,
+            'reviewer_id': reviewer_id,
+        })
+        assigned_count += 1
 
+    if assigned_count:
+        db.session.commit()
+        print(f'Successfully assigned {assigned_count} new reviewer ID(s) to {email}')
