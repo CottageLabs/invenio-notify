@@ -25,7 +25,7 @@ class ReviewerListView(AdminResourceListView):
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "name": {"text": _("Name"), "order": 2, "width": 2},
-        "coar_id": {"text": _("COAR ID"), "order": 3, "width": 2},
+        "coar_id": {"text": _("COAR ID (actor id)"), "order": 3, "width": 2},
         "inbox_url": {"text": _("Inbox URL"), "order": 4, "width": 2},
         "description": {"text": _("Description"), "order": 5, "width": 3},
         "created": {"text": _("Created"), "order": 6, "width": 2},
@@ -55,7 +55,7 @@ class ReviewerDetailView(AdminResourceDetailView):
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "name": {"text": _("Name"), "order": 2, "width": 2},
-        "coar_id": {"text": _("COAR ID"), "order": 3, "width": 2},
+        "coar_id": {"text": _("COAR ID (actor id)"), "order": 3, "width": 2},
         "inbox_url": {"text": _("Inbox URL"), "order": 4, "width": 2},
         "description": {"text": _("Description"), "order": 5, "width": 3},
         "created": {"text": _("Created"), "order": 6, "width": 2},
@@ -72,7 +72,7 @@ reviewer_form_fields = {
     },
     "coar_id": {
         "order": 2,
-        "text": _("COAR ID"),
+        "text": _("COAR ID (actor id)"),
         "description": _("ID used in COAR notification (JSON)."),
     },
     "inbox_url": {
