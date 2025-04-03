@@ -63,7 +63,6 @@ class BasicDbResource(ErrorHandlersMixin, Resource):
     @request_data
     @response_handler()
     def create(self):
-        breakpoint()
         record = self.service.create(
             g.identity,
             resource_requestctx.data or {},
