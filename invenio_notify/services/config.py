@@ -91,6 +91,6 @@ class ReviewerServiceConfig(RecordServiceConfig):
 
     # Links configuration
     links_item = {
-        "self": IdLink("{+api}/reviewers/{id}"),
+        "self": IdLink("{+api}/reviewer/{id}"),
     }
-    links_search = pagination_links("{+api}/reviewers{?args*}")
+    links_search = pagination_links("{+api}/reviewer{?args*}")

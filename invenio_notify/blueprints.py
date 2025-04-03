@@ -29,3 +29,7 @@ def create_notify_inbox_resource_api_bp(app):
 
 def create_reviewer_map_resource_api_bp(app):
     return app.extensions["invenio-notify"].reviewer_map_resource.as_blueprint()
+
+
+def create_reviewer_resource_api_bp(app):
+    return app.extensions["invenio-notify"].reviewer_resource.as_blueprint()

@@ -35,6 +35,10 @@ reviewer_map_list = "invenio_notify.views.reviewer_map_views:ReviewerMapListView
 reviewer_map_detail = "invenio_notify.views.reviewer_map_views:ReviewerMapDetailView"
 reviewer_map_create = "invenio_notify.views.reviewer_map_views:ReviewerMapCreateView"
 reviewer_map_edit = "invenio_notify.views.reviewer_map_views:ReviewerMapEditView"
+reviewer_list = "invenio_notify.views.reviewer_views:ReviewerListView"
+reviewer_detail = "invenio_notify.views.reviewer_views:ReviewerDetailView"
+reviewer_create = "invenio_notify.views.reviewer_views:ReviewerCreateView"
+reviewer_edit = "invenio_notify.views.reviewer_views:ReviewerEditView"
 
 [project.entry-points."invenio_base.api_apps"]
 invenio_notify = "invenio_notify.ext:InvenioNotify"
@@ -42,6 +46,7 @@ invenio_notify = "invenio_notify.ext:InvenioNotify"
 [project.entry-points."invenio_base.api_blueprints"]
 notify_inbox_resource = "invenio_notify.blueprints:create_notify_inbox_resource_api_bp"
 reviewer_map_resource = "invenio_notify.blueprints:create_reviewer_map_resource_api_bp"
+reviewer_resource = "invenio_notify.blueprints:create_reviewer_resource_api_bp"
 invenio_notify_rest = "invenio_notify.blueprints:rest_blueprint"
 
 [project.entry-points."invenio_base.apps"]
@@ -66,3 +71,4 @@ endorsement = "invenio_notify.records.mappings"
 
 [project.entry-points."invenio_jobs.jobs"]
 process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
+

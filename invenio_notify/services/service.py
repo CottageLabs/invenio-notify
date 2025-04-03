@@ -82,6 +82,28 @@ class BasicDbService(RecordService):
             self, identity, record, links_tpl=self.links_item_tpl, errors=errors
         )
 
+    @unit_of_work()
+    def update(self, identity, id, data, uow=None):
+        self.require_permission(identity, "update")
+
+        record = self.record_cls.get(id)
+
+        # validate data
+        valid_data, errors = self.schema.load(
+            data,
+            context={"identity": identity},
+            raise_errors=True,
+        )
+
+        self.record_cls.update(valid_data, id)
+
+        return self.result_item(
+            self,
+            identity,
+            record,
+            links_tpl=self.links_item_tpl,
+        )
+
 
 class NotifyInboxService(BasicDbService):
 

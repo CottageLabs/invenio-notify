@@ -46,6 +46,14 @@ class DbOperationMixin:
 
         return results
 
+    @classmethod
+    def update(cls, data, id):
+        with db.session.begin_nested():
+            # NOTE:
+            # with db.session.get(cls, id) the model itself would be
+            # returned and this classmethod would be called
+            db.session.query(cls).filter_by(id=id).update(data)
+
 
 class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     __tablename__ = "notify_inbox"
@@ -118,7 +126,6 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
 
 
 class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
-
     __tablename__ = "reviewer"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -131,9 +138,6 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
     inbox_url = db.Column(db.Text, nullable=False)
 
     description = db.Column(db.Text, nullable=True)
-
-
-
 
 
 class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
