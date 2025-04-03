@@ -31,3 +31,6 @@ class ReviewerMapPermissionPolicy(AdminPermissionPolicy):
 class EndorsementPermissionPolicy(AdminPermissionPolicy):
     # TODO to be review
     pass
+
+class ReviewerPermissionPolicy(AdminPermissionPolicy):
+    pass

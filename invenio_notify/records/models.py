@@ -117,6 +117,25 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
         return [r[0] for r in db.session.query(cls.reviewer_id).filter(cls.user_id == user_id).all()]
 
 
+class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
+
+    __tablename__ = "reviewer"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.Text, nullable=False)
+
+    coar_id = db.Column(db.Text, nullable=False)
+    """ id that used in COAR notification (json) """
+
+    inbox_url = db.Column(db.Text, nullable=False)
+
+    description = db.Column(db.Text, nullable=True)
+
+
+
+
+
 class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
     __tablename__ = "endorsement_metadata"
 
