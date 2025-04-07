@@ -7,7 +7,6 @@ coarnotify_permission = Permission(coarnotify_action)
 
 
 class Coarnotify(Generator):
-    """Allows administration-access."""
 
     def __init__(self):
         """Constructor."""

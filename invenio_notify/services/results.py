@@ -8,7 +8,8 @@ except ImportError:
     from flask_sqlalchemy.pagination import Pagination
 
 
-class NotifyInboxRecordList(RecordList):
+class BasicDbModelRecordList(RecordList):
+    """ support db model result to record list"""
 
     def __init__(
             self,

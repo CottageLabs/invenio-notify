@@ -38,7 +38,9 @@ invenio-cli services setup
 invenio access allow coarnotify user <user_email>
 
 # administration-access for access admin page
-invenio access allow administration-access user <user_email>
+invenio notify user add <user_email> <reviewer_id>
+# example
+invenio notify user add admina@dev.dev evolbiol.peercommunityin.org
 
 # create a notification  
 # review_1.json can be found in the docs/examples/review_1.json
