@@ -1,0 +1,67 @@
+{
+  "mappings": {
+    "dynamic_templates": [
+      {
+        "i18n_title": {
+          "path_match": "title.*",
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "search_as_you_type"
+          }
+        }
+      },
+      {
+        "i18n_description": {
+          "path_match": "description.*",
+          "match_mapping_type": "string",
+          "mapping": {
+            "type": "text"
+          }
+        }
+      }
+    ],
+    "dynamic": "strict",
+    "properties": {
+      "$schema": {
+        "type": "keyword",
+        "index": "false"
+      },
+      "created": {
+        "type": "date"
+      },
+      "updated": {
+        "type": "date"
+      },
+      "indexed_at": {
+        "type": "date"
+      },
+      "uuid": {
+        "type": "keyword"
+      },
+      "version_id": {
+        "type": "integer"
+      },
+      "id": {
+        "type": "keyword",
+        "fields": {
+          "text": {
+            "type": "search_as_you_type"
+          }
+        }
+      },
+      "metadata": {
+        "properties": {
+          "record_id": {
+            "type": "keyword"
+          },
+          "record_url": {
+            "type": "keyword"
+          },
+          "result_url": {
+            "type": "keyword"
+          }
+        }
+      }
+    }
+  }
+}

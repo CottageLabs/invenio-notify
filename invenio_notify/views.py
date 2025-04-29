@@ -1,14 +1,13 @@
-import json
 from flask import current_app, request, jsonify
-from flask import g
 from invenio_administration.views.base import (
     AdminResourceListView, AdminResourceDetailView,
 )
 from invenio_i18n import lazy_gettext as _
 from invenio_oauth2server import require_oauth_scopes, require_api_auth
+from invenio_pidstore.errors import PIDDoesNotExistError
 
-from coarnotify.core.notify import NotifyPattern
-from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer, COARNotifyServerError
+from coarnotify.server import COARNotifyServerError, COARNotifyReceipt
+from invenio_notify import constants
 from invenio_notify.blueprints import rest_blueprint
 from invenio_notify.scopes import inbox_scope
 from invenio_notify.services.service import NotifyInboxService
@@ -34,9 +33,12 @@ class NotifyInboxListView(AdminResourceListView):
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "raw": {"text": _("Raw"), "order": 2, "width": 7},
-        "record_id": {"text": _("Record ID"), "order": 3, "width": 1},
-        "created": {"text": _("Created"), "order": 4, "width": 2},
-        "updated": {"text": _("Updated"), "order": 5, "width": 2},
+        "recid": {"text": _("Record ID"), "order": 3, "width": 1},
+        "user_id": {"text": _("User ID"), "order": 4, "width": 1},
+        "process_date": {"text": _("Process Date"), "order": 5, "width": 2},
+        "process_note": {"text": _("Process Note"), "order": 6, "width": 2},
+        "created": {"text": _("Created"), "order": 7, "width": 2},
+        "updated": {"text": _("Updated"), "order": 8, "width": 2},
     }
 
     create_view_name = None
@@ -68,16 +70,21 @@ class NotifyInboxDetailView(AdminResourceDetailView):
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "raw": {"text": _("Raw"), "order": 2, "width": 7},
-        "record_id": {"text": _("Record ID"), "order": 3, "width": 1},
-        "created": {"text": _("Created"), "order": 4, "width": 2},
-        "updated": {"text": _("Updated"), "order": 5, "width": 2},
+        "recid": {"text": _("Record ID"), "order": 3, "width": 1},
+        "user_id": {"text": _("User ID"), "order": 4, "width": 1},
+        "process_date": {"text": _("Process Date"), "order": 5, "width": 2},
+        "process_note": {"text": _("Process Note"), "order": 6, "width": 2},
+        "created": {"text": _("Created"), "order": 7, "width": 2},
+        "updated": {"text": _("Updated"), "order": 8, "width": 2},
     }
 
 
-@rest_blueprint.route("/inbox/<record_id>", methods=['POST'])
+
+
+@rest_blueprint.route("/inbox", methods=['POST'])
 @require_api_auth()
 @require_oauth_scopes(inbox_scope.id)
-def inbox(record_id):
+def inbox():
     """
     Notify inbox for COAR notifications
     input data will be save as raw data in the database
@@ -86,33 +93,40 @@ def inbox(record_id):
     if not request.is_json:
         return jsonify({"error": "Request must be JSON"}), 400
 
-    raw = request.get_json()
-    raw['record_id'] = record_id
+    inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
 
-    server = COARNotifyServer(InboxCOARBinding())
     try:
-        print(f'input announcement:')
-        # rich.print_json(data=announcement.to_jsonld(), highlight=True, indent=4, )
-        result = server.receive(raw, validate=True)
-        print(f'result: {result}')
-        return jsonify({"message": "inbox Done", "location": result.location,
-                        "status": result.status}), result.status
+        result = inbox_service.receive_notification(request.get_json())
+        return response_coar_notify_receipt(result)
+
     except COARNotifyServerError as e:
-        print(f'Error: {e.message}')
-        return jsonify({"error": e.message}), e.status
+        current_app.logger.error(f'Error: {e.message}')
+        return response_coar_notify_receipt(COARNotifyReceipt(constants.STATUS_BAD_REQUEST))
+
+    except PIDDoesNotExistError as e:
+        current_app.logger.debug(f'inbox PIDDoesNotExistError {e.pid_type}:{e.pid_value}')
+        return response_coar_notify_receipt(COARNotifyReceipt(constants.STATUS_NOT_FOUND), msg="Record not found")
 
 
-class InboxCOARBinding(COARNotifyServiceBinding):
+def response_coar_notify_receipt(receipt: COARNotifyReceipt, msg=None):
+    data = {
+        "status": receipt.status,
+    }
+    if receipt.location:
+        data["location"] = receipt.location
 
-    def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
-        print('called notification_received')
+    if msg:
+        data["message"] = msg
+    else:
+        if receipt.status == COARNotifyReceipt.ACCEPTED:
+            data["message"] = "Accepted"
+        elif receipt.status == COARNotifyReceipt.CREATED:
+            data["message"] = "Created"
+        elif receipt.status == constants.STATUS_NOT_ACCEPTED:
+            data["message"] = "Not Accepted"
+        elif receipt.status == constants.STATUS_FORBIDDEN:
+            data["message"] = "Forbidden"
+        elif receipt.status == constants.STATUS_BAD_REQUEST:
+            data["message"] = "Bad Request"
 
-        raw = notification.to_jsonld()
-        record_id = raw.pop('record_id')
-
-        print(f'use input raw: {raw}')
-        inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
-        inbox_service.create(g.identity, {"raw": json.dumps(raw), 'record_id': record_id})
-
-        location = 'http://127.0.0.1/tobeimplemented'  # KTODO implement this
-        return COARNotifyReceipt(COARNotifyReceipt.CREATED, location)
+    return jsonify(data), receipt.status

@@ -8,6 +8,14 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
 ]
 dependencies = []
+
+[project.optional-dependencies]
+test = [
+    "pytest~=7.1",
+    "pytest-invenio~=3.0",
+    "pytest-black~=0.6.0",
+]
+
 [[project.authors]]
 name = "someone"
 
@@ -40,3 +48,12 @@ notify_inbox_detail = "invenio_notify.views:NotifyInboxDetailView"
 coarnotify_action = "invenio_notify.permissions:coarnotify_action"
 
 [tool.setuptools.packages.find]
+
+
+[project.entry-points."invenio_search.mappings"]
+endorsement = "invenio_notify.records.mappings"
+
+
+[project.entry-points."invenio_jobs.jobs"]
+process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
+
