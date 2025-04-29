@@ -1,7 +1,7 @@
 from flask_babel import lazy_gettext as _
 from invenio_administration.views.base import (
-    AdminResourceListView, 
-    AdminResourceDetailView, 
+    AdminResourceListView,
+    AdminResourceDetailView,
     AdminResourceCreateView,
     AdminResourceEditView
 )
@@ -37,6 +37,8 @@ class ReviewerListView(AdminResourceListView):
     search_config_name = "NOTIFY_SEARCH"
 
     search_sort_config_name = "NOTIFY_SORT_OPTIONS"
+
+    template = "invenio_notify/administration/reviewer_search.html"
 
 
 class ReviewerDetailView(AdminResourceDetailView):

@@ -61,6 +61,9 @@ invenio_notify = "invenio_notify.records.models"
 [project.entry-points."invenio_oauth2server.scopes"]
 oauth_noti = "invenio_notify.scopes:inbox_scope"
 
+[project.entry-points."invenio_assets.webpack"]
+invenio_notify = "invenio_notify.webpack:theme"
+
 
 [tool.setuptools.packages.find]
 
