@@ -93,6 +93,7 @@ def inbox():
 
     inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
 
+    server = COARNotifyServer(InboxCOARBinding())
     try:
         result = inbox_service.receive_notification(request.get_json())
         return response_coar_notify_receipt(result)
