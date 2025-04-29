@@ -20,6 +20,9 @@ class SearchResultItemComponent extends Component {
 
     return (
       <Table.Row>
+        <Table.Cell key={`reviewer-Id-${result.id}`} data-label={i18next.t("Id")}>
+          {result.id}
+        </Table.Cell>
         <Table.Cell key={`reviewer-active-${result.id}`} data-label={i18next.t("Name")}>
           <a href={AdminUIRoutes.editView(listUIEndpoint, result, idKeyPath)} >
             {result.name}
@@ -33,6 +36,12 @@ class SearchResultItemComponent extends Component {
         </Table.Cell>
         <Table.Cell data-label={i18next.t("Description")}>
           {result.description || "-"}
+        </Table.Cell>
+        <Table.Cell data-label={i18next.t("Created")}>
+          {new Date(result.created).toLocaleString()}
+        </Table.Cell>
+        <Table.Cell data-label={i18next.t("Updated")}>
+          {new Date(result.updated).toLocaleString()}
         </Table.Cell>
         <Table.Cell collapsing>
           <ReviewerSearchActions
