@@ -152,7 +152,7 @@ class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
 
     reviewer_id = db.Column(db.Text, nullable=True)
     """ id of Review service provider (e.g. id of PCI) """
-    # TOBE to be defined contain of reviewer_id
+    # TODO to be defined contain of reviewer_id
 
     review_type = db.Column(db.Text, nullable=True)
     """ review or endorsement """
