@@ -7,18 +7,21 @@ import { AdminUIRoutes } from "@js/invenio_administration/src/routes";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
 import { ReviewerSearchActions } from "./ReviewerSearchActions";
 
+
 class SearchResultItemComponent extends Component {
 
   render() {
     const {
       result,
+      listUIEndpoint,
+      idKeyPath,
       ...values
     } = this.props;
 
     return (
       <Table.Row>
         <Table.Cell key={`reviewer-active-${result.id}`} data-label={i18next.t("Name")}>
-          <a href={result.links.self_admin_html}>
+          <a href={AdminUIRoutes.editView(listUIEndpoint, result, idKeyPath)} >
             {result.name}
           </a>
         </Table.Cell>
