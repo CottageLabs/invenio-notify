@@ -13,7 +13,7 @@ import sqlalchemy as sa
 # revision identifiers, used by Alembic.
 revision = '1741180325'
 down_revision = None
-branch_labels = ('inveino_notify',)
+branch_labels = ('invenio_notify',)
 depends_on = None
 
 
