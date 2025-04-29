@@ -78,14 +78,14 @@ class NotifyInboxService(RecordService):
         )
 
     def receive_notification(self, notification_raw: dict):
-        server = COARNotifyServer(InvnotiCOARNotifyServiceBinding())
+        server = COARNotifyServer(InvnotiCOARBinding())
         current_app.logger.debug(f'input announcement:')
         result = server.receive(notification_raw, validate=True)
         current_app.logger.debug(f'result: {result}')
         return result
 
 
-class InvnotiCOARNotifyServiceBinding(COARNotifyServiceBinding):
+class InvnotiCOARBinding(COARNotifyServiceBinding):
 
     def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
         current_app.logger.debug('called notification_received')
