@@ -47,3 +47,11 @@ class EndorsementSchema(BaseRecordSchema):
     review_type = fields.String(required=True)
     user_id = fields.Integer(required=True)
     inbox_id = fields.Integer(required=True)
+
+
+class ReviewerMapSchema(BaseRecordSchema):
+    user_id = fields.Integer(required=True)
+    reviewer_id = fields.String(required=True)
+
+    created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
+    updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)

@@ -1,7 +1,7 @@
 from invenio_records_resources.services import Link
 
 
-class EndorsementLink(Link):
+class IdLink(Link):
 
     @staticmethod
     def vars(record, vars):
@@ -11,3 +11,11 @@ class EndorsementLink(Link):
                 "id": record.id,
             }
         )
+
+
+class EndorsementLink(IdLink):
+    pass
+
+
+class NotifyInboxLink(IdLink):
+    pass

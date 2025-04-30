@@ -26,6 +26,26 @@ class DbOperationMixin:
 
         raise NotExistsError(id)
 
+    @classmethod
+    def create(cls, data):
+        with db.session.begin_nested():
+            obj = cls(
+                **data
+            )
+            db.session.add(obj)
+
+        return obj
+
+    @classmethod
+    def search(cls, search_params=None, filters=None):
+        query = db.session.query(cls)
+        if filters:
+            results = query.filter(or_(*filters))
+        else:
+            results = query.filter()
+
+        return results
+
 
 class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     __tablename__ = "notify_inbox"
@@ -54,25 +74,47 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
         "User", backref=db.backref("inbox_messages", cascade="all, delete-orphan")
     )
 
+
+class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
+    """
+    used to store mapping between user and actor id
+
+    prevent user to send notification with different actor id
+    """
+
+    __tablename__ = "reviewer_map"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    user_id = db.Column(
+        db.Integer(),
+        db.ForeignKey(User.id, ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    user = db.relationship(
+        "User", backref=db.backref("reviewer_ids", cascade="all, delete-orphan")
+    )
+
+    reviewer_id = db.Column(db.Text, nullable=False)
+    """ ID of the reviewer in an external system, in COAR this is the actor.id """
+
     @classmethod
-    def create(cls, data):
-        with db.session.begin_nested():
-            obj = cls(
-                **data
-            )
-            db.session.add(obj)
-
-        return obj
+    def find_by_email(cls, email):
+        return (cls.query
+                .join(User, cls.user_id == User.id)
+                .filter(User.email == email)
+                .all())
 
     @classmethod
-    def search(cls, search_params=None, filters=None):
-        query = db.session.query(NotifyInboxModel)
-        if filters:
-            results = query.filter(or_(*filters))
-        else:
-            results = query.filter()
+    def find_by_reviewer_id(cls, reviewer_id):
+        return cls.query.filter(cls.reviewer_id == reviewer_id).all()
 
-        return results
+    @classmethod
+    def find_review_id_by_user_id(cls, user_id):
+        """ find list of reviewer_id by user_id """
+        return [r[0] for r in db.session.query(cls.reviewer_id).filter(cls.user_id == user_id).all()]
 
 
 class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
