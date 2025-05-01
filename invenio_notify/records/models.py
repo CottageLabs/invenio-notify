@@ -170,6 +170,23 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
                   .filter(User.email == email, cls.coar_id == coar_id)
                   .first())
         return result is not None
+    
+    @classmethod
+    def has_member(cls, user_id, coar_id) -> bool:
+        """Check if a user with given user_id is a member of a reviewer with the given coar_id.
+        
+        Args:
+            user_id: ID of the user
+            coar_id: The coar_id of the reviewer
+            
+        Returns:
+            bool: True if the user is a member of the reviewer, False otherwise
+        """
+        result = (db.session.query(cls)
+                  .join(ReviewerMapModel, ReviewerMapModel.reviewer_id == cls.id)
+                  .filter(ReviewerMapModel.user_id == user_id, cls.coar_id == coar_id)
+                  .first())
+        return result is not None
 
 
 class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
