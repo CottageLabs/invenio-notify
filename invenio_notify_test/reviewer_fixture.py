@@ -7,13 +7,13 @@ from invenio_notify_test.utils import resolve_user_id
 def create_reviewer(db, superuser_identity):
     """Fixture to create a ReviewerModel instance."""
 
-    def _create_reviewer(reviewer_id='test-reviewer-id', name='Test Reviewer',
+    def _create_reviewer(coar_id='test-reviewer-id', name='Test Reviewer',
                          inbox_url='https://example.com/inbox',
                          description=None):
         """Create a ReviewerModel instance.
         
         Args:
-            reviewer_id: COAR ID for the reviewer (default: 'test-reviewer-id')
+            coar_id: COAR ID for the reviewer (default: 'test-reviewer-id')
             name: Name of the reviewer (default: 'Test Reviewer')
             inbox_url: URL for the reviewer's inbox (default: 'https://example.com/inbox')
             description: Optional description of the reviewer
@@ -23,7 +23,7 @@ def create_reviewer(db, superuser_identity):
         """
 
         reviewer = ReviewerModel.create({
-            'coar_id': reviewer_id,
+            'coar_id': coar_id,
             'name': name,
             'inbox_url': inbox_url,
             'description': description
@@ -33,13 +33,13 @@ def create_reviewer(db, superuser_identity):
     return _create_reviewer
 
 
-def reviewer_data(reviewer_id='reviewer-coar-123', name='Test Reviewer',
+def reviewer_data(coar_id='reviewer-coar-123', name='Test Reviewer',
                  inbox_url='https://example.com/inbox',
                  description='Test description'):
     """Generate a reviewer data dictionary.
     
     Args:
-        reviewer_id: COAR ID for the reviewer
+        coar_id: COAR ID for the reviewer
         name: Name of the reviewer
         inbox_url: URL for the reviewer's inbox
         description: Description of the reviewer
@@ -48,7 +48,7 @@ def reviewer_data(reviewer_id='reviewer-coar-123', name='Test Reviewer',
         Dictionary with reviewer data
     """
     return {
-        'coar_id': reviewer_id,
+        'coar_id': coar_id,
         'name': name,
         'inbox_url': inbox_url,
         'description': description
