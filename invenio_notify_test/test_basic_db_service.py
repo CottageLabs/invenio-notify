@@ -46,6 +46,6 @@ class TestReviewerService(BasicDbServiceTestHelper):
         return create_reviewer_service()
 
     def _create_record(self, *args, **kwargs):
-        reviewer_id = kwargs.get('reviewer_id', 'test-reviewer-id')
-        return self.create_reviewer(reviewer_id=reviewer_id)
+        coar_id = kwargs.get('coar_id', 'test-coar-id')
+        return self.create_reviewer(coar_id=coar_id)
 
