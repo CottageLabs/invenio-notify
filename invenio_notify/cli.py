@@ -1,6 +1,7 @@
 import click
 import json
 import rich
+from datetime import datetime
 from flask.cli import with_appcontext
 from invenio_accounts.models import User
 from invenio_db import db
@@ -8,7 +9,7 @@ from rich.markdown import Markdown
 from sqlalchemy import desc
 
 from invenio_notify import tasks
-from invenio_notify.records.models import EndorsementMetadataModel, NotifyInboxModel, ReviewerMapModel
+from invenio_notify.records.models import EndorsementMetadataModel, NotifyInboxModel, ReviewerMapModel, ReviewerModel
 
 
 def print_key_value(k, v):
@@ -97,13 +98,13 @@ def list(user, reviewer_id):
 
 @user.command()
 @click.argument('email')
-@click.argument('reviewer_ids', nargs=-1, required=True)
+@click.argument('coar_ids', nargs=-1, required=True)
 @with_appcontext
-def add(email, reviewer_ids):
+def add(email, coar_ids):
     """ assign coarnotify role and reviewer ids to user """
     from invenio_notify.utils import user_utils
 
-    print(f'Assigning reviewer_id(s) {reviewer_ids} to user[{email}]')
+    print(f'Assigning reviewer_id(s) {coar_ids} to user[{email}]')
     user = User.query.filter_by(email=email).first()
     if user is None:
         print(f'User with email {email} not found.')
@@ -112,17 +113,62 @@ def add(email, reviewer_ids):
     user_utils.add_user_action(db, user.id)
 
     assigned_count = 0
-    for reviewer_id in reviewer_ids:
-        if ReviewerMapModel.query.filter_by(user_id=user.id, reviewer_id=reviewer_id).scalar():
-            print(f'User {user.email} already has reviewer ID ({reviewer_id}) assigned.')
+    for coar_id in coar_ids:
+        if ReviewerModel.has_member_with_email(email, coar_id):
+            print(f'User {user.email} already has reviewer ID ({coar_id}) assigned.')
             continue
 
-        ReviewerMapModel.create({
+        reviewer_id = db.session.query(ReviewerModel.id).filter_by(coar_id=coar_id).scalar()
+        if reviewer_id:
+            ReviewerMapModel.create({
             'user_id': user.id,
             'reviewer_id': reviewer_id,
-        })
-        assigned_count += 1
+            })
+            assigned_count += 1
+        else:
+            print(f"No reviewer found with COAR ID: {coar_id}")
 
     if assigned_count:
         db.session.commit()
         print(f'Successfully assigned {assigned_count} new reviewer ID(s) to {email}')
+
+
+@notify.command()
+@click.option('--email', '-e', type=str, help='Email of user to assign the reviewer to')
+@with_appcontext
+def test_data(email):
+    """Generate test data for ReviewerModel."""
+
+    print("Generating a test record for ReviewerModel...")
+    
+    # Generate reviewer record
+    reviewer = ReviewerModel.create({
+        'name': "Peer Community in Evolutionary Biology",
+        'coar_id': 'https://evolbiol.peercommunityin.org/coar_notify/',
+        'inbox_url': "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
+        'description': f"Test reviewer generated on {datetime.now().strftime('%Y-%m-%d')}"
+    })
+    
+    print(f"Created reviewer: {reviewer.name} with COAR ID: {reviewer.coar_id}")
+
+    # If email is provided, create a ReviewerMapModel for the user
+    if email:
+        from invenio_notify.utils import user_utils
+        
+        user = User.query.filter_by(email=email).first()
+        if user is None:
+            print(f"User with email {email} not found. Reviewer created but not assigned to any user.")
+        else:
+            # Add required role to the user
+            user_utils.add_user_action(db, user.id)
+            
+            # Create the mapping
+            ReviewerMapModel.create({
+                'user_id': user.id,
+                'reviewer_id': reviewer.id,
+            })
+            print(f"Created reviewer mapping: {email} -> {reviewer.name}")
+
+    db.session.commit()
+    print("Successfully created test reviewer record")
+

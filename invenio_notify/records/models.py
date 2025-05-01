@@ -105,8 +105,16 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
         "User", backref=db.backref("reviewer_ids", cascade="all, delete-orphan")
     )
 
-    reviewer_id = db.Column(db.Text, nullable=False)
-    """ ID of the reviewer in an external system, in COAR this is the actor.id """
+    reviewer_id = db.Column(
+        db.Integer(),
+        db.ForeignKey("reviewer.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+
+    reviewer = db.relationship(
+        "ReviewerModel", backref=db.backref("member_mappings", cascade="all, delete-orphan")
+    )
 
     @classmethod
     def find_by_email(cls, email):
@@ -138,6 +146,30 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
     inbox_url = db.Column(db.Text, nullable=False)
 
     description = db.Column(db.Text, nullable=True)
+
+    members = db.relationship(
+        "User",
+        secondary=ReviewerMapModel.__tablename__,
+        # back_populates="reviewers",
+    )
+
+    @classmethod
+    def has_member_with_email(cls, email, coar_id) -> bool:
+        """Check if a user with given email is a member of a reviewer with the given coar_id.
+        
+        Args:
+            email: Email address of the user
+            coar_id: The coar_id of the reviewer
+            
+        Returns:
+            bool: True if the user is a member of the reviewer, False otherwise
+        """
+        result = (db.session.query(cls)
+                  .join(ReviewerMapModel, ReviewerMapModel.reviewer_id == cls.id)
+                  .join(User, User.id == ReviewerMapModel.user_id)
+                  .filter(User.email == email, cls.coar_id == coar_id)
+                  .first())
+        return result is not None
 
 
 class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
