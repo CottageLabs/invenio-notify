@@ -57,6 +57,10 @@ class ReviewerMapSchema(BaseRecordSchema):
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
 
+class UserSchema(Schema):
+    email = fields.String(required=True)
+
+
 class ReviewerSchema(BaseRecordSchema):
     name = fields.String(required=True)
     coar_id = fields.String(required=True)
@@ -65,3 +69,6 @@ class ReviewerSchema(BaseRecordSchema):
     
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
+
+    members = fields.List(fields.Nested(UserSchema), required=False)
+

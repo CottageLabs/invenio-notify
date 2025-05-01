@@ -6,13 +6,13 @@
 
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import { Form, Button, Modal, Icon, Checkbox } from "semantic-ui-react";
+import { Form, Button, Modal, Icon, Checkbox, List } from "semantic-ui-react";
 import { ActionModal } from "@js/invenio_administration";
 // import { SetQuotaForm } from "./SetQuotaForm";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
 import { Formik } from "formik";
 
-export class TmpActionA extends Component {
+export class MemberAction extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -32,8 +32,8 @@ export class TmpActionA extends Component {
 
 
   render() {
-    const { resource, apiUrl, headerText, isRecord } = this.props;
-    const { modalOpen, setQuotaInBytes } = this.state;
+    const { result, apiUrl, headerText, isRecord } = this.props;
+    const { modalOpen} = this.state;
 
     return (
       <>
@@ -45,36 +45,39 @@ export class TmpActionA extends Component {
           basic
           labelPosition="left"
         >
-          <Icon name="disk" />
-          {i18next.t("Tmp A")}
+          <Icon name="users" />
+          {i18next.t("Members")}
         </Button>
 
-        <ActionModal modalOpen={modalOpen} resource={resource}>
+        <ActionModal modalOpen={modalOpen} result={result}>
           <Modal.Header className="flex justify-space-between">
             <div>{headerText}</div>
             <div>
-                <h3> this is modal header</h3>
+                <h3> Members </h3>
             </div>
           </Modal.Header>
             <Modal.Content>
-                <h3> this is modal content</h3>
-{/*               <p> */}
-{/*                 <strong>{i18next.t("Note")}:</strong>{" "} */}
-{/*                 {i18next.t( */}
-{/*                   "This is the default quota that will be applied to any NEW records created by this user – it will NOT update quota of existing records." */}
-{/*                 )} */}
-{/*               </p> */}
+                {result && result.members && (
+                  <div className="member-list">
+                    <h4>{i18next.t("Member Emails")}</h4>
+                    <List>
+                      {result.members.map((member, index) => (
+                        <List.Item key={index}>
+                          <Icon name="mail" />
+                          <List.Content>{member.email}</List.Content>
+                        </List.Item>
+                      ))}
+                    </List>
+                    {result.members.length === 0 && (
+                      <p>{i18next.t("No members found.")}</p>
+                    )}
+                  </div>
+                )}
             </Modal.Content>
-            <TmpFormA
-            onClose={this.closeModal}
-             />
-{/*           <SetQuotaForm */}
-{/*             actionSuccessCallback={this.handleSuccess} */}
-{/*             actionCancelCallback={this.closeModal} */}
-{/*             resource={resource} */}
-{/*             apiUrl={apiUrl} */}
-{/*             setQuotaInBytes={setQuotaInBytes} */}
-{/*           /> */}
+            <MemberForm
+              onClose={this.closeModal}
+              result={result}
+            />
         </ActionModal>
       </>
     );
@@ -82,7 +85,7 @@ export class TmpActionA extends Component {
 }
 
 
-class TmpFormA extends Component {
+class MemberForm extends Component {
     constructor(props) {
         super(props);
     }
@@ -114,16 +117,19 @@ class TmpFormA extends Component {
   }
 }
 
+MemberForm.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  result: PropTypes.object,
+};
 
-// SetQuotaAction.propTypes = {
-//   resource: PropTypes.object.isRequired,
-//   successCallback: PropTypes.func.isRequired,
-//   apiUrl: PropTypes.string.isRequired,
-//   headerText: PropTypes.string.isRequired,
-//   isRecord: PropTypes.bool,
-// };
-//
-// SetQuotaAction.defaultProps = {
-//   isRecord: false,
-// };
+MemberAction.propTypes = {
+  result: PropTypes.object.isRequired,
+  apiUrl: PropTypes.string.isRequired,
+  headerText: PropTypes.string.isRequired,
+  isRecord: PropTypes.bool,
+};
+
+MemberAction.defaultProps = {
+  isRecord: false,
+};
 

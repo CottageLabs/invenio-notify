@@ -1,18 +1,20 @@
 
 import React, { Component } from 'react';
-import { Button, Icon, Dropdown } from "semantic-ui-react";
-import { TmpActionA } from "./components/TmpActionA";
+import { Dropdown } from "semantic-ui-react";
+import { MemberAction } from "./components/MemberAction";
 
 export class ReviewerSearchActions extends Component {
     render() {
+        const { result } = this.props;
         return (
             <>
-                <h1> ReviewerSearchActions working</h1>
                 <Dropdown
                     text='Actions'
                 >
                     <Dropdown.Menu>
-                        <TmpActionA />
+                        <MemberAction
+                            result={result}
+                        />
                     </Dropdown.Menu>
                 </Dropdown>
 

@@ -44,7 +44,8 @@ class SearchResultItemComponent extends Component {
           {new Date(result.updated).toLocaleString()}
         </Table.Cell>
         <Table.Cell collapsing>
-          <ReviewerSearchActions
+          <ReviewerSearchActions 
+            result={result}
           />
         </Table.Cell>
       </Table.Row>
