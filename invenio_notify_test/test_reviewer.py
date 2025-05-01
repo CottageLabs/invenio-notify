@@ -9,42 +9,42 @@ def create_reviewer_service():
     return ReviewerService(config=ReviewerServiceConfig)
 
 
-def test_create_model(db, superuser_identity, reviewer_data):
+def test_create_model(db, superuser_identity):
     assert ReviewerModel.query.count() == 0
-    reviewer_data = reviewer_data()
+    data = reviewer_data()
 
     # Create a new reviewer entry
-    reviewer = ReviewerModel.create(reviewer_data)
+    reviewer = ReviewerModel.create(data)
 
     # Verify record was created
     assert ReviewerModel.query.count() == 1
 
     # Retrieve the record and verify attributes
     retrieved = ReviewerModel.get(reviewer.id)
-    assert retrieved.coar_id == reviewer_data['coar_id']
-    assert retrieved.name == reviewer_data['name']
-    assert retrieved.inbox_url == reviewer_data['inbox_url']
-    assert retrieved.description == reviewer_data['description']
+    assert retrieved.coar_id == data['coar_id']
+    assert retrieved.name == data['name']
+    assert retrieved.inbox_url == data['inbox_url']
+    assert retrieved.description == data['description']
 
 
-def test_service_create(test_app, superuser_identity, reviewer_data):
+def test_service_create(test_app, superuser_identity):
     reviewer_serv = create_reviewer_service()
 
     assert ReviewerModel.query.count() == 0
-    reviewer_data = reviewer_data()
+    data = reviewer_data()
 
-    result = reviewer_serv.create(superuser_identity, reviewer_data)
+    result = reviewer_serv.create(superuser_identity, data)
 
     result_dict = result.to_dict()
-    assert result_dict['coar_id'] == reviewer_data['coar_id']
-    assert result_dict['name'] == reviewer_data['name']
-    assert result_dict['inbox_url'] == reviewer_data['inbox_url']
-    assert result_dict['description'] == reviewer_data['description']
+    assert result_dict['coar_id'] == data['coar_id']
+    assert result_dict['name'] == data['name']
+    assert result_dict['inbox_url'] == data['inbox_url']
+    assert result_dict['description'] == data['description']
     assert 'links' in result_dict
     assert ReviewerModel.query.count() == 1
 
 
-def test_service_search(test_app, superuser_identity, sample_reviewers):
+def test_service_search(test_app, superuser_identity):
     reviewer_serv = create_reviewer_service()
 
     assert ReviewerModel.query.count() == 0
@@ -73,4 +73,3 @@ def test_service_search(test_app, superuser_identity, sample_reviewers):
     assert reviewer_1['name'] in reviewer_names
     assert reviewer_2['name'] in reviewer_names
     assert reviewer_3['name'] in reviewer_names
-
