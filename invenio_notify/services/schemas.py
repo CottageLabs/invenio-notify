@@ -51,7 +51,7 @@ class EndorsementSchema(BaseRecordSchema):
 
 class ReviewerMapSchema(BaseRecordSchema):
     user_id = fields.Integer(required=True)
-    reviewer_id = fields.String(required=True)
+    reviewer_id = fields.Integer(required=True)
 
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
