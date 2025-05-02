@@ -19,7 +19,7 @@ class TestReviewerMapService(BasicDbServiceTestHelper):
         return create_reviewer_map_service()
 
     def _create_record(self, *args, **kwargs):
-        return self.create_reviewer_map(reviewer_id='external-reviewer-123')
+        return self.create_reviewer_map(coar_id='external-reviewer-123')
 
 
 class TestInboxService(BasicDbServiceTestHelper):

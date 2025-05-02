@@ -1,12 +1,14 @@
 import pytest
+
 from invenio_notify.records.models import ReviewerMapModel
 from invenio_notify_test.utils import resolve_user_id
+from invenio_notify_test.reviewer_fixture import create_reviewer
 
 
 @pytest.fixture
-def create_reviewer_map(db, superuser_identity):
+def create_reviewer_map(db, superuser_identity, create_reviewer):
     """Fixture to create a ReviewerMapModel instance."""
-    def _create_reviewer_map(reviewer_id='external-reviewer-123', user_id=None, identity=None):
+    def _create_reviewer_map(coar_id='external-reviewer-123', user_id=None, identity=None):
         """Create a ReviewerMapModel instance.
         
         Args:
@@ -17,10 +19,12 @@ def create_reviewer_map(db, superuser_identity):
         Returns:
             ReviewerMapModel instance
         """
+
         user_id = resolve_user_id(user_id, identity, superuser_identity)
-            
+        reviewer = create_reviewer(coar_id=coar_id)
+
         reviewer_map = ReviewerMapModel.create({
-            'reviewer_id': reviewer_id,
+            'reviewer_id': reviewer.id,
             'user_id': user_id
         })
         return reviewer_map
