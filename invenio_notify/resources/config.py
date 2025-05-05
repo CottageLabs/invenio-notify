@@ -54,3 +54,7 @@ class ReviewerMapResourceConfig(BasicResourceConfig):
 class ReviewerResourceConfig(BasicResourceConfig):
     blueprint_name = "reviewer"
     url_prefix = "/reviewer"
+
+    routes = BasicResourceConfig.routes
+    routes['add-member'] = "/<record_id>/member"
+

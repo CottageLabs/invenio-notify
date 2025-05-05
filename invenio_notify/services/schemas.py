@@ -66,9 +66,12 @@ class ReviewerSchema(BaseRecordSchema):
     coar_id = fields.String(required=True)
     inbox_url = fields.String(required=True)
     description = fields.String(required=False)
-    
+
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
     members = fields.List(fields.Nested(UserSchema), required=False)
 
+
+class AddMemberSchema(BaseRecordSchema):
+    emails = fields.List(fields.String(), required=True)

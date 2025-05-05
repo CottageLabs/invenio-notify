@@ -7,12 +7,14 @@ from invenio_rdm_records.services import RDMRecordService
 from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.base.utils import map_search_params
+from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
-from invenio_notify.records.models import ReviewerModel
+from invenio_notify.records.models import ReviewerMapModel, ReviewerModel
+from invenio_notify.utils import user_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
@@ -181,3 +183,46 @@ class ReviewerService(BasicDbService):
                 return filters
 
         return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)
+
+    @property
+    def schema_add_member(self):
+        return ServiceSchemaWrapper(self, schema=self.config.schema_add_member)
+
+    @unit_of_work()
+    def add_member(self, identity, id, data, raise_errors=True, uow=None):
+        self.require_permission(identity, "update")
+
+        reviewer: ReviewerModel = self.record_cls.get(id)
+
+        # validate data
+        valid_data, errors = self.schema_add_member.load(
+            data,
+            context={"identity": identity},
+            raise_errors=raise_errors,
+        )
+
+        new_emails = set(valid_data['emails'])
+        existing_emails = {m.email for m in reviewer.members}
+        duplicate_emails = new_emails.intersection(existing_emails)
+        if duplicate_emails:
+            current_app.logger.info(f'Emails already exist: {duplicate_emails}')
+
+        new_emails = new_emails - existing_emails
+        if not new_emails:
+            current_app.logger.info('No new emails to add')
+            return True
+
+        added_members = []
+        for email in new_emails:
+            user = user_utils.find_user_by_email(email)
+            if user:
+                current_app.logger.info(f'Adding user [{user.email}] to reviewer [{reviewer.coar_id}]')
+                ReviewerMapModel.create({
+                    'user_id': user.id,
+                    'reviewer_id': reviewer.id
+                })
+                added_members.append(user)
+            else:
+                current_app.logger.warning(f'User with email {email} not found')
+
+        return True

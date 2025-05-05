@@ -124,9 +124,21 @@ class ReviewerResource(BasicDbResource):
             route("GET", routes["list"], self.search),
             route("DELETE", routes["item"], self.delete),
             route("PUT", routes["item"], self.update),
+            route("POST", routes["add-member"], self.add_member),
         ]
 
     @request_data
     @response_handler()
     def create(self):
         return self.create_with_out_id()
+
+    @request_headers
+    @request_view_args
+    @request_data
+    def add_member(self):
+        self.service.add_member(
+            identity=g.identity,
+            id=resource_requestctx.view_args["record_id"],
+            data=resource_requestctx.data,
+        )
+        return {}, 200
