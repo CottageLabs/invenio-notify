@@ -32,7 +32,7 @@ export class MemberAction extends Component {
 
 
   render() {
-    const { result, apiUrl, headerText, isRecord } = this.props;
+    const { reviewer, apiUrl, headerText, isRecord } = this.props;
     const { modalOpen } = this.state;
 
     return (
@@ -49,7 +49,7 @@ export class MemberAction extends Component {
           {i18next.t("Members")}
         </Button>
 
-        <ActionModal modalOpen={modalOpen} result={result}>
+        <ActionModal modalOpen={modalOpen} result={reviewer}>
           <Modal.Header className="flex justify-space-between">
             <div>{headerText}</div>
             <div>
@@ -57,18 +57,18 @@ export class MemberAction extends Component {
             </div>
           </Modal.Header>
           <Modal.Content>
-            {result && result.members && (
+            {reviewer && reviewer.members && (
               <div className="member-list">
                 <h4>{i18next.t("Member Emails")}</h4>
                 <List>
-                  {result.members.map((member, index) => (
+                  {reviewer.members.map((member, index) => (
                     <List.Item key={index}>
                       <Icon name="mail" />
                       <List.Content>{member.email}</List.Content>
                     </List.Item>
                   ))}
                 </List>
-                {result.members.length === 0 && (
+                {reviewer.members.length === 0 && (
                   <p>{i18next.t("No members found.")}</p>
                 )}
               </div>
@@ -76,7 +76,7 @@ export class MemberAction extends Component {
           </Modal.Content>
           <MemberForm
             onClose={this.closeModal}
-            result={result}
+            result={reviewer}
           />
         </ActionModal>
       </>

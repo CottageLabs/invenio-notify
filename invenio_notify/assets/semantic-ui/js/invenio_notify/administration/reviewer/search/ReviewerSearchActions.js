@@ -13,7 +13,7 @@ export class ReviewerSearchActions extends Component {
                 >
                     <Dropdown.Menu>
                         <MemberAction
-                            result={result}
+                            reviewer={result}
                         />
                     </Dropdown.Menu>
                 </Dropdown>
