@@ -3,13 +3,13 @@ import json
 import rich
 from datetime import datetime
 from flask.cli import with_appcontext
-from invenio_accounts.models import User
 from invenio_db import db
 from rich.markdown import Markdown
 from sqlalchemy import desc
 
 from invenio_notify import tasks
 from invenio_notify.records.models import EndorsementMetadataModel, NotifyInboxModel, ReviewerMapModel, ReviewerModel
+from invenio_notify.utils import user_utils
 
 
 def print_key_value(k, v):
@@ -102,10 +102,9 @@ def list(user, reviewer_id):
 @with_appcontext
 def add(email, coar_ids):
     """ assign coarnotify role and reviewer ids to user """
-    from invenio_notify.utils import user_utils
 
     print(f'Assigning reviewer_id(s) {coar_ids} to user[{email}]')
-    user = User.query.filter_by(email=email).first()
+    user = user_utils.find_user_by_email(email)
     if user is None:
         print(f'User with email {email} not found.')
         return
@@ -153,9 +152,7 @@ def test_data(email):
 
     # If email is provided, create a ReviewerMapModel for the user
     if email:
-        from invenio_notify.utils import user_utils
-        
-        user = User.query.filter_by(email=email).first()
+        user = user_utils.find_user_by_email(email)
         if user is None:
             print(f"User with email {email} not found. Reviewer created but not assigned to any user.")
         else:
