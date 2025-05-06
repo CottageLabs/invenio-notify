@@ -28,10 +28,9 @@ export class MemberAction extends Component {
     });
   };
 
-
   render() {
     const { reviewer } = this.props;
-    const { modalOpen, } = this.state;
+    const { modalOpen } = this.state;
 
     return (
       <>
@@ -241,16 +240,11 @@ class MemberForm extends Component {
 
 MemberForm.propTypes = {
   onClose: PropTypes.func.isRequired,
-  result: PropTypes.object,
+  reviewer: PropTypes.object.isRequired,
+  actionSuccessCallback: PropTypes.func,
 };
 
 MemberAction.propTypes = {
-  result: PropTypes.object.isRequired,
-  apiUrl: PropTypes.string.isRequired,
-  isRecord: PropTypes.bool,
-};
-
-MemberAction.defaultProps = {
-  isRecord: false,
+  reviewer: PropTypes.object.isRequired,
 };
 
