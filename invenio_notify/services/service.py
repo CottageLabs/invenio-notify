@@ -210,7 +210,7 @@ class ReviewerService(BasicDbService):
         new_emails = new_emails - existing_emails
         if not new_emails:
             current_app.logger.info('No new emails to add')
-            return True
+            return reviewer
 
         added_members = []
         for email in new_emails:
@@ -224,5 +224,6 @@ class ReviewerService(BasicDbService):
                 added_members.append(user)
             else:
                 current_app.logger.warning(f'User with email {email} not found')
-
-        return True
+        
+        reviewer = self.record_cls.get(id)
+        return reviewer

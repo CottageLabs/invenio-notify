@@ -10,14 +10,20 @@ import * as Yup from "yup";
 import { withCancel, http } from "react-invenio-forms";
 import { NotificationContext } from "@js/invenio_administration";
 
-
-
 export class MemberAction extends Component {
   constructor(props) {
     super(props);
     this.state = {
       modalOpen: false,
+      reviewer: props.reviewer || null,
     };
+  }
+
+  componentDidUpdate(prevProps) {
+    // Update state if reviewer prop changes
+    if (prevProps.reviewer !== this.props.reviewer) {
+      this.setState({ reviewer: this.props.reviewer });
+    }
   }
 
   onModalTriggerClick = (e, { payloadSchema, dataName, dataActionKey }) => {
@@ -30,10 +36,13 @@ export class MemberAction extends Component {
     });
   };
 
+  updateReviewer = (updatedReviewer) => {
+    this.setState({ reviewer: updatedReviewer });
+  };
 
   render() {
-    const { reviewer, apiUrl, headerText, isRecord } = this.props;
-    const { modalOpen } = this.state;
+    const { apiUrl, headerText, isRecord } = this.props;
+    const { modalOpen, reviewer } = this.state;
 
     return (
       <>
@@ -53,7 +62,7 @@ export class MemberAction extends Component {
           <Modal.Header className="flex justify-space-between">
             <div>{headerText}</div>
             <div>
-              <h3> Members </h3>
+              <h3> {i18next.t("Members")} </h3>
             </div>
           </Modal.Header>
           <Modal.Content>
@@ -77,13 +86,13 @@ export class MemberAction extends Component {
           <MemberForm
             onClose={this.closeModal}
             result={reviewer}
+            updateReviewer={this.updateReviewer}
           />
         </ActionModal>
       </>
     );
   }
 }
-
 
 class MemberForm extends Component {
   constructor(props) {
@@ -109,11 +118,9 @@ class MemberForm extends Component {
     this.setState({ loading: true });
 
     const { addNotification } = this.context;
-    const { actionSuccessCallback, result } = this.props;
+    const { actionSuccessCallback, result, updateReviewer } = this.props;
 
     const apiUrl = `/api/reviewer/${result.id}/member`;
-
-    // let { notes, quota_size: quotaSize, max_file_size: maxFileSize } = values;
 
     console.log("Submit member with email:", values.emails);
 
@@ -124,7 +131,6 @@ class MemberForm extends Component {
 
     console.log("Parsed email list:", emails);
 
-
     this.cancellableAction = withCancel(
       http.post(apiUrl, {
         emails,
@@ -132,7 +138,7 @@ class MemberForm extends Component {
     );
 
     try {
-      await this.cancellableAction.promise;
+      const response = await this.cancellableAction.promise;
       this.setState({ loading: false, error: undefined });
 
       addNotification({
@@ -142,6 +148,11 @@ class MemberForm extends Component {
         }),
         type: "success",
       });
+
+      if (updateReviewer) {
+        updateReviewer(response.data);
+      }
+
       if (actionSuccessCallback) {
         actionSuccessCallback();
       }
@@ -228,6 +239,7 @@ class MemberForm extends Component {
 MemberForm.propTypes = {
   onClose: PropTypes.func.isRequired,
   result: PropTypes.object,
+  updateReviewer: PropTypes.func,
 };
 
 MemberAction.propTypes = {

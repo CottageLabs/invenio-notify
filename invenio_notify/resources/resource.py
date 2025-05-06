@@ -7,6 +7,8 @@ from invenio_records_resources.resources.records.resource import (
     request_view_args,
 )
 
+from invenio_notify.services.schemas import ReviewerSchema
+
 from .errors import ErrorHandlersMixin
 
 
@@ -136,9 +138,19 @@ class ReviewerResource(BasicDbResource):
     @request_view_args
     @request_data
     def add_member(self):
-        self.service.add_member(
+        reviewer = self.service.add_member(
             identity=g.identity,
             id=resource_requestctx.view_args["record_id"],
             data=resource_requestctx.data,
         )
-        return {}, 200
+        reviewer_dict = ReviewerSchema().dump(reviewer)
+        return reviewer_dict, 201
+
+        # return {
+        #     "id": resource_requestctx.view_args["record_id"],
+        #     "members": [
+        #         {"email": 'aaaaaa'},
+        #         {"email": 'bbbbbb'},
+        #         {"email": 'cccccc'},
+        #     ]
+        # }, 200
