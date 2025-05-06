@@ -114,7 +114,7 @@ class MemberForm extends Component {
 
   static contextType = NotificationContext;
 
-  handleSubmit = async (values) => {
+  handleSubmit = async (values, { resetForm }) => {
     this.setState({ loading: true });
 
     const { addNotification } = this.context;
@@ -140,6 +140,9 @@ class MemberForm extends Component {
     try {
       const response = await this.cancellableAction.promise;
       this.setState({ loading: false, error: undefined });
+
+      // Reset form to clear the email input field
+      resetForm();
 
       addNotification({
         title: i18next.t("Success"),
