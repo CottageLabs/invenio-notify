@@ -1,4 +1,5 @@
 import json
+from invenio_db import db
 import regex
 from flask import current_app
 from flask import g
@@ -221,6 +222,7 @@ class ReviewerService(BasicDbService):
                     'user_id': user.id,
                     'reviewer_id': reviewer.id
                 })
+                user_utils.add_coarnotify_action(db, user.id)
                 added_members.append(user)
             else:
                 current_app.logger.warning(f'User with email {email} not found')
