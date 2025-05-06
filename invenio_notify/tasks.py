@@ -83,9 +83,7 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
 
 def inbox_processing():
-    # TODO handle review record
     # TODO should we send coar notification to the user if fail or rejected
-    # TODO validate actor.id whether match with the user_id
 
     records_service = current_app.extensions["invenio-rdm-records"].records_service
 
