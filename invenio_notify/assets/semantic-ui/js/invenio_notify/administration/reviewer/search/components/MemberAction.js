@@ -15,18 +15,10 @@ export class MemberAction extends Component {
     super(props);
     this.state = {
       modalOpen: false,
-      reviewer: props.reviewer || null,
     };
   }
 
-  componentDidUpdate(prevProps) {
-    // Update state if reviewer prop changes
-    if (prevProps.reviewer !== this.props.reviewer) {
-      this.setState({ reviewer: this.props.reviewer });
-    }
-  }
-
-  onModalTriggerClick = (e, { payloadSchema, dataName, dataActionKey }) => {
+  onModalTriggerClick = (e) => {
     this.setState({ modalOpen: true });
   };
 
@@ -36,59 +28,31 @@ export class MemberAction extends Component {
     });
   };
 
-  updateReviewer = (updatedReviewer) => {
-    this.setState({ reviewer: updatedReviewer });
-  };
 
   render() {
-    const { apiUrl, headerText, isRecord } = this.props;
+    const { } = this.props;
     const { modalOpen, reviewer } = this.state;
 
     return (
       <>
-        <Button
-          key="set-quota"
-          onClick={this.onModalTriggerClick}
-          icon
-          fluid
-          basic
-          labelPosition="left"
-        >
-          <Icon name="users" />
-          {i18next.t("Members")}
-        </Button>
+      <Button
+        key="manage-members"
+        onClick={this.onModalTriggerClick}
+        icon
+        fluid
+        basic
+        labelPosition="left"
+      >
+        <Icon name="users" />
+        {i18next.t("Members")}
+      </Button>
 
-        <ActionModal modalOpen={modalOpen} result={reviewer}>
-          <Modal.Header className="flex justify-space-between">
-            <div>{headerText}</div>
-            <div>
-              <h3> {i18next.t("Members")} </h3>
-            </div>
-          </Modal.Header>
-          <Modal.Content>
-            {reviewer && reviewer.members && (
-              <div className="member-list">
-                <h4>{i18next.t("Member Emails")}</h4>
-                <List>
-                  {reviewer.members.map((member, index) => (
-                    <List.Item key={index}>
-                      <Icon name="mail" />
-                      <List.Content>{member.email}</List.Content>
-                    </List.Item>
-                  ))}
-                </List>
-                {reviewer.members.length === 0 && (
-                  <p>{i18next.t("No members found.")}</p>
-                )}
-              </div>
-            )}
-          </Modal.Content>
-          <MemberForm
-            onClose={this.closeModal}
-            result={reviewer}
-            updateReviewer={this.updateReviewer}
-          />
-        </ActionModal>
+      <ActionModal modalOpen={modalOpen} result={reviewer}>
+        <MemberForm
+        onClose={this.closeModal}
+        result={reviewer}
+        />
+      </ActionModal>
       </>
     );
   }
@@ -101,6 +65,7 @@ class MemberForm extends Component {
     this.state = {
       loading: false,
       error: undefined,
+      reviewer: props.reviewer || null,
     };
 
     this.emailSchema = Yup.object({
@@ -111,6 +76,17 @@ class MemberForm extends Component {
   componentWillUnmount() {
     this.cancellableAction && this.cancellableAction.cancel();
   }
+
+  componentDidUpdate(prevProps) {
+    // Update state if reviewer prop changes
+    if (prevProps.reviewer !== this.props.reviewer) {
+      this.setState({ reviewer: this.props.reviewer });
+    }
+  }
+
+  updateReviewer = (updatedReviewer) => {
+    this.setState({ reviewer: updatedReviewer });
+  };
 
   static contextType = NotificationContext;
 
@@ -141,7 +117,6 @@ class MemberForm extends Component {
       const response = await this.cancellableAction.promise;
       this.setState({ loading: false, error: undefined });
 
-      // Reset form to clear the email input field
       resetForm();
 
       addNotification({
@@ -170,26 +145,20 @@ class MemberForm extends Component {
     }
   };
 
-  initFormValues = () => {
-    return {
-      emails: "",
-    };
-  };
-
   render() {
     const { error, loading } = this.state;
-    const { result } = this.props;
+    const { } = this.props;
+    const { reviewer } = this.state;
 
     return (
       <Formik
         onSubmit={this.handleSubmit}
         enableReinitialize
-        initialValues={this.initFormValues()}
         validateOnChange={false}
         validateOnBlur={false}
         validationSchema={this.emailSchema}
       >
-        {({ values, handleSubmit }) => {
+        {({ handleSubmit }) => {
           return (
             <>
               {error && (
@@ -203,6 +172,31 @@ class MemberForm extends Component {
                   />
                 </Modal.Content>
               )}
+              <Modal.Header className="flex justify-space-between">
+                <div>
+                  <h3> {i18next.t("Members")} </h3>
+                </div>
+              </Modal.Header>
+              <Modal.Content>
+                {reviewer && (
+                  <div className="member-list">
+                    <h4>{i18next.t("Member Emails")}</h4>
+                    {reviewer.members && reviewer.members.length > 0 ? (
+                      <List>
+                        {reviewer.members.map((member, index) => (
+                          <List.Item key={index}>
+                            <Icon name="mail" />
+                            <List.Content>{member.email}</List.Content>
+                          </List.Item>
+                        ))}
+                      </List>
+                    ) : (
+                      <p>{i18next.t("No members found.")}</p>
+                    )}
+                  </div>
+                )}
+              </Modal.Content>
+
               <Modal.Content>
                 <Form className="full-width">
                   <Form.Field>
@@ -242,13 +236,11 @@ class MemberForm extends Component {
 MemberForm.propTypes = {
   onClose: PropTypes.func.isRequired,
   result: PropTypes.object,
-  updateReviewer: PropTypes.func,
 };
 
 MemberAction.propTypes = {
   result: PropTypes.object.isRequired,
   apiUrl: PropTypes.string.isRequired,
-  headerText: PropTypes.string.isRequired,
   isRecord: PropTypes.bool,
 };
 
