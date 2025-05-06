@@ -30,29 +30,29 @@ export class MemberAction extends Component {
 
 
   render() {
-    const { } = this.props;
-    const { modalOpen, reviewer } = this.state;
+    const { reviewer } = this.props;
+    const { modalOpen, } = this.state;
 
     return (
       <>
-      <Button
-        key="manage-members"
-        onClick={this.onModalTriggerClick}
-        icon
-        fluid
-        basic
-        labelPosition="left"
-      >
-        <Icon name="users" />
-        {i18next.t("Members")}
-      </Button>
+        <Button
+          key="manage-members"
+          onClick={this.onModalTriggerClick}
+          icon
+          fluid
+          basic
+          labelPosition="left"
+        >
+          <Icon name="users" />
+          {i18next.t("Members")}
+        </Button>
 
-      <ActionModal modalOpen={modalOpen} result={reviewer}>
-        <MemberForm
-        onClose={this.closeModal}
-        result={reviewer}
-        />
-      </ActionModal>
+        <ActionModal modalOpen={modalOpen} result={reviewer}>
+          <MemberForm
+            onClose={this.closeModal}
+            reviewer={reviewer}
+          />
+        </ActionModal>
       </>
     );
   }
@@ -94,9 +94,10 @@ class MemberForm extends Component {
     this.setState({ loading: true });
 
     const { addNotification } = this.context;
-    const { actionSuccessCallback, result, updateReviewer } = this.props;
+    const { actionSuccessCallback } = this.props;
+    const { reviewer } = this.state;
 
-    const apiUrl = `/api/reviewer/${result.id}/member`;
+    const apiUrl = `/api/reviewer/${reviewer.id}/member`;
 
     console.log("Submit member with email:", values.emails);
 
@@ -127,9 +128,7 @@ class MemberForm extends Component {
         type: "success",
       });
 
-      if (updateReviewer) {
-        updateReviewer(response.data);
-      }
+      this.updateReviewer(response.data);
 
       if (actionSuccessCallback) {
         actionSuccessCallback();
@@ -145,6 +144,12 @@ class MemberForm extends Component {
     }
   };
 
+  initFormValues = () => {
+    return {
+      emails: "",
+    };
+  };
+
   render() {
     const { error, loading } = this.state;
     const { } = this.props;
@@ -154,6 +159,7 @@ class MemberForm extends Component {
       <Formik
         onSubmit={this.handleSubmit}
         enableReinitialize
+        initialValues={this.initFormValues()}
         validateOnChange={false}
         validateOnBlur={false}
         validationSchema={this.emailSchema}
