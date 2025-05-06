@@ -29,7 +29,7 @@ def send_inbox(client, token, notify_review_data):
 
 def create_notify_user(db, superuser_identity):
     user = superuser_identity.user
-    user_utils.add_user_action(db, user.id)
+    user_utils.add_coarnotify_action(db, user.id)
     token = create_scope_token(user)
     return token, user
 

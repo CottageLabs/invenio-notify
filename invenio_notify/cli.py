@@ -109,7 +109,7 @@ def add(email, coar_ids):
         print(f'User with email {email} not found.')
         return
 
-    user_utils.add_user_action(db, user.id)
+    user_utils.add_coarnotify_action(db, user.id)
 
     assigned_count = 0
     for coar_id in coar_ids:
@@ -157,7 +157,7 @@ def test_data(email):
             print(f"User with email {email} not found. Reviewer created but not assigned to any user.")
         else:
             # Add required role to the user
-            user_utils.add_user_action(db, user.id)
+            user_utils.add_coarnotify_action(db, user.id)
             
             # Create the mapping
             ReviewerMapModel.create({
