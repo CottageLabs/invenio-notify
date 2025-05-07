@@ -3,8 +3,8 @@ from invenio_notify.services.config import ReviewerServiceConfig
 from invenio_notify.services.service import ReviewerService
 import pytest
 from invenio_notify_test.reviewer_fixture import create_reviewer, create_reviewer_service, reviewer_data, sample_reviewers
-
-
+from invenio_accounts.models import User
+from invenio_accounts.testutils import create_test_user
 
 
 def test_create_model(db, superuser_identity):
@@ -71,3 +71,44 @@ def test_service_search(test_app, superuser_identity):
     assert reviewer_1['name'] in reviewer_names
     assert reviewer_2['name'] in reviewer_names
     assert reviewer_3['name'] in reviewer_names
+
+
+def test_service_add_member(test_app, superuser_identity, db, create_reviewer):
+    # Create reviewer service
+    reviewer_serv = create_reviewer_service()
+    
+    # Create a reviewer
+    reviewer = create_reviewer()
+    reviewer_id = reviewer.id
+    
+    # Create test users
+    users = [
+        create_test_user(email="test1@example.com"),
+        create_test_user(email="test2@example.com"),
+        create_test_user(email="test3@example.com"),
+    ]
+    
+    # Add members to the reviewer
+    emails_to_add = [u.email for u in users]
+    reviewer_serv.add_member(superuser_identity, reviewer_id, {"emails": emails_to_add})
+    
+    # Get the updated reviewer
+    reviewer_model = ReviewerModel.get(reviewer_id)
+    
+    # Check if members were added correctly
+    member_emails = [member.email for member in reviewer_model.members]
+    assert "test1@example.com" in member_emails
+    assert "test2@example.com" in member_emails
+    assert "nonexistent@example.com" not in member_emails  # This email doesn't exist
+    assert "test3@example.com" not in member_emails  # This email wasn't added
+    
+    # Try adding duplicate members (should be ignored)
+    reviewer_serv.add_member(superuser_identity, reviewer_id, {"emails": ["test1@example.com", "test3@example.com"]})
+    
+    # Get the updated reviewer
+    reviewer_model = ReviewerModel.get(reviewer_id)
+    
+    # Check that test3 was added but test1 wasn't duplicated
+    member_emails = [member.email for member in reviewer_model.members]
+    assert member_emails.count("test1@example.com") == 1  # Should only appear once
+    assert "test3@example.com" in member_emails  # Should be added now
