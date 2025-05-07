@@ -199,9 +199,17 @@ class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
     record = db.relationship(RDMRecordMetadata, foreign_keys=[record_id])
     """ id of the record, id that save in postgres instead of recid that used in json and /records  """
 
-    reviewer_id = db.Column(db.Text, nullable=True)
+    reviewer_id = db.Column(
+        db.Integer,
+        db.ForeignKey("reviewer.id", ondelete="NO ACTION"),
+        nullable=True,
+        index=True,
+    )
     """ id of Review service provider (e.g. id of PCI) """
-    # TODO to be defined contain of reviewer_id
+    
+    reviewer = db.relationship(
+        "ReviewerModel", foreign_keys=[reviewer_id]
+    )
 
     review_type = db.Column(db.Text, nullable=True)
     """ review or endorsement """

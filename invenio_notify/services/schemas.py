@@ -43,7 +43,7 @@ class EndorsementSchema(BaseRecordSchema):
     metadata = NestedAttribute(EndorsementMetadataSchema, required=True)
 
     record_id = fields.String(required=True)
-    reviewer_id = fields.String(required=True)
+    reviewer_id = fields.Integer(required=True)
     review_type = fields.String(required=True)
     user_id = fields.Integer(required=True)
     inbox_id = fields.Integer(required=True)
