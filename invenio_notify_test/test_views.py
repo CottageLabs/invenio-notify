@@ -3,8 +3,8 @@ from invenio_oauth2server.models import Token
 from invenio_notify.records.models import ReviewerMapModel
 from invenio_notify.scopes import inbox_scope
 from invenio_notify.utils import user_utils
-from invenio_notify_test import inbox_fixture
-from invenio_notify_test.reviewer_fixture import create_reviewer
+from invenio_notify_test.fixtures import inbox_fixture
+from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 
 
 def create_scope_token(user):

@@ -2,7 +2,7 @@ import pytest
 
 from invenio_notify.records.models import ReviewerMapModel
 from invenio_notify_test.utils import resolve_user_id
-from invenio_notify_test.reviewer_fixture import create_reviewer
+from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 
 
 @pytest.fixture

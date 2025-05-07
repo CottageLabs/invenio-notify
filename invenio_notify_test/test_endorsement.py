@@ -6,8 +6,8 @@ from invenio_notify.records.records import EndorsementRecord
 from invenio_notify.services.config import EndorsementServiceConfig
 from invenio_notify.services.service import EndorsementService
 from invenio_notify_test.conftest import prepare_test_rdm_record, create_endorsement_service_data
-from invenio_notify_test.inbox_fixture import create_inbox
-from invenio_notify_test.reviewer_fixture import create_reviewer
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox
+from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 
 # KTODO fix the test cases for endorsement model update
 

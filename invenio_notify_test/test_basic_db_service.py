@@ -1,8 +1,8 @@
 import pytest
 
-from invenio_notify_test.reviewer_map_fixture import create_reviewer_map
-from invenio_notify_test.inbox_fixture import create_inbox
-from invenio_notify_test.reviewer_fixture import create_reviewer
+from invenio_notify_test.fixtures.reviewer_map_fixture import create_reviewer_map
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox
+from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 from invenio_notify_test.test_notify_inbox import create_notify_inbox_service
 from invenio_notify_test.test_reviewer_map import create_reviewer_map_service
 from invenio_notify_test.test_reviewer import create_reviewer_service

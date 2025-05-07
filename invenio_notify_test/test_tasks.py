@@ -6,9 +6,9 @@ from invenio_rdm_records.proxies import current_rdm_records
 from invenio_notify import constants
 from invenio_notify.records.models import NotifyInboxModel, EndorsementMetadataModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
-from invenio_notify_test.inbox_fixture import create_notification_data
-from invenio_notify_test.inbox_fixture import create_inbox
-from invenio_notify_test.reviewer_fixture import create_reviewer_service
+from invenio_notify_test.fixtures.inbox_fixture import create_notification_data
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox
+from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer_service
 
 
 def test_mark_as_processed(db, superuser_identity, create_inbox):

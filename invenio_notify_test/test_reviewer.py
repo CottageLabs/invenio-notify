@@ -2,9 +2,10 @@ from invenio_notify.records.models import ReviewerModel
 from invenio_notify.services.config import ReviewerServiceConfig
 from invenio_notify.services.service import ReviewerService
 import pytest
-from invenio_notify_test.reviewer_fixture import create_reviewer, create_reviewer_service, reviewer_data, sample_reviewers
+from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer, create_reviewer_service, reviewer_data, sample_reviewers
 from invenio_accounts.models import User
 from invenio_accounts.testutils import create_test_user
+from invenio_notify_test.fixtures.user_fixture import create_test_users
 
 
 def test_create_model(db, superuser_identity):
@@ -82,14 +83,10 @@ def test_service_add_member(test_app, superuser_identity, db, create_reviewer):
     reviewer_id = reviewer.id
     
     # Create test users
-    users = [
-        create_test_user(email="test1@example.com"),
-        create_test_user(email="test2@example.com"),
-        create_test_user(email="test3@example.com"),
-    ]
+    users = create_test_users()
     
     # Add members to the reviewer
-    emails_to_add = [u.email for u in users]
+    emails_to_add = [u.email for u in users[:2]]
     reviewer_serv.add_member(superuser_identity, reviewer_id, {"emails": emails_to_add})
     
     # Get the updated reviewer
@@ -112,3 +109,52 @@ def test_service_add_member(test_app, superuser_identity, db, create_reviewer):
     member_emails = [member.email for member in reviewer_model.members]
     assert member_emails.count("test1@example.com") == 1  # Should only appear once
     assert "test3@example.com" in member_emails  # Should be added now
+
+
+def test_service_del_member(test_app, superuser_identity, db, create_reviewer):
+    # Create reviewer service
+    reviewer_serv = create_reviewer_service()
+    
+    # Create a reviewer
+    reviewer = create_reviewer()
+    reviewer_id = reviewer.id
+    
+    # Create test users
+    users = create_test_users()
+    
+    # Add members to the reviewer
+    emails_to_add = [u.email for u in users]
+    reviewer_serv.add_member(superuser_identity, reviewer_id, {"emails": emails_to_add})
+    
+    # Get the updated reviewer
+    reviewer_model = ReviewerModel.get(reviewer_id)
+    
+    # Verify all members were added
+    member_emails = [member.email for member in reviewer_model.members]
+    assert len(member_emails) == 3
+    assert set(member_emails) == set(emails_to_add)
+    
+    # Remove the second user
+    user_id_to_remove = users[1].id
+    reviewer_serv.del_member(superuser_identity, reviewer_id, {"user_id": user_id_to_remove})
+    
+    # Get the updated reviewer
+    reviewer_model = ReviewerModel.get(reviewer_id)
+    
+    # Check that the user was removed
+    member_emails = [member.email for member in reviewer_model.members]
+    assert len(member_emails) == 2
+    assert "test2@example.com" not in member_emails
+    assert "test1@example.com" in member_emails
+    assert "test3@example.com" in member_emails
+    
+    # Try removing a user that is not a member (should not raise an error)
+    non_member_user = create_test_user(email="nonmember@example.com")
+    reviewer_serv.del_member(superuser_identity, reviewer_id, {"user_id": non_member_user.id})
+    
+    # Check that members remain unchanged
+    reviewer_model = ReviewerModel.get(reviewer_id)
+    member_emails = [member.email for member in reviewer_model.members]
+    assert len(member_emails) == 2
+    assert "test1@example.com" in member_emails
+    assert "test3@example.com" in member_emails

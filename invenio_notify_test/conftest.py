@@ -11,7 +11,7 @@ from invenio_rdm_records.proxies import current_rdm_records
 from invenio_rdm_records.records import RDMParent, RDMRecord
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
-from invenio_notify_test.reviewer_fixture import * # noqa
+from invenio_notify_test.fixtures.reviewer_fixture import * # noqa
 
 RunningApp = namedtuple(
     "RunningApp",
