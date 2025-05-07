@@ -1,5 +1,6 @@
 import json
 from invenio_db import db
+
 import regex
 from flask import current_app
 from flask import g
@@ -9,6 +10,8 @@ from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.base.utils import map_search_params
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
+from invenio_accounts.models import User
+
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
@@ -189,6 +192,10 @@ class ReviewerService(BasicDbService):
     def schema_add_member(self):
         return ServiceSchemaWrapper(self, schema=self.config.schema_add_member)
 
+    @property
+    def schema_del_member(self):
+        return ServiceSchemaWrapper(self, schema=self.config.schema_del_member)
+
     def add_member(self, identity, id, data, raise_errors=True):
         self.require_permission(identity, "update")
 
@@ -230,6 +237,42 @@ class ReviewerService(BasicDbService):
             else:
                 current_app.logger.warning(f'User with email {email} not found')
         
+        reviewer = self.record_cls.get(reviewer_id)
+        return reviewer
+    
+    def del_member(self, identity, id, data, raise_errors=True):
+        self.require_permission(identity, "update")
+
+        # validate data
+        valid_data, errors = self.schema_del_member.load(
+            data,
+            context={"identity": identity},
+            raise_errors=raise_errors,
+        )
+
+        return self.del_member_by_id(id, valid_data['user_id'])
+    
+    @unit_of_work()
+    def del_member_by_id(self, reviewer_id, user_id, uow=None):
+        reviewer: ReviewerModel = self.record_cls.get(reviewer_id)
+        user: User = User.query.get(user_id)
+
+        if user not in reviewer.members:
+            current_app.logger.info(f'User [{user.email}] is not a member of reviewer [{reviewer.coar_id}]')
+            return reviewer
+
+        current_app.logger.info(f'Removing user [{user.email}] from reviewer [{reviewer.coar_id}]')
+        reviewer_map = ReviewerMapModel.query.filter_by(
+            user_id=user.id,
+            reviewer_id=reviewer.id
+        ).first()
+        if not reviewer_map:
+            current_app.logger.warning(f'No mapping found for user [{user.email}] and reviewer [{reviewer.coar_id}]')
+            return reviewer
+        
+        
+        ReviewerMapModel.delete(reviewer_map)
+
         reviewer = self.record_cls.get(reviewer_id)
         return reviewer
     

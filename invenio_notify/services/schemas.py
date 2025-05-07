@@ -75,3 +75,7 @@ class ReviewerSchema(BaseRecordSchema):
 
 class AddMemberSchema(BaseRecordSchema):
     emails = fields.List(fields.String(), required=True)
+
+
+class DelMemberSchema(BaseRecordSchema):
+    user_id = fields.Integer(required=True)
