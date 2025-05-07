@@ -1,5 +1,8 @@
 import pytest
+from invenio_accounts.models import User
 from invenio_notify.records.models import ReviewerModel
+from invenio_notify.services.config import ReviewerServiceConfig
+from invenio_notify.services.service import ReviewerService
 from invenio_notify_test.utils import resolve_user_id
 
 
@@ -74,3 +77,7 @@ def sample_reviewers(count=3):
         for i in range(1, count + 1)
     ]
     return reviewers
+
+
+def create_reviewer_service():
+    return ReviewerService(config=ReviewerServiceConfig)

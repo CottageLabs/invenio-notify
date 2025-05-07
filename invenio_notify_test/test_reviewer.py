@@ -2,11 +2,9 @@ from invenio_notify.records.models import ReviewerModel
 from invenio_notify.services.config import ReviewerServiceConfig
 from invenio_notify.services.service import ReviewerService
 import pytest
-from invenio_notify_test.reviewer_fixture import create_reviewer, reviewer_data, sample_reviewers
+from invenio_notify_test.reviewer_fixture import create_reviewer, create_reviewer_service, reviewer_data, sample_reviewers
 
 
-def create_reviewer_service():
-    return ReviewerService(config=ReviewerServiceConfig)
 
 
 def test_create_model(db, superuser_identity):

@@ -1,4 +1,5 @@
 import json
+from invenio_accounts.models import User
 from datetime import datetime
 from invenio_rdm_records.proxies import current_rdm_records
 
@@ -7,6 +8,7 @@ from invenio_notify.records.models import NotifyInboxModel, EndorsementMetadataM
 from invenio_notify.tasks import inbox_processing, mark_as_processed
 from invenio_notify_test.inbox_fixture import create_notification_data
 from invenio_notify_test.inbox_fixture import create_inbox
+from invenio_notify_test.reviewer_fixture import create_reviewer_service
 
 
 def test_mark_as_processed(db, superuser_identity, create_inbox):
@@ -25,11 +27,20 @@ def test_mark_as_processed(db, superuser_identity, create_inbox):
     assert isinstance(inbox.process_date, datetime)
 
 
-def test_inbox_processing_success(db, rdm_record, superuser_identity):
+def test_inbox_processing_success(db, rdm_record, superuser_identity, create_reviewer):
     """Test successful inbox processing that creates an endorsement."""
     recid = rdm_record.id
 
     notification_data = create_notification_data(recid)
+
+    # add sender account to reviewer members
+    reviewer = create_reviewer(coar_id=notification_data['actor']['id'])
+    reviewer_service = create_reviewer_service()
+    reviewer_service.add_member(
+        superuser_identity,
+        reviewer.id,
+        { 'emails': [User.query.get(superuser_identity.id).email] }
+    )
 
     # Create inbox record with real notification data
     inbox = NotifyInboxModel.create({
