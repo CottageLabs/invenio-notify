@@ -189,11 +189,8 @@ class ReviewerService(BasicDbService):
     def schema_add_member(self):
         return ServiceSchemaWrapper(self, schema=self.config.schema_add_member)
 
-    @unit_of_work()
-    def add_member(self, identity, id, data, raise_errors=True, uow=None):
+    def add_member(self, identity, id, data, raise_errors=True):
         self.require_permission(identity, "update")
-
-        reviewer: ReviewerModel = self.record_cls.get(id)
 
         # validate data
         valid_data, errors = self.schema_add_member.load(
@@ -202,7 +199,13 @@ class ReviewerService(BasicDbService):
             raise_errors=raise_errors,
         )
 
-        new_emails = set(valid_data['emails'])
+        return self.add_member_by_emails(id, valid_data['emails'])
+
+    @unit_of_work()
+    def add_member_by_emails(self, reviewer_id, emails, uow=None):
+        reviewer: ReviewerModel = self.record_cls.get(reviewer_id)
+
+        new_emails = set(emails)
         existing_emails = {m.email for m in reviewer.members}
         duplicate_emails = new_emails.intersection(existing_emails)
         if duplicate_emails:
@@ -227,5 +230,6 @@ class ReviewerService(BasicDbService):
             else:
                 current_app.logger.warning(f'User with email {email} not found')
         
-        reviewer = self.record_cls.get(id)
+        reviewer = self.record_cls.get(reviewer_id)
         return reviewer
+    
