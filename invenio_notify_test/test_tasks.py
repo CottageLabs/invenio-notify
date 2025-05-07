@@ -36,11 +36,11 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     # add sender account to reviewer members
     reviewer = create_reviewer(coar_id=notification_data['actor']['id'])
     reviewer_service = create_reviewer_service()
-    reviewer_service.add_member(
-        superuser_identity,
+    reviewer_service.add_member_by_emails(
         reviewer.id,
-        { 'emails': [User.query.get(superuser_identity.id).email] }
+        [User.query.get(superuser_identity.id).email]
     )
+
 
     # Create inbox record with real notification data
     inbox = NotifyInboxModel.create({

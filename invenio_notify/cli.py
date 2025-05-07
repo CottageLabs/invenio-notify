@@ -102,6 +102,7 @@ def list(user, reviewer_id):
 @with_appcontext
 def add(email, coar_ids):
     """ assign coarnotify role and reviewer ids to user """
+    from invenio_notify.proxies import current_reviewer_service
 
     print(f'Assigning reviewer_id(s) {coar_ids} to user[{email}]')
     user = user_utils.find_user_by_email(email)
@@ -118,11 +119,9 @@ def add(email, coar_ids):
             continue
 
         reviewer_id = db.session.query(ReviewerModel.id).filter_by(coar_id=coar_id).scalar()
+
         if reviewer_id:
-            ReviewerMapModel.create({
-            'user_id': user.id,
-            'reviewer_id': reviewer_id,
-            })
+            current_reviewer_service.add_member_by_email(reviewer_id, email)
             assigned_count += 1
         else:
             print(f"No reviewer found with COAR ID: {coar_id}")
@@ -137,6 +136,7 @@ def add(email, coar_ids):
 @with_appcontext
 def test_data(email):
     """Generate test data for ReviewerModel."""
+    from invenio_notify.proxies import current_reviewer_service
 
     print("Generating a test record for ReviewerModel...")
     
@@ -159,11 +159,8 @@ def test_data(email):
             # Add required role to the user
             user_utils.add_coarnotify_action(db, user.id)
             
-            # Create the mapping
-            ReviewerMapModel.create({
-                'user_id': user.id,
-                'reviewer_id': reviewer.id,
-            })
+            # Add the user as a member
+            current_reviewer_service.add_member_by_email(reviewer.id, email)
             print(f"Created reviewer mapping: {email} -> {reviewer.name}")
 
     db.session.commit()
