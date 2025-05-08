@@ -1,14 +1,11 @@
-import React, { Component } from "react";
-import PropTypes from "prop-types";
-import { Form, Button, Modal, Icon, Checkbox, List } from "semantic-ui-react";
-import { ActionModal } from "@js/invenio_administration";
-// import { SetQuotaForm } from "./SetQuotaForm";
+import { ActionModal, NotificationContext } from "@js/invenio_administration";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
 import { Formik } from "formik";
-import { TextAreaField, ErrorMessage } from "react-invenio-forms";
+import PropTypes from "prop-types";
+import React, { Component } from "react";
+import { ErrorMessage, http, TextAreaField, withCancel } from "react-invenio-forms";
+import { Button, Form, Icon, List, Modal } from "semantic-ui-react";
 import * as Yup from "yup";
-import { withCancel, http } from "react-invenio-forms";
-import { NotificationContext } from "@js/invenio_administration";
 
 export class MemberAction extends Component {
   constructor(props) {
@@ -88,6 +85,49 @@ class MemberForm extends Component {
   };
 
   static contextType = NotificationContext;
+
+  deleteMember = async (memberId) => {
+    // KTODO refactor deleteMember and handleSubmit
+    this.setState({ loading: true });
+
+    const { addNotification } = this.context;
+    const { actionSuccessCallback } = this.props;
+    const { reviewer } = this.state;
+
+    const apiUrl = `/api/reviewer/${reviewer.id}/member`;
+
+    this.cancellableAction = withCancel(
+      http.delete(apiUrl, {
+        data: { user_id: memberId },
+        headers: { 'Content-Type': 'application/json' }
+      })
+    );
+
+    try {
+      const response = await this.cancellableAction.promise;
+      this.setState({ loading: false, error: undefined });
+
+      addNotification({
+        title: i18next.t("Success"),
+        content: i18next.t("Member removed successfully"),
+        type: "success",
+      });
+
+      this.updateReviewer(response.data);
+
+      if (actionSuccessCallback) {
+        actionSuccessCallback();
+      }
+    } catch (error) {
+      if (error === "UNMOUNTED") return;
+
+      this.setState({
+        error: error?.response?.data?.message || error?.message,
+        loading: false,
+      });
+      console.error(error);
+    }
+  };
 
   handleSubmit = async (values, { resetForm }) => {
     this.setState({ loading: true });
@@ -187,11 +227,22 @@ class MemberForm extends Component {
                   <div className="member-list">
                     <h4>{i18next.t("Member Emails")}</h4>
                     {reviewer.members && reviewer.members.length > 0 ? (
-                      <List>
+                      <List divided verticalAlign="middle">
                         {reviewer.members.map((member, index) => (
-                          <List.Item key={index}>
-                            <Icon name="mail" />
-                            <List.Content>{member.email}</List.Content>
+                          <List.Item key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <div>
+                              <Button
+                                icon="trash"
+                                color="red"
+                                size="tiny"
+                                style={{ marginRight: '1em' }}
+                                onClick={() => this.deleteMember(member.id)}
+                                disabled={this.state.loading}
+                                title={i18next.t("Delete member")}
+                              />
+                              <Icon name="mail" />
+                              {member.email}
+                            </div>
                           </List.Item>
                         ))}
                       </List>

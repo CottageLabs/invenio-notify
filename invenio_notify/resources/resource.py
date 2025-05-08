@@ -127,6 +127,7 @@ class ReviewerResource(BasicDbResource):
             route("DELETE", routes["item"], self.delete),
             route("PUT", routes["item"], self.update),
             route("POST", routes["add-member"], self.add_member),
+            route("DELETE", routes["add-member"], self.del_member),
         ]
 
     @request_data
@@ -146,11 +147,14 @@ class ReviewerResource(BasicDbResource):
         reviewer_dict = ReviewerSchema().dump(reviewer)
         return reviewer_dict, 201
 
-        # return {
-        #     "id": resource_requestctx.view_args["record_id"],
-        #     "members": [
-        #         {"email": 'aaaaaa'},
-        #         {"email": 'bbbbbb'},
-        #         {"email": 'cccccc'},
-        #     ]
-        # }, 200
+    @request_headers
+    @request_view_args
+    @request_data
+    def del_member(self):
+        reviewer = self.service.del_member(
+            identity=g.identity,
+            id=resource_requestctx.view_args["record_id"],
+            data=resource_requestctx.data,
+        )
+        reviewer_dict = ReviewerSchema().dump(reviewer)
+        return reviewer_dict, 200

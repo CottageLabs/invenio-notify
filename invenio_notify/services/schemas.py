@@ -58,6 +58,7 @@ class ReviewerMapSchema(BaseRecordSchema):
 
 
 class UserSchema(Schema):
+    id = fields.Integer(required=True)
     email = fields.String(required=True)
 
 
