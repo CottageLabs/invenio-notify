@@ -59,4 +59,5 @@ class ReviewerResourceConfig(BasicResourceConfig):
     # KTODO change it do mermber and members
     routes['add-member'] = "/<record_id>/member"
     routes['del-member'] = "/<record_id>/member"
+    routes['get-members'] = "/<record_id>/members"
 

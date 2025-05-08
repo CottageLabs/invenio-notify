@@ -275,4 +275,22 @@ class ReviewerService(BasicDbService):
 
         reviewer = self.record_cls.get(reviewer_id)
         return reviewer
-    
+
+    def get_members(self, identity, id):
+        """Get members for a reviewer by ID."""
+        self.require_permission(identity, "read")
+        
+        reviewer = self.record_cls.get(id)
+        if not reviewer:
+            raise Exception(f"Reviewer {id} not found")
+            
+        # Transform members data for API consumption
+        member_data = []
+        for member in reviewer.members:
+            member_data.append({
+                "id": member.id,
+                "email": member.email
+            })
+            
+        return member_data
+

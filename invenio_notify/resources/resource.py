@@ -128,6 +128,7 @@ class ReviewerResource(BasicDbResource):
             route("PUT", routes["item"], self.update),
             route("POST", routes["add-member"], self.add_member),
             route("DELETE", routes["add-member"], self.del_member),
+            route("GET", routes["get-members"], self.get_members),
         ]
 
     @request_data
@@ -158,3 +159,14 @@ class ReviewerResource(BasicDbResource):
         )
         reviewer_dict = ReviewerSchema().dump(reviewer)
         return reviewer_dict, 200
+
+    @request_headers
+    @request_view_args
+    @response_handler()
+    def get_members(self):
+        """Get members for a reviewer."""
+        members = self.service.get_members(
+            identity=g.identity,
+            id=resource_requestctx.view_args["record_id"],
+        )
+        return {"hits": members}, 200

@@ -62,6 +62,8 @@ class MemberForm extends Component {
       loading: false,
       error: undefined,
       reviewer: props.reviewer || null,
+      members: [],
+      loadingMembers: false,
     };
 
     this.emailSchema = Yup.object({
@@ -69,25 +71,65 @@ class MemberForm extends Component {
     });
   }
 
+  componentDidMount() {
+    if (this.state.reviewer) {
+      this.fetchMembersList();
+    }
+  }
+
   componentWillUnmount() {
     this.cancellableAction && this.cancellableAction.cancel();
+    this.cancellableFetch && this.cancellableFetch.cancel();
   }
 
   componentDidUpdate(prevProps) {
     // Update state if reviewer prop changes
     if (prevProps.reviewer !== this.props.reviewer) {
-      this.setState({ reviewer: this.props.reviewer });
+      this.setState({ reviewer: this.props.reviewer }, () => {
+        this.fetchMembersList();
+      });
     }
   }
 
+  fetchMembersList = async () => {
+    const { reviewer } = this.state;
+    if (!reviewer) return;
+
+    this.setState({ loadingMembers: true });
+    
+    const apiUrl = `/api/reviewer/${reviewer.id}/members`;
+    
+    this.cancellableFetch = withCancel(http.get(apiUrl));
+    
+    try {
+      const response = await this.cancellableFetch.promise;
+      this.setState({ 
+        members: response.data.hits || [],
+        loadingMembers: false,
+        error: undefined
+      });
+    } catch (error) {
+      if (error === "UNMOUNTED") return;
+      
+      this.setState({
+        loadingMembers: false,
+        error: error?.response?.data?.message || error?.message
+      });
+      console.error("Failed to fetch members:", error);
+    }
+  };
+
   updateReviewer = (updatedReviewer) => {
-    this.setState({ reviewer: updatedReviewer });
+    // KTODO should no longer save reviewer in state
+    this.setState({ reviewer: updatedReviewer }, () => {
+      this.fetchMembersList();
+    });
   };
 
   static contextType = NotificationContext;
 
   deleteMember = async (memberId) => {
-    // KTODO refactor deleteMember and handleSubmit
+    // KTODO refactor deleteMember and handleSubmit error handling
     this.setState({ loading: true });
 
     const { addNotification } = this.context;
@@ -190,9 +232,9 @@ class MemberForm extends Component {
   };
 
   render() {
-    const { error, loading } = this.state;
+    const { error, loading, loadingMembers, members } = this.state;
     const { } = this.props;
-    const { reviewer } = this.state;
+    const { reviewer } = this.state; // KTODO remove reviewer from state ?
 
     return (
       <Formik
@@ -226,9 +268,11 @@ class MemberForm extends Component {
                 {reviewer && (
                   <div className="member-list">
                     <h4>{i18next.t("Member Emails")}</h4>
-                    {reviewer.members && reviewer.members.length > 0 ? (
+                    {loadingMembers ? (
+                      <div className="ui active centered inline loader"></div>
+                    ) : members && members.length > 0 ? (
                       <List divided verticalAlign="middle">
-                        {reviewer.members.map((member, index) => (
+                        {members.map((member, index) => (
                           <List.Item key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
                               <Button
@@ -237,7 +281,7 @@ class MemberForm extends Component {
                                 size="tiny"
                                 style={{ marginRight: '1em' }}
                                 onClick={() => this.deleteMember(member.id)}
-                                disabled={this.state.loading}
+                                disabled={loading}
                                 title={i18next.t("Delete member")}
                               />
                               <Icon name="mail" />
