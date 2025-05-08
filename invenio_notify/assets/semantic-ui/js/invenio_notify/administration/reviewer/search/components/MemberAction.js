@@ -46,7 +46,7 @@ export class MemberAction extends Component {
         <ActionModal modalOpen={modalOpen} result={reviewer}>
           <MemberForm
             onClose={this.closeModal}
-            reviewer={reviewer}
+            reviewer_id={reviewer.id}
           />
         </ActionModal>
       </>
@@ -61,7 +61,7 @@ class MemberForm extends Component {
     this.state = {
       loading: false,
       error: undefined,
-      reviewer: props.reviewer || null,
+      reviewer_id: props.reviewer_id || null,
       members: [],
       loadingMembers: false,
     };
@@ -72,7 +72,7 @@ class MemberForm extends Component {
   }
 
   componentDidMount() {
-    if (this.state.reviewer) {
+    if (this.state.reviewer_id) {
       this.fetchMembersList();
     }
   }
@@ -83,21 +83,21 @@ class MemberForm extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    // Update state if reviewer prop changes
-    if (prevProps.reviewer !== this.props.reviewer) {
-      this.setState({ reviewer: this.props.reviewer }, () => {
+    // Update state if reviewer_id prop changes
+    if (prevProps.reviewer_id !== this.props.reviewer_id) {
+      this.setState({ reviewer_id: this.props.reviewer_id }, () => {
         this.fetchMembersList();
       });
     }
   }
 
   fetchMembersList = async () => {
-    const { reviewer } = this.state;
-    if (!reviewer) return;
+    const { reviewer_id } = this.state;
+    if (!reviewer_id) return;
 
     this.setState({ loadingMembers: true });
     
-    const apiUrl = `/api/reviewer/${reviewer.id}/members`;
+    const apiUrl = `/api/reviewer/${reviewer_id}/members`;
     
     this.cancellableFetch = withCancel(http.get(apiUrl));
     
@@ -119,13 +119,6 @@ class MemberForm extends Component {
     }
   };
 
-  updateReviewer = (updatedReviewer) => {
-    // KTODO should no longer save reviewer in state
-    this.setState({ reviewer: updatedReviewer }, () => {
-      this.fetchMembersList();
-    });
-  };
-
   static contextType = NotificationContext;
 
   deleteMember = async (memberId) => {
@@ -134,9 +127,9 @@ class MemberForm extends Component {
 
     const { addNotification } = this.context;
     const { actionSuccessCallback } = this.props;
-    const { reviewer } = this.state;
+    const { reviewer_id } = this.state;
 
-    const apiUrl = `/api/reviewer/${reviewer.id}/member`;
+    const apiUrl = `/api/reviewer/${reviewer_id}/member`;
 
     this.cancellableAction = withCancel(
       http.delete(apiUrl, {
@@ -155,7 +148,7 @@ class MemberForm extends Component {
         type: "success",
       });
 
-      this.updateReviewer(response.data);
+      this.fetchMembersList();
 
       if (actionSuccessCallback) {
         actionSuccessCallback();
@@ -176,9 +169,9 @@ class MemberForm extends Component {
 
     const { addNotification } = this.context;
     const { actionSuccessCallback } = this.props;
-    const { reviewer } = this.state;
+    const { reviewer_id } = this.state;
 
-    const apiUrl = `/api/reviewer/${reviewer.id}/members`;
+    const apiUrl = `/api/reviewer/${reviewer_id}/members`;
 
     console.log("Submit member with email:", values.emails);
 
@@ -209,7 +202,7 @@ class MemberForm extends Component {
         type: "success",
       });
 
-      this.updateReviewer(response.data);
+      this.fetchMembersList();
 
       if (actionSuccessCallback) {
         actionSuccessCallback();
@@ -234,7 +227,7 @@ class MemberForm extends Component {
   render() {
     const { error, loading, loadingMembers, members } = this.state;
     const { } = this.props;
-    const { reviewer } = this.state; // KTODO remove reviewer from state ?
+    const { reviewer_id } = this.state; // KTODO remove reviewer from state ?
 
     return (
       <Formik
@@ -265,7 +258,7 @@ class MemberForm extends Component {
                 </div>
               </Modal.Header>
               <Modal.Content>
-                {reviewer && (
+                {reviewer_id && (
                   <div className="member-list">
                     <h4>{i18next.t("Member Emails")}</h4>
                     {loadingMembers ? (
@@ -335,7 +328,7 @@ class MemberForm extends Component {
 
 MemberForm.propTypes = {
   onClose: PropTypes.func.isRequired,
-  reviewer: PropTypes.object.isRequired,
+  reviewer_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   actionSuccessCallback: PropTypes.func,
 };
 
