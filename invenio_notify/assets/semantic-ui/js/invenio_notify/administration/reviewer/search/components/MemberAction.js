@@ -227,7 +227,7 @@ class MemberForm extends Component {
   render() {
     const { error, loading, loadingMembers, members } = this.state;
     const { } = this.props;
-    const { reviewer_id } = this.state; // KTODO remove reviewer from state ?
+    const { reviewer_id } = this.state;
 
     return (
       <Formik
