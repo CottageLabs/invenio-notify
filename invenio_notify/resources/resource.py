@@ -126,9 +126,9 @@ class ReviewerResource(BasicDbResource):
             route("GET", routes["list"], self.search),
             route("DELETE", routes["item"], self.delete),
             route("PUT", routes["item"], self.update),
-            route("POST", routes["add-member"], self.add_member),
-            route("DELETE", routes["add-member"], self.del_member),
-            route("GET", routes["get-members"], self.get_members),
+            route("GET", routes["members"], self.get_members),
+            route("POST", routes["members"], self.add_member),
+            route("DELETE", routes["member"], self.del_member),
         ]
 
     @request_data

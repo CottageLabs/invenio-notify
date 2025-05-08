@@ -129,7 +129,7 @@ class MemberForm extends Component {
   static contextType = NotificationContext;
 
   deleteMember = async (memberId) => {
-    // KTODO refactor deleteMember and handleSubmit error handling
+// KTODO refactor deleteMember and handleSubmit error handling
     this.setState({ loading: true });
 
     const { addNotification } = this.context;
@@ -178,7 +178,7 @@ class MemberForm extends Component {
     const { actionSuccessCallback } = this.props;
     const { reviewer } = this.state;
 
-    const apiUrl = `/api/reviewer/${reviewer.id}/member`;
+    const apiUrl = `/api/reviewer/${reviewer.id}/members`;
 
     console.log("Submit member with email:", values.emails);
 

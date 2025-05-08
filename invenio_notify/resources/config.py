@@ -56,8 +56,7 @@ class ReviewerResourceConfig(BasicResourceConfig):
     url_prefix = "/reviewer"
 
     routes = BasicResourceConfig.routes
-    # KTODO change it do mermber and members
-    routes['add-member'] = "/<record_id>/member"
-    routes['del-member'] = "/<record_id>/member"
-    routes['get-members'] = "/<record_id>/members"
+    # Updated route names for better consistency
+    routes['member'] = "/<record_id>/member"
+    routes['members'] = "/<record_id>/members"
 
