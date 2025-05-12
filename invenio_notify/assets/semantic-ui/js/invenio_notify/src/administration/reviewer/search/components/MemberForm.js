@@ -4,10 +4,10 @@ import { Formik } from "formik";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { connect } from "react-redux";
-import { ErrorMessage, http, TextAreaField, withCancel } from "react-invenio-forms";
+import { ErrorMessage, TextAreaField } from "react-invenio-forms";
 import { Button, Form, Icon, List, Modal } from "semantic-ui-react";
 import * as Yup from "yup";
-import { getMembers } from "../state/actions/members";
+import { getMembers, addMembers, deleteMember } from "../state/actions/members";
 
 class MemberForm extends Component {
     constructor(props) {
@@ -29,14 +29,12 @@ class MemberForm extends Component {
         }
     }
 
-    componentWillUnmount() {
-        this.cancellableAction && this.cancellableAction.cancel();
-    }
-
     componentDidUpdate(prevProps) {
         // Update state if reviewerId prop changes
         if (prevProps.reviewerId !== this.props.reviewerId) {
-            this.fetchMembersList();
+            if (this.props.reviewerId) {
+                this.props.getMembers(this.props.reviewerId);
+            }
         }
 
         // Update members in state when Redux store is updated
@@ -45,35 +43,16 @@ class MemberForm extends Component {
         }
     }
 
-    fetchMembersList = async () => {
-        const { reviewerId, getMembers } = this.props;
-        if (!reviewerId) return;
-
-        await getMembers(reviewerId);
-    };
-
     static contextType = NotificationContext;
 
-    // KTODO replace this function with redux action
-    deleteMember = async (memberId) => {
-        // KTODO refactor deleteMember and handleSubmit error handling
+    handleMemberDelete = async (memberId) => {
+        const { addNotification } = this.context;
+        const { deleteMember, reviewerId, actionSuccessCallback } = this.props;
+
         this.setState({ loading: true });
 
-        const { addNotification } = this.context;
-        const { actionSuccessCallback, reviewerId } = this.props;
-
-        const apiUrl = `/api/reviewer/${reviewerId}/member`;
-
-        this.cancellableAction = withCancel(
-            http.delete(apiUrl, {
-                data: { user_id: memberId },
-                headers: { "Content-Type": "application/json" },
-            })
-        );
-
         try {
-            const response = await this.cancellableAction.promise;
-            this.setState({ loading: false, error: undefined });
+            await deleteMember(reviewerId, memberId);
 
             addNotification({
                 title: i18next.t("Success"),
@@ -81,11 +60,11 @@ class MemberForm extends Component {
                 type: "success",
             });
 
-            this.fetchMembersList();
-
             if (actionSuccessCallback) {
                 actionSuccessCallback();
             }
+            
+            this.setState({ loading: false, error: undefined });
         } catch (error) {
             if (error === "UNMOUNTED") return;
 
@@ -97,14 +76,11 @@ class MemberForm extends Component {
         }
     };
 
-    // KTODO use redux action addMember
     handleSubmit = async (values, { resetForm }) => {
-        this.setState({ loading: true });
-
         const { addNotification } = this.context;
-        const { actionSuccessCallback, reviewerId } = this.props;
+        const { addMembers, reviewerId, actionSuccessCallback } = this.props;
 
-        const apiUrl = `/api/reviewer/${reviewerId}/members`;
+        this.setState({ loading: true });
 
         console.log("Submit member with email:", values.emails);
 
@@ -115,31 +91,24 @@ class MemberForm extends Component {
 
         console.log("Parsed email list:", emails);
 
-        this.cancellableAction = withCancel(
-            http.post(apiUrl, {
-                emails,
-            })
-        );
-
         try {
-            const response = await this.cancellableAction.promise;
-            this.setState({ loading: false, error: undefined });
-
+            await addMembers(reviewerId, emails);
+            
             resetForm();
 
             addNotification({
                 title: i18next.t("Success"),
-                content: i18next.t("Added memeber {{member}}", {
+                content: i18next.t("Added member {{member}}", {
                     member: emails.join(", "),
                 }),
                 type: "success",
             });
 
-            this.fetchMembersList();
-
             if (actionSuccessCallback) {
                 actionSuccessCallback();
             }
+            
+            this.setState({ loading: false, error: undefined });
         } catch (error) {
             if (error === "UNMOUNTED") return;
 
@@ -158,10 +127,9 @@ class MemberForm extends Component {
     };
 
     render() {
-
         const { error, loading } = this.state;
         const { members, reviewerId } = this.props;
-
+        
         return (
             <Formik
                 onSubmit={this.handleSubmit}
@@ -213,7 +181,7 @@ class MemberForm extends Component {
                                                                 color="red"
                                                                 size="tiny"
                                                                 style={{ marginRight: "1em" }}
-                                                                onClick={() => this.deleteMember(member.id)}
+                                                                onClick={() => this.handleMemberDelete(member.id)}
                                                                 disabled={loading}
                                                                 title={i18next.t("Delete member")}
                                                             />
@@ -273,17 +241,20 @@ MemberForm.propTypes = {
     reviewerId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     actionSuccessCallback: PropTypes.func,
     getMembers: PropTypes.func.isRequired,
+    addMembers: PropTypes.func.isRequired,
+    deleteMember: PropTypes.func.isRequired,
     members: PropTypes.array,
     loading: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
     members: state.members?.data || [],
-    loading: state.members?.loading || false,
 });
 
 const mapDispatchToProps = {
     getMembers,
+    addMembers,
+    deleteMember,
 };
 
 const MemberFormContainer = connect(
