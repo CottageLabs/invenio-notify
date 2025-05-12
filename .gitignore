@@ -19,3 +19,7 @@ _playground
 
 # IDE
 .vscode/
+
+
+# js
+node_modules
