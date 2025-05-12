@@ -13,7 +13,6 @@ class MemberForm extends Component {
     constructor(props) {
         super(props);
 
-        // KTODO do we need to set reviewerId in state?
         this.state = {
             loading: false,
             error: undefined,
@@ -47,9 +46,7 @@ class MemberForm extends Component {
     }
 
     fetchMembersList = async () => {
-        const { reviewerId } = this.props;
-        const { getMembers } = this.props;
-
+        const { reviewerId, getMembers } = this.props;
         if (!reviewerId) return;
 
         await getMembers(reviewerId);
