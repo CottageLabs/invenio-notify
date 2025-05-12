@@ -49,7 +49,7 @@ export class MemberAction extends Component {
         <ActionModal modalOpen={modalOpen} result={reviewer}>
           <MemberFormWithProvider
             onClose={this.closeModal}
-            reviewer_id={reviewer.id}
+            reviewerId={reviewer.id}
             actionSuccessCallback={this.props.actionSuccessCallback}
           />
         </ActionModal>
@@ -62,10 +62,11 @@ class MemberForm extends Component {
   constructor(props) {
     super(props);
 
+    // KTODO do we need to set reviewerId in state?
     this.state = {
       loading: false,
       error: undefined,
-      reviewer_id: props.reviewer_id || null,
+      reviewerId: props.reviewerId || null,
       loadingMembers: false,
     };
 
@@ -75,8 +76,8 @@ class MemberForm extends Component {
   }
 
   componentDidMount() {
-    if (this.state.reviewer_id) {
-      this.props.getMembers(this.props.reviewer_id);
+    if (this.state.reviewerId) {
+      this.props.getMembers(this.state.reviewerId);
     }
   }
 
@@ -85,9 +86,9 @@ class MemberForm extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    // Update state if reviewer_id prop changes
-    if (prevProps.reviewer_id !== this.props.reviewer_id) {
-      this.setState({ reviewer_id: this.props.reviewer_id }, () => {
+    // Update state if reviewerId prop changes
+    if (prevProps.reviewerId !== this.props.reviewerId) {
+      this.setState({ reviewerId: this.props.reviewerId }, () => {
         this.fetchMembersList();
       });
     }
@@ -99,16 +100,15 @@ class MemberForm extends Component {
   }
 
   fetchMembersList = async () => {
-    // KTODO rename reviewer_id to reviewerId
-    const { reviewer_id } = this.state;
+    const { reviewerId } = this.state;
     const { getMembers } = this.props;
 
-    if (!reviewer_id) return;
+    if (!reviewerId) return;
 
     this.setState({ loadingMembers: true });
 
     try {
-      await getMembers(reviewer_id);
+      await getMembers(reviewerId);
       const members = this.props.members || [];
       this.setState({
         loadingMembers: false,
@@ -137,9 +137,9 @@ class MemberForm extends Component {
 
     const { addNotification } = this.context;
     const { actionSuccessCallback } = this.props;
-    const { reviewer_id } = this.state;
+    const { reviewerId } = this.state;
 
-    const apiUrl = `/api/reviewer/${reviewer_id}/member`;
+    const apiUrl = `/api/reviewer/${reviewerId}/member`;
 
     this.cancellableAction = withCancel(
       http.delete(apiUrl, {
@@ -180,9 +180,9 @@ class MemberForm extends Component {
 
     const { addNotification } = this.context;
     const { actionSuccessCallback } = this.props;
-    const { reviewer_id } = this.state;
+    const { reviewerId } = this.state;
 
-    const apiUrl = `/api/reviewer/${reviewer_id}/members`;
+    const apiUrl = `/api/reviewer/${reviewerId}/members`;
 
     console.log("Submit member with email:", values.emails);
 
@@ -237,7 +237,7 @@ class MemberForm extends Component {
 
   render() {
 
-    const { error, loading, loadingMembers, reviewer_id  } = this.state;
+    const { error, loading, loadingMembers, reviewerId } = this.state;
     const { members } = this.props; 
 
     return (
@@ -269,7 +269,7 @@ class MemberForm extends Component {
                 </div>
               </Modal.Header>
               <Modal.Content>
-                {reviewer_id && (
+                {reviewerId && (
                   <div className="member-list">
                     <h4>{i18next.t("Member Emails")}</h4>
                     {loadingMembers ? (
@@ -348,7 +348,7 @@ class MemberForm extends Component {
 
 MemberForm.propTypes = {
   onClose: PropTypes.func.isRequired,
-  reviewer_id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  reviewerId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
   actionSuccessCallback: PropTypes.func,
   getMembers: PropTypes.func.isRequired,
   members: PropTypes.array,
