@@ -66,7 +66,6 @@ class MemberForm extends Component {
     this.state = {
       loading: false,
       error: undefined,
-      reviewerId: props.reviewerId || null,
       loadingMembers: false,
     };
 
@@ -76,8 +75,8 @@ class MemberForm extends Component {
   }
 
   componentDidMount() {
-    if (this.state.reviewerId) {
-      this.props.getMembers(this.state.reviewerId);
+    if (this.props.reviewerId) {
+      this.props.getMembers(this.props.reviewerId);
     }
   }
 
@@ -88,9 +87,7 @@ class MemberForm extends Component {
   componentDidUpdate(prevProps) {
     // Update state if reviewerId prop changes
     if (prevProps.reviewerId !== this.props.reviewerId) {
-      this.setState({ reviewerId: this.props.reviewerId }, () => {
-        this.fetchMembersList();
-      });
+      this.fetchMembersList();
     }
 
     // Update members in state when Redux store is updated
@@ -100,7 +97,7 @@ class MemberForm extends Component {
   }
 
   fetchMembersList = async () => {
-    const { reviewerId } = this.state;
+    const { reviewerId } = this.props;
     const { getMembers } = this.props;
 
     if (!reviewerId) return;
@@ -136,8 +133,7 @@ class MemberForm extends Component {
     this.setState({ loading: true });
 
     const { addNotification } = this.context;
-    const { actionSuccessCallback } = this.props;
-    const { reviewerId } = this.state;
+    const { actionSuccessCallback, reviewerId } = this.props;
 
     const apiUrl = `/api/reviewer/${reviewerId}/member`;
 
@@ -179,8 +175,7 @@ class MemberForm extends Component {
     this.setState({ loading: true });
 
     const { addNotification } = this.context;
-    const { actionSuccessCallback } = this.props;
-    const { reviewerId } = this.state;
+    const { actionSuccessCallback, reviewerId } = this.props;
 
     const apiUrl = `/api/reviewer/${reviewerId}/members`;
 
@@ -237,8 +232,8 @@ class MemberForm extends Component {
 
   render() {
 
-    const { error, loading, loadingMembers, reviewerId } = this.state;
-    const { members } = this.props; 
+    const { error, loading, loadingMembers } = this.state;
+    const { members, reviewerId } = this.props; 
 
     return (
       <Formik
