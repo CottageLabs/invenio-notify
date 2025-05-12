@@ -66,7 +66,6 @@ class MemberForm extends Component {
     this.state = {
       loading: false,
       error: undefined,
-      loadingMembers: false,
     };
 
     this.emailSchema = Yup.object({
@@ -102,27 +101,25 @@ class MemberForm extends Component {
 
     if (!reviewerId) return;
 
-    this.setState({ loadingMembers: true });
+    await getMembers(reviewerId);
 
-    try {
-      await getMembers(reviewerId);
-      const members = this.props.members || [];
-      this.setState({
-        loadingMembers: false,
-        error: undefined,
-        members: members,
-        // KTODO do we need to set members in state?
-      });
-    } catch (error) {
-      if (error === "UNMOUNTED") return;
-      // KTODO do we still need error handling after redux action?
-
-      this.setState({
-        loadingMembers: false,
-        error: error?.message,
-      });
-      console.error("Failed to fetch members:", error);
-    }
+    // try {
+    //   const members = this.props.members || [];
+    //   this.setState({
+    //     loading: false,
+    //     error: undefined,
+    //     members: members,
+    //     // KTODO do we need to set members in state?
+    //   });
+    // } catch (error) {
+    //   if (error === "UNMOUNTED") return;
+    //   // KTODO do we still need error handling after redux action?
+    //   this.setState({
+    //     loading: false,
+    //     error: error?.message,
+    //   });
+    //   console.error("Failed to fetch members:", error);
+    // }
   };
 
   static contextType = NotificationContext;
@@ -232,7 +229,7 @@ class MemberForm extends Component {
 
   render() {
 
-    const { error, loading, loadingMembers } = this.state;
+    const { error, loading } = this.state;
     const { members, reviewerId } = this.props; 
 
     return (
@@ -267,7 +264,7 @@ class MemberForm extends Component {
                 {reviewerId && (
                   <div className="member-list">
                     <h4>{i18next.t("Member Emails")}</h4>
-                    {loadingMembers ? (
+                    {loading ? (
                       <div className="ui active centered inline loader"></div>
                     ) : members && members.length > 0 ? (
                       <List divided verticalAlign="middle">
