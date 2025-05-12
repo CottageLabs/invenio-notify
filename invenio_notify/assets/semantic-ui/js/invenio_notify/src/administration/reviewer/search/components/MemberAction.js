@@ -3,12 +3,11 @@ import { i18next } from "@translations/invenio_app_rdm/i18next";
 import { Formik } from "formik";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
-import { connect, Provider } from "react-redux";
+import { connect } from "react-redux";
 import { ErrorMessage, http, TextAreaField, withCancel } from "react-invenio-forms";
 import { Button, Form, Icon, List, Modal } from "semantic-ui-react";
 import * as Yup from "yup";
 import { getMembers } from "../state/actions/members";
-import store from "../state/store";
 
 export class MemberAction extends Component {
   constructor(props) {
@@ -47,7 +46,7 @@ export class MemberAction extends Component {
         </Button>
 
         <ActionModal modalOpen={modalOpen} result={reviewer}>
-          <MemberFormWithProvider
+          <ConnectedMemberForm
             onClose={this.closeModal}
             reviewerId={reviewer.id}
             actionSuccessCallback={this.props.actionSuccessCallback}
@@ -102,31 +101,13 @@ class MemberForm extends Component {
     if (!reviewerId) return;
 
     await getMembers(reviewerId);
-
-    // try {
-    //   const members = this.props.members || [];
-    //   this.setState({
-    //     loading: false,
-    //     error: undefined,
-    //     members: members,
-    //     // KTODO do we need to set members in state?
-    //   });
-    // } catch (error) {
-    //   if (error === "UNMOUNTED") return;
-    //   // KTODO do we still need error handling after redux action?
-    //   this.setState({
-    //     loading: false,
-    //     error: error?.message,
-    //   });
-    //   console.error("Failed to fetch members:", error);
-    // }
   };
 
   static contextType = NotificationContext;
 
   // KTODO replace this function with redux action
   deleteMember = async (memberId) => {
-// KTODO refactor deleteMember and handleSubmit error handling
+    // KTODO refactor deleteMember and handleSubmit error handling
     this.setState({ loading: true });
 
     const { addNotification } = this.context;
@@ -361,14 +342,6 @@ const ConnectedMemberForm = connect(
   mapDispatchToProps
 )(MemberForm);
 
-
-// KTODO move Provider to a root component
-// Wrap ConnectedMemberForm with Provider
-const MemberFormWithProvider = (props) => (
-  <Provider store={store}>
-    <ConnectedMemberForm {...props} />
-  </Provider>
-);
 
 MemberAction.propTypes = {
   reviewer: PropTypes.object.isRequired,

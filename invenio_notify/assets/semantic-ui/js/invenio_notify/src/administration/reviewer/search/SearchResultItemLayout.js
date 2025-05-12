@@ -6,7 +6,8 @@ import { withState } from "react-searchkit";
 import { AdminUIRoutes } from "@js/invenio_administration/src/routes";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
 import { ReviewerSearchActions } from "./ReviewerSearchActions";
-
+import { Provider } from "react-redux";
+import store from "./state/store";
 
 class SearchResultItemComponent extends Component {
 
@@ -69,4 +70,10 @@ class SearchResultItemComponent extends Component {
 
 SearchResultItemComponent.defaultProps = {};
 
-export const SearchResultItemLayout = withState(SearchResultItemComponent);
+export const SearchResultItemLayout = withState(
+  (props) => (
+    <Provider store={store}>
+      <SearchResultItemComponent {...props} />
+    </Provider>
+  )
+);
