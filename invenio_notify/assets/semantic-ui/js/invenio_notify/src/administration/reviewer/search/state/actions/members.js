@@ -1,6 +1,10 @@
 import { http, withCancel } from "react-invenio-forms";
 import { MEMBERS_REQUEST, MEMBERS_SUCCESS, MEMBERS_ERROR } from "../types";
 
+// API URL constants
+const MEMBERS_API_URL = (reviewerId) => `/api/reviewer/${reviewerId}/members`;
+const MEMBER_API_URL = (reviewerId) => `/api/reviewer/${reviewerId}/member`;
+
 // KTODO refactor try and error handling
 
 /**
@@ -14,7 +18,7 @@ export const getMembers = (reviewerId) => {
       type: MEMBERS_REQUEST,
     });
 
-    const apiUrl = `/api/reviewer/${reviewerId}/members`;
+    const apiUrl = MEMBERS_API_URL(reviewerId);
     
     try {
       const cancellableRequest = withCancel(http.get(apiUrl));
@@ -53,7 +57,7 @@ export const addMembers = (reviewerId, emails) => {
       type: MEMBERS_REQUEST,
     });
 
-    const apiUrl = `/api/reviewer/${reviewerId}/members`;
+    const apiUrl = MEMBERS_API_URL(reviewerId);
     
     try {
       const cancellableRequest = withCancel(
@@ -90,7 +94,7 @@ export const deleteMember = (reviewerId, memberId) => {
       type: MEMBERS_REQUEST,
     });
 
-    const apiUrl = `/api/reviewer/${reviewerId}/member`;
+    const apiUrl = MEMBER_API_URL(reviewerId);
     
     try {
       const cancellableRequest = withCancel(
