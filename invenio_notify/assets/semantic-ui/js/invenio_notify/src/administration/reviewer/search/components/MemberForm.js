@@ -286,9 +286,9 @@ const mapDispatchToProps = {
     getMembers,
 };
 
-const ConnectedMemberForm = connect(
+const MemberFormContainer = connect(
     mapStateToProps,
     mapDispatchToProps
 )(MemberForm);
 
-export { MemberForm, ConnectedMemberForm };
+export { MemberForm, MemberFormContainer };

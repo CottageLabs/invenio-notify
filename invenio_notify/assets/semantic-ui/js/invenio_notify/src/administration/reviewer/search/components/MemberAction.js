@@ -3,7 +3,7 @@ import { i18next } from "@translations/invenio_app_rdm/i18next";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { Button, Icon } from "semantic-ui-react";
-import { ConnectedMemberForm } from "./MemberForm";
+import { MemberFormContainer } from "./MemberForm";
 
 export class MemberAction extends Component {
   constructor(props) {
@@ -42,7 +42,7 @@ export class MemberAction extends Component {
         </Button>
 
         <ActionModal modalOpen={modalOpen} result={reviewer}>
-          <ConnectedMemberForm
+          <MemberFormContainer
             onClose={this.closeModal}
             reviewerId={reviewer.id}
             actionSuccessCallback={this.props.actionSuccessCallback}
