@@ -49,38 +49,22 @@ class MemberForm extends Component {
         const { addNotification } = this.context;
         const { deleteMember, reviewerId, actionSuccessCallback } = this.props;
 
-        this.setState({ loading: true });
+        await deleteMember(reviewerId, memberId);
 
-        try {
-            await deleteMember(reviewerId, memberId);
+        addNotification({
+            title: i18next.t("Success"),
+            content: i18next.t("Member removed successfully"),
+            type: "success",
+        });
 
-            addNotification({
-                title: i18next.t("Success"),
-                content: i18next.t("Member removed successfully"),
-                type: "success",
-            });
-
-            if (actionSuccessCallback) {
-                actionSuccessCallback();
-            }
-            
-            this.setState({ loading: false, error: undefined });
-        } catch (error) {
-            if (error === "UNMOUNTED") return;
-
-            this.setState({
-                error: error?.response?.data?.message || error?.message,
-                loading: false,
-            });
-            console.error(error);
+        if (actionSuccessCallback) {
+            actionSuccessCallback();
         }
     };
 
     handleSubmit = async (values, { resetForm }) => {
         const { addNotification } = this.context;
         const { addMembers, reviewerId, actionSuccessCallback } = this.props;
-
-        this.setState({ loading: true });
 
         console.log("Submit member with email:", values.emails);
 
@@ -90,34 +74,22 @@ class MemberForm extends Component {
             .filter(email => email);
 
         console.log("Parsed email list:", emails);
+        await addMembers(reviewerId, emails);
+        
+        resetForm();
 
-        try {
-            await addMembers(reviewerId, emails);
-            
-            resetForm();
+        addNotification({
+            title: i18next.t("Success"),
+            content: i18next.t("Added member {{member}}", {
+                member: emails.join(", "),
+            }),
+            type: "success",
+        });
 
-            addNotification({
-                title: i18next.t("Success"),
-                content: i18next.t("Added member {{member}}", {
-                    member: emails.join(", "),
-                }),
-                type: "success",
-            });
-
-            if (actionSuccessCallback) {
-                actionSuccessCallback();
-            }
-            
-            this.setState({ loading: false, error: undefined });
-        } catch (error) {
-            if (error === "UNMOUNTED") return;
-
-            this.setState({
-                error: error?.response?.data?.message || error?.message,
-                loading: false,
-            });
-            console.error(error);
+        if (actionSuccessCallback) {
+            actionSuccessCallback();
         }
+
     };
 
     initFormValues = () => {
