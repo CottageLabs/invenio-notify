@@ -32,7 +32,7 @@ export const getMembers = (reviewerId) => {
       
       dispatch({
         type: MEMBERS_ERROR,
-        payload: error?.data || error?.message || "Failed to fetch members",
+        payload: error?.data || "Failed to fetch members",
       });
 
       throw error;
@@ -67,7 +67,7 @@ export const addMembers = (reviewerId, emails) => {
       
       dispatch({
         type: MEMBERS_ERROR,
-        payload: error?.errors || "Failed to add members",
+        payload: error?.errMessage || "Failed to add members",
       });
 
       throw error;
@@ -102,7 +102,7 @@ export const deleteMember = (reviewerId, memberId) => {
       
       dispatch({
         type: MEMBERS_ERROR,
-        payload: error?.data || error?.message || "Failed to delete member",
+        payload: error?.errMessage || "Failed to delete member",
       });
 
       throw error;

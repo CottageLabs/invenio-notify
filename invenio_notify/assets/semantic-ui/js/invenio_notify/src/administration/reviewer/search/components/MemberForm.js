@@ -51,7 +51,7 @@ class MemberForm extends Component {
             addNotification({
                 title: i18next.t("Error"),
                 content: i18next.t("Unable to fetch members. {{error}}", {
-                    error: error.errors || error.message || "Unknown error",
+                    error: error.errMessage || "Unknown error",
                 }),
                 type: "error",
             });
@@ -70,12 +70,12 @@ class MemberForm extends Component {
             addNotification({
                 title: i18next.t("Error"),
                 content: i18next.t("Unable to remove member. {{error}}", {
-                    error: error.errors || error.message || "Unknown error",
+                    error: error.errMessage || "Unknown error",
                 }),
                 type: "error",
             });
         }
-            
+
         addNotification({
             title: i18next.t("Success"),
             content: i18next.t("Member removed successfully"),
@@ -105,14 +105,14 @@ class MemberForm extends Component {
             addNotification({
                 title: i18next.t("Error"),
                 content: i18next.t("Unable to add member. {{error}}", {
-                    error: error.errors,
+                    error: error.errMessage || "Unknown error",
                 }),
                 type: "error",
             });
 
             return
         }
-        
+
         resetForm();
 
         addNotification({
@@ -138,7 +138,7 @@ class MemberForm extends Component {
     render() {
         const { error, loading } = this.state;
         const { members, reviewerId } = this.props;
-        
+
         return (
             <Formik
                 onSubmit={this.handleSubmit}

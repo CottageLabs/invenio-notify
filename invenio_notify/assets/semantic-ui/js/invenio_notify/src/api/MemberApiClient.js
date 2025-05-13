@@ -16,9 +16,9 @@ const MEMBER_API_URL = (reviewerId) => `/api/reviewer/${reviewerId}/member`;
  * API client response for member operations.
  */
 export class MemberApiClientResponse {
-  constructor(data, errors) {
+  constructor(data, errMessage) {
     this.data = data;
-    this.errors = errors;
+    this.errMessage = errMessage;
   }
 }
 
