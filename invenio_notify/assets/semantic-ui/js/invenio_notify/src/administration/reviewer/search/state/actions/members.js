@@ -1,7 +1,6 @@
 import { withCancel } from "react-invenio-forms";
 import { MEMBERS_REQUEST, MEMBERS_SUCCESS, MEMBERS_ERROR } from "../types";
 import { memberApiClient } from "../../../../../api/MemberApiClient";
-// KTODO refactor try and error handling
 
 /**
  * Handle API errors in a consistent way
@@ -11,7 +10,7 @@ import { memberApiClient } from "../../../../../api/MemberApiClient";
  * @returns {boolean} - True if the component was unmounted, false otherwise
  */
 const handleApiError = (error, dispatch, defaultMessage) => {
-  if (error === "UNMOUNTED") return true;
+  if (error === "UNMOUNTED") return;
 
   // For debugging purposes
   if (defaultMessage) {
@@ -23,7 +22,7 @@ const handleApiError = (error, dispatch, defaultMessage) => {
     payload: error?.data || error?.errMessage || defaultMessage,
   });
 
-  return false;
+  throw error;
 };
 
 /**
@@ -50,8 +49,7 @@ export const fetchMembers = (reviewerId) => {
 
       return members;
     } catch (error) {
-      if (handleApiError(error, dispatch, "Failed to fetch members")) return;
-      throw error;
+      handleApiError(error, dispatch, "Failed to fetch members");
     }
   };
 };
@@ -79,8 +77,7 @@ export const addMembers = (reviewerId, emails) => {
       
       return response.data;
     } catch (error) {
-      if (handleApiError(error, dispatch, "Failed to add members")) return;
-      throw error;
+      handleApiError(error, dispatch, "Failed to add members")
     }
   };
 };
@@ -108,8 +105,7 @@ export const deleteMember = (reviewerId, memberId) => {
       
       return response.data;
     } catch (error) {
-      if (handleApiError(error, dispatch, "Failed to delete member")) return;
-      throw error;
+      handleApiError(error, dispatch, "Failed to delete member")
     }
   };
 };
