@@ -31,7 +31,7 @@ const handleApiError = (error, dispatch, defaultMessage) => {
  * @param {string|number} reviewerId - The ID of the reviewer
  * @returns {Promise} - Promise that resolves with the members data
  */
-export const getMembers = (reviewerId) => {
+export const fetchMembers = (reviewerId) => {
   return async (dispatch) => {
     dispatch({
       type: MEMBERS_REQUEST,
@@ -75,7 +75,7 @@ export const addMembers = (reviewerId, emails) => {
       const response = await cancellableRequest.promise;
       
       // Refresh members list after adding
-      dispatch(getMembers(reviewerId));
+      dispatch(fetchMembers(reviewerId));
       
       return response.data;
     } catch (error) {
@@ -104,7 +104,7 @@ export const deleteMember = (reviewerId, memberId) => {
       const response = await cancellableRequest.promise;
       
       // Refresh members list after deletion
-      dispatch(getMembers(reviewerId));
+      dispatch(fetchMembers(reviewerId));
       
       return response.data;
     } catch (error) {

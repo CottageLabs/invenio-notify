@@ -7,7 +7,7 @@ import { connect } from "react-redux";
 import { ErrorMessage, TextAreaField } from "react-invenio-forms";
 import { Button, Form, Icon, List, Modal } from "semantic-ui-react";
 import * as Yup from "yup";
-import { getMembers, addMembers, deleteMember } from "../state/actions/members";
+import { fetchMembers, addMembers, deleteMember } from "../state/actions/members";
 
 class MemberForm extends Component {
     constructor(props) {
@@ -46,7 +46,7 @@ class MemberForm extends Component {
     fetchMembers = async (reviewerId) => {
         const { addNotification } = this.context;
         try {
-            await this.props.getMembers(reviewerId);
+            await this.props.fetchMembers(reviewerId);
         } catch (error) {
             addNotification({
                 title: i18next.t("Error"),
@@ -249,7 +249,7 @@ MemberForm.propTypes = {
     onClose: PropTypes.func.isRequired,
     reviewerId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     actionSuccessCallback: PropTypes.func,
-    getMembers: PropTypes.func.isRequired,
+    fetchMembers: PropTypes.func.isRequired,
     addMembers: PropTypes.func.isRequired,
     deleteMember: PropTypes.func.isRequired,
     members: PropTypes.array,
@@ -261,7 +261,7 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = {
-    getMembers,
+    fetchMembers,
     addMembers,
     deleteMember,
 };
