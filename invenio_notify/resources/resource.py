@@ -96,25 +96,6 @@ class NotifyInboxResource(BasicDbResource):
         ]
 
 
-class ReviewerMapResource(BasicDbResource):
-
-    def create_url_rules(self):
-        """Create the URL rules for the record resource."""
-        routes = self.config.routes
-        return [
-            route("POST", routes["list"], self.create),
-            route("GET", routes["item"], self.read),
-            route("GET", routes["list"], self.search),
-            route("DELETE", routes["item"], self.delete),
-            route("PUT", routes["item"], self.update),
-        ]
-
-    @request_data
-    @response_handler()
-    def create(self):
-        return self.create_with_out_id()
-
-
 class ReviewerResource(BasicDbResource):
 
     def create_url_rules(self):

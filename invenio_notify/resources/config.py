@@ -46,10 +46,6 @@ class NotifyInboxResourceConfig(BasicResourceConfig):
     # }
 
 
-class ReviewerMapResourceConfig(BasicResourceConfig):
-    blueprint_name = "reviewer_map"
-    url_prefix = "/reviewer-map"
-
 
 class ReviewerResourceConfig(BasicResourceConfig):
     blueprint_name = "reviewer"

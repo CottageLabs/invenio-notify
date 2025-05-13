@@ -31,10 +31,6 @@ coarnotify_action = "invenio_notify.permissions:coarnotify_action"
 [project.entry-points."invenio_administration.views"]
 notify_inbox_list = "invenio_notify.views.inbox_admin_views:NotifyInboxListView"
 notify_inbox_detail = "invenio_notify.views.inbox_admin_views:NotifyInboxDetailView"
-reviewer_map_list = "invenio_notify.views.reviewer_map_views:ReviewerMapListView"
-reviewer_map_detail = "invenio_notify.views.reviewer_map_views:ReviewerMapDetailView"
-reviewer_map_create = "invenio_notify.views.reviewer_map_views:ReviewerMapCreateView"
-reviewer_map_edit = "invenio_notify.views.reviewer_map_views:ReviewerMapEditView"
 reviewer_list = "invenio_notify.views.reviewer_views:ReviewerListView"
 reviewer_detail = "invenio_notify.views.reviewer_views:ReviewerDetailView"
 reviewer_create = "invenio_notify.views.reviewer_views:ReviewerCreateView"
@@ -45,7 +41,6 @@ invenio_notify = "invenio_notify.ext:InvenioNotify"
 
 [project.entry-points."invenio_base.api_blueprints"]
 notify_inbox_resource = "invenio_notify.blueprints:create_notify_inbox_resource_api_bp"
-reviewer_map_resource = "invenio_notify.blueprints:create_reviewer_map_resource_api_bp"
 reviewer_resource = "invenio_notify.blueprints:create_reviewer_resource_api_bp"
 invenio_notify_rest = "invenio_notify.blueprints:rest_blueprint"
 
