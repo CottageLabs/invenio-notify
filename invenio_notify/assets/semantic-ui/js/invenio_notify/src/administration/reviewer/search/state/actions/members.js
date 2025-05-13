@@ -4,6 +4,29 @@ import { memberApiClient } from "../../../../../api/MemberApiClient";
 // KTODO refactor try and error handling
 
 /**
+ * Handle API errors in a consistent way
+ * @param {object} error - The error object returned from the API call
+ * @param {function} dispatch - Redux dispatch function
+ * @param {string} defaultMessage - Default error message
+ * @returns {boolean} - True if the component was unmounted, false otherwise
+ */
+const handleApiError = (error, dispatch, defaultMessage) => {
+  if (error === "UNMOUNTED") return true;
+
+  // For debugging purposes
+  if (defaultMessage) {
+    console.log(`Error: ${defaultMessage}`, error);
+  }
+
+  dispatch({
+    type: MEMBERS_ERROR,
+    payload: error?.data || error?.errMessage || defaultMessage,
+  });
+
+  return false;
+};
+
+/**
  * Fetch members list for a specific reviewer
  * @param {string|number} reviewerId - The ID of the reviewer
  * @returns {Promise} - Promise that resolves with the members data
@@ -27,14 +50,7 @@ export const getMembers = (reviewerId) => {
 
       return members;
     } catch (error) {
-      console.log("Error fetching members:", error);
-      if (error === "UNMOUNTED") return;
-      
-      dispatch({
-        type: MEMBERS_ERROR,
-        payload: error?.data || "Failed to fetch members",
-      });
-
+      if (handleApiError(error, dispatch, "Failed to fetch members")) return;
       throw error;
     }
   };
@@ -63,13 +79,7 @@ export const addMembers = (reviewerId, emails) => {
       
       return response.data;
     } catch (error) {
-      if (error === "UNMOUNTED") return;
-      
-      dispatch({
-        type: MEMBERS_ERROR,
-        payload: error?.errMessage || "Failed to add members",
-      });
-
+      if (handleApiError(error, dispatch, "Failed to add members")) return;
       throw error;
     }
   };
@@ -98,13 +108,7 @@ export const deleteMember = (reviewerId, memberId) => {
       
       return response.data;
     } catch (error) {
-      if (error === "UNMOUNTED") return;
-      
-      dispatch({
-        type: MEMBERS_ERROR,
-        payload: error?.errMessage || "Failed to delete member",
-      });
-
+      if (handleApiError(error, dispatch, "Failed to delete member")) return;
       throw error;
     }
   };
