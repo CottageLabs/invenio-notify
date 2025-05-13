@@ -25,7 +25,7 @@ class MemberForm extends Component {
 
     componentDidMount() {
         if (this.props.reviewerId) {
-            this.props.getMembers(this.props.reviewerId);
+            this.fetchMembers(this.props.reviewerId);
         }
     }
 
@@ -33,7 +33,7 @@ class MemberForm extends Component {
         // Update state if reviewerId prop changes
         if (prevProps.reviewerId !== this.props.reviewerId) {
             if (this.props.reviewerId) {
-                this.props.getMembers(this.props.reviewerId);
+                this.fetchMembers(this.props.reviewerId);
             }
         }
 
@@ -43,14 +43,39 @@ class MemberForm extends Component {
         }
     }
 
+    fetchMembers = async (reviewerId) => {
+        const { addNotification } = this.context;
+        try {
+            await this.props.getMembers(reviewerId);
+        } catch (error) {
+            addNotification({
+                title: i18next.t("Error"),
+                content: i18next.t("Unable to fetch members. {{error}}", {
+                    error: error.errors || error.message || "Unknown error",
+                }),
+                type: "error",
+            });
+        }
+    };
+
     static contextType = NotificationContext;
 
     handleMemberDelete = async (memberId) => {
         const { addNotification } = this.context;
         const { deleteMember, reviewerId, actionSuccessCallback } = this.props;
 
-        await deleteMember(reviewerId, memberId);
-
+        try {
+            await deleteMember(reviewerId, memberId);
+        } catch (error) {
+            addNotification({
+                title: i18next.t("Error"),
+                content: i18next.t("Unable to remove member. {{error}}", {
+                    error: error.errors || error.message || "Unknown error",
+                }),
+                type: "error",
+            });
+        }
+            
         addNotification({
             title: i18next.t("Success"),
             content: i18next.t("Member removed successfully"),
