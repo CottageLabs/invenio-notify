@@ -221,7 +221,7 @@ class ReviewerService(BasicDbService):
         new_emails = new_emails - existing_emails
         if not new_emails:
             current_app.logger.info('No new emails to add')
-            return reviewer
+            raise ValueError('Duplicate emails found')
 
         added_members = []
         for email in new_emails:

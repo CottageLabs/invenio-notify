@@ -1,10 +1,6 @@
-import { http, withCancel } from "react-invenio-forms";
+import { withCancel } from "react-invenio-forms";
 import { MEMBERS_REQUEST, MEMBERS_SUCCESS, MEMBERS_ERROR } from "../types";
-
-// API URL constants
-const MEMBERS_API_URL = (reviewerId) => `/api/reviewer/${reviewerId}/members`;
-const MEMBER_API_URL = (reviewerId) => `/api/reviewer/${reviewerId}/member`;
-
+import { memberApiClient } from "../../../../../api/MemberApiClient";
 // KTODO refactor try and error handling
 
 /**
@@ -17,11 +13,9 @@ export const getMembers = (reviewerId) => {
     dispatch({
       type: MEMBERS_REQUEST,
     });
-
-    const apiUrl = MEMBERS_API_URL(reviewerId);
     
     try {
-      const cancellableRequest = withCancel(http.get(apiUrl));
+      const cancellableRequest = withCancel(memberApiClient.getMembers(reviewerId));
       const response = await cancellableRequest.promise;
       
       const members = response.data.hits || [];
@@ -33,11 +27,12 @@ export const getMembers = (reviewerId) => {
 
       return members;
     } catch (error) {
+      console.log("Error fetching members:", error);
       if (error === "UNMOUNTED") return;
       
       dispatch({
         type: MEMBERS_ERROR,
-        payload: error?.response?.data?.message || error?.message,
+        payload: error?.data || error?.message || "Failed to fetch members",
       });
 
       throw error;
@@ -56,12 +51,10 @@ export const addMembers = (reviewerId, emails) => {
     dispatch({
       type: MEMBERS_REQUEST,
     });
-
-    const apiUrl = MEMBERS_API_URL(reviewerId);
     
     try {
       const cancellableRequest = withCancel(
-        http.post(apiUrl, { emails })
+        memberApiClient.addMembers(reviewerId, emails)
       );
       const response = await cancellableRequest.promise;
       
@@ -74,7 +67,7 @@ export const addMembers = (reviewerId, emails) => {
       
       dispatch({
         type: MEMBERS_ERROR,
-        payload: error?.response?.data?.message || error?.message,
+        payload: error?.errors || "Failed to add members",
       });
 
       throw error;
@@ -93,15 +86,10 @@ export const deleteMember = (reviewerId, memberId) => {
     dispatch({
       type: MEMBERS_REQUEST,
     });
-
-    const apiUrl = MEMBER_API_URL(reviewerId);
     
     try {
       const cancellableRequest = withCancel(
-        http.delete(apiUrl, {
-          data: { user_id: memberId },
-          headers: { 'Content-Type': 'application/json' }
-        })
+        memberApiClient.deleteMember(reviewerId, memberId)
       );
       const response = await cancellableRequest.promise;
       
@@ -114,7 +102,7 @@ export const deleteMember = (reviewerId, memberId) => {
       
       dispatch({
         type: MEMBERS_ERROR,
-        payload: error?.response?.data?.message || error?.message,
+        payload: error?.data || error?.message || "Failed to delete member",
       });
 
       throw error;

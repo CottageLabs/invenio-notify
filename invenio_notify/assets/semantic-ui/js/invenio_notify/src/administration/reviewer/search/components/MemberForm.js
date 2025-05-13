@@ -74,7 +74,19 @@ class MemberForm extends Component {
             .filter(email => email);
 
         console.log("Parsed email list:", emails);
-        await addMembers(reviewerId, emails);
+        try {
+            await addMembers(reviewerId, emails);
+        } catch (error) {
+            addNotification({
+                title: i18next.t("Error"),
+                content: i18next.t("Unable to add member. {{error}}", {
+                    error: error.errors,
+                }),
+                type: "error",
+            });
+
+            return
+        }
         
         resetForm();
 
