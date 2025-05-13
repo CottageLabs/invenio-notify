@@ -22,7 +22,6 @@ class NotifyInboxSchema(BaseRecordSchema):
 
 
 class EndorsementMetadataSchema(Schema):
-    # TODO review fields
     record_id = fields.String(required=True)
 
     record_url = fields.String(required=True)
@@ -39,7 +38,6 @@ class EndorsementMetadataSchema(Schema):
 
 
 class EndorsementSchema(BaseRecordSchema):
-    # TODO review fields
     metadata = NestedAttribute(EndorsementMetadataSchema, required=True)
 
     record_id = fields.String(required=True)

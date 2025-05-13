@@ -41,7 +41,7 @@ class EndorsementServiceConfig(RecordServiceConfig, ConfiguratorMixin):
     schema = EndorsementSchema
 
     links_item = {
-        "self": EndorsementLink("{+api}/endorsement/{id}"),  # TODO to be updated
+        "self": EndorsementLink("{+api}/endorsement/{id}"), 
     }
     # components =  DefaultEndorsementComponents
     components = FromConfig(

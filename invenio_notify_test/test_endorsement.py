@@ -9,7 +9,6 @@ from invenio_notify_test.conftest import prepare_test_rdm_record, create_endorse
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 
-# KTODO fix the test cases for endorsement model update
 
 
 def test_model_create(db, superuser_identity, minimal_record, create_reviewer):

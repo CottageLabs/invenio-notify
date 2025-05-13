@@ -54,20 +54,6 @@ class SearchResultItemComponent extends Component {
   }
 }
 
-// KTODO
-// SearchResultItemComponent.propTypes = {
-//   actions: PropTypes.object.isRequired,
-//   currentQueryState: PropTypes.object.isRequired,
-//   displayDelete: PropTypes.bool.isRequired,
-//   displayEdit: PropTypes.bool.isRequired,
-//   idKeyPath: PropTypes.string.isRequired,
-//   listUIEndpoint: PropTypes.string.isRequired,
-//   resourceName: PropTypes.string.isRequired,
-//   result: PropTypes.object.isRequired,
-//   title: PropTypes.string.isRequired,
-//   updateQueryState: PropTypes.func.isRequired,
-// };
-
 SearchResultItemComponent.defaultProps = {};
 
 export const SearchResultItemLayout = withState(
