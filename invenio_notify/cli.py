@@ -121,7 +121,7 @@ def add(email, coar_ids):
         reviewer_id = db.session.query(ReviewerModel.id).filter_by(coar_id=coar_id).scalar()
 
         if reviewer_id:
-            current_reviewer_service.add_member_by_email(reviewer_id, email)
+            current_reviewer_service.add_member_by_emails(reviewer_id, [email])
             assigned_count += 1
         else:
             print(f"No reviewer found with COAR ID: {coar_id}")
