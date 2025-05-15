@@ -1,4 +1,6 @@
 import json
+from invenio_db import db
+
 import regex
 from flask import current_app
 from flask import g
@@ -7,12 +9,16 @@ from invenio_rdm_records.services import RDMRecordService
 from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.base.utils import map_search_params
+from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
+from invenio_accounts.models import User
+
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
-from invenio_notify.records.models import ReviewerMapModel
+from invenio_notify.records.models import ReviewerMapModel, ReviewerModel
+from invenio_notify.utils import user_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
@@ -82,6 +88,28 @@ class BasicDbService(RecordService):
             self, identity, record, links_tpl=self.links_item_tpl, errors=errors
         )
 
+    @unit_of_work()
+    def update(self, identity, id, data, uow=None):
+        self.require_permission(identity, "update")
+
+        record = self.record_cls.get(id)
+
+        # validate data
+        valid_data, errors = self.schema.load(
+            data,
+            context={"identity": identity},
+            raise_errors=True,
+        )
+
+        self.record_cls.update(valid_data, id)
+
+        return self.result_item(
+            self,
+            identity,
+            record,
+            links_tpl=self.links_item_tpl,
+        )
+
 
 class NotifyInboxService(BasicDbService):
 
@@ -107,9 +135,9 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         recid = get_recid_by_record_url(raw['context']['id'])
 
         # Check actor_id match with user
-        reviewer_id_list = ReviewerMapModel.find_review_id_by_user_id(g.identity.id)
-        if raw['actor']['id'] not in reviewer_id_list:
-            current_app.logger.warning(f'Actor id not match with user: {raw["actor"]["id"]}, {reviewer_id_list}')
+        actor_id = raw['actor']['id']
+        if not ReviewerModel.has_member(g.identity.id, actor_id):
+            current_app.logger.warning(f'Actor id not match with user: {actor_id}, {g.identity.id}')
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
         # Check if the notification type is supported
@@ -139,11 +167,130 @@ class ReviewerMapService(BasicDbService):
             def filter_maker(query_param):
                 filters = []
                 if query_param:
-                    filters.extend(
-                        [
-                            self.record_cls.reviewer_id == query_param,
-                        ]
-                    )
+                    filters.extend([
+                        self.record_cls.reviewer_id == query_param,
+                    ])
                 return filters
 
         return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)
+
+
+class ReviewerService(BasicDbService):
+    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
+        if filter_maker is None:
+            def filter_maker(query_param):
+                filters = []
+                if query_param:
+                    filters.extend([
+                        self.record_cls.name.ilike(f'%{query_param}%'),
+                    ])
+                return filters
+
+        return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)
+
+    @property
+    def schema_add_member(self):
+        return ServiceSchemaWrapper(self, schema=self.config.schema_add_member)
+
+    @property
+    def schema_del_member(self):
+        return ServiceSchemaWrapper(self, schema=self.config.schema_del_member)
+
+    def add_member(self, identity, id, data, raise_errors=True):
+        self.require_permission(identity, "update")
+
+        # validate data
+        valid_data, errors = self.schema_add_member.load(
+            data,
+            context={"identity": identity},
+            raise_errors=raise_errors,
+        )
+
+        return self.add_member_by_emails(id, valid_data['emails'])
+
+    @unit_of_work()
+    def add_member_by_emails(self, reviewer_id, emails, uow=None):
+        reviewer: ReviewerModel = self.record_cls.get(reviewer_id)
+
+        new_emails = set(emails)
+        existing_emails = {m.email for m in reviewer.members}
+        duplicate_emails = new_emails.intersection(existing_emails)
+        if duplicate_emails:
+            current_app.logger.info(f'Emails already exist: {duplicate_emails}')
+
+        new_emails = new_emails - existing_emails
+        if not new_emails:
+            current_app.logger.info('No new emails to add')
+            raise ValueError('Duplicate emails found')
+
+        added_members = []
+        for email in new_emails:
+            user = user_utils.find_user_by_email(email)
+            if user:
+                current_app.logger.info(f'Adding user [{user.email}] to reviewer [{reviewer.coar_id}]')
+                ReviewerMapModel.create({
+                    'user_id': user.id,
+                    'reviewer_id': reviewer.id
+                })
+                user_utils.add_coarnotify_action(db, user.id)
+                added_members.append(user)
+            else:
+                current_app.logger.warning(f'User with email {email} not found')
+        
+        reviewer = self.record_cls.get(reviewer_id)
+        return reviewer
+    
+    def del_member(self, identity, id, data, raise_errors=True):
+        self.require_permission(identity, "update")
+
+        # validate data
+        valid_data, errors = self.schema_del_member.load(
+            data,
+            context={"identity": identity},
+            raise_errors=raise_errors,
+        )
+
+        return self.del_member_by_id(id, valid_data['user_id'])
+    
+    @unit_of_work()
+    def del_member_by_id(self, reviewer_id, user_id, uow=None):
+        reviewer: ReviewerModel = self.record_cls.get(reviewer_id)
+        user: User = User.query.get(user_id)
+
+        if user not in reviewer.members:
+            current_app.logger.info(f'User [{user.email}] is not a member of reviewer [{reviewer.coar_id}]')
+            return reviewer
+
+        current_app.logger.info(f'Removing user [{user.email}] from reviewer [{reviewer.coar_id}]')
+        reviewer_map = ReviewerMapModel.query.filter_by(
+            user_id=user.id,
+            reviewer_id=reviewer.id
+        ).first()
+        if not reviewer_map:
+            current_app.logger.warning(f'No mapping found for user [{user.email}] and reviewer [{reviewer.coar_id}]')
+            return reviewer
+        
+        
+        ReviewerMapModel.delete(reviewer_map)
+
+        reviewer = self.record_cls.get(reviewer_id)
+        return reviewer
+
+    def get_members(self, identity, id):
+        """Get members for a reviewer by ID."""
+        self.require_permission(identity, "read")
+        
+        reviewer = self.record_cls.get(id)
+        if not reviewer:
+            raise Exception(f"Reviewer {id} not found")
+            
+        # Transform members data for API consumption
+        member_data = []
+        for member in reviewer.members:
+            member_data.append({
+                "id": member.id,
+                "email": member.email
+            })
+            
+        return member_data
+

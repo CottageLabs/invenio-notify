@@ -3,7 +3,7 @@ from invenio_records_resources.services import RecordServiceConfig
 from invenio_records_resources.services.base.config import FromConfig, ConfiguratorMixin
 from invenio_records_resources.services.records.links import pagination_links
 
-from invenio_notify.records.models import NotifyInboxModel, ReviewerMapModel
+from invenio_notify.records.models import NotifyInboxModel, ReviewerMapModel, ReviewerModel
 from invenio_notify.records.records import EndorsementRecord
 from invenio_notify.services.components import DefaultEndorsementComponents
 from invenio_notify.services.config_utils import DefaultSearchOptions
@@ -11,7 +11,8 @@ from invenio_notify.services.links import EndorsementLink, NotifyInboxLink, IdLi
 from invenio_notify.services.policies import NotifyInboxPermissionPolicy, AdminPermissionPolicy, \
     EndorsementPermissionPolicy
 from invenio_notify.services.results import BasicDbModelRecordList
-from invenio_notify.services.schemas import NotifyInboxSchema, EndorsementSchema, ReviewerMapSchema
+from invenio_notify.services.schemas import AddMemberSchema, DelMemberSchema
+from invenio_notify.services.schemas import NotifyInboxSchema, EndorsementSchema, ReviewerMapSchema, ReviewerSchema
 
 
 class NotifyInboxServiceConfig(RecordServiceConfig):
@@ -40,7 +41,7 @@ class EndorsementServiceConfig(RecordServiceConfig, ConfiguratorMixin):
     schema = EndorsementSchema
 
     links_item = {
-        "self": EndorsementLink("{+api}/endorsement/{id}"),  # TODO to be updated
+        "self": EndorsementLink("{+api}/endorsement/{id}"), 
     }
     # components =  DefaultEndorsementComponents
     components = FromConfig(
@@ -77,3 +78,22 @@ class ReviewerMapServiceConfig(RecordServiceConfig):
         "self": IdLink("{+api}/reviewer-map/{id}"),
     }
     links_search = pagination_links("{+api}/reviewer-map{?args*}")
+
+
+class ReviewerServiceConfig(RecordServiceConfig):
+    result_list_cls = BasicDbModelRecordList
+    record_cls = ReviewerModel
+    schema = ReviewerSchema
+    schema_add_member = AddMemberSchema
+    schema_del_member = DelMemberSchema
+
+    permission_policy_cls = AdminPermissionPolicy
+
+    # Search configuration
+    search = DefaultSearchOptions
+
+    # Links configuration
+    links_item = {
+        "self": IdLink("{+api}/reviewer/{id}"),
+    }
+    links_search = pagination_links("{+api}/reviewer{?args*}")
