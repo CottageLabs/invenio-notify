@@ -1,12 +1,11 @@
 from invenio_accounts.models import User
 from invenio_db import db
-from invenio_rdm_records.records.models import RDMRecordMetadata
-from invenio_records.models import RecordMetadataBase
 from sqlalchemy import or_
 from sqlalchemy_utils import UUIDType
 from sqlalchemy_utils.models import Timestamp
 
 from invenio_notify.errors import NotExistsError
+from invenio_rdm_records.records.models import RDMRecordMetadata
 
 
 class DbOperationMixin:
@@ -170,7 +169,7 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
                   .filter(User.email == email, cls.coar_id == coar_id)
                   .first())
         return result is not None
-    
+
     @classmethod
     def has_member(cls, user_id, coar_id) -> bool:
         """Check if a user with given user_id is a member of a reviewer with the given coar_id.
@@ -189,8 +188,10 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
         return result is not None
 
 
-class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
-    __tablename__ = "endorsement_metadata"
+class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
+    __tablename__ = "endorsement"
+
+    id = db.Column(db.Integer, primary_key=True)
 
     record_id = db.Column(UUIDType, db.ForeignKey(
         RDMRecordMetadata.id, ondelete="CASCADE",
@@ -206,7 +207,7 @@ class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
         index=True,
     )
     """ id of Review service provider (e.g. id of PCI) """
-    
+
     reviewer = db.relationship(
         "ReviewerModel", foreign_keys=[reviewer_id]
     )
@@ -227,6 +228,5 @@ class EndorsementMetadataModel(db.Model, RecordMetadataBase, DbOperationMixin):
     ), nullable=True)
     inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id])
 
-    def create(self):
-        with db.session.begin_nested():
-            db.session.add(self)
+    result_url = db.Column(db.Text, nullable=False)
+    """ url of review results """

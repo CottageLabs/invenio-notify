@@ -1,14 +1,15 @@
 import json
-from invenio_accounts.models import User
 from datetime import datetime
-from invenio_rdm_records.proxies import current_rdm_records
+
+from invenio_accounts.models import User
 
 from invenio_notify import constants
-from invenio_notify.records.models import NotifyInboxModel, EndorsementMetadataModel
+from invenio_notify.records.models import NotifyInboxModel, EndorsementModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
-from invenio_notify_test.fixtures.inbox_fixture import create_notification_data
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
+from invenio_notify_test.fixtures.inbox_fixture import create_notification_data
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer_service
+from invenio_rdm_records.proxies import current_rdm_records
 
 
 def test_mark_as_processed(db, superuser_identity, create_inbox):
@@ -50,7 +51,7 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     })
 
     # Verify no endorsements exist before processing
-    assert EndorsementMetadataModel.query.count() == 0
+    assert EndorsementModel.query.count() == 0
 
     # Run the processing task
     inbox_processing()
@@ -62,7 +63,7 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     assert updated_inbox.process_date is not None
 
     # Verify an endorsement was created
-    endorsements = EndorsementMetadataModel.query.all()
+    endorsements = EndorsementModel.query.all()
     assert len(endorsements) == 1
 
     # Verify the endorsement has the correct data
@@ -87,7 +88,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
     )
 
     # Verify no endorsements exist before processing
-    assert EndorsementMetadataModel.query.count() == 0
+    assert EndorsementModel.query.count() == 0
 
     # Run the processing task
     inbox_processing()
@@ -100,4 +101,4 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
     assert updated_inbox.process_note is not None
 
     # Verify no endorsement was created
-    assert EndorsementMetadataModel.query.count() == 0
+    assert EndorsementModel.query.count() == 0

@@ -1,48 +1,45 @@
 import json
+
 from invenio_records_resources.services.records.results import RecordList
 
-from invenio_notify.records.models import EndorsementMetadataModel, NotifyInboxModel
-from invenio_notify.records.records import EndorsementRecord
-from invenio_notify.services.config import EndorsementServiceConfig
-from invenio_notify.services.service import EndorsementService
+from invenio_notify import proxies
+from invenio_notify.records.models import EndorsementModel
 from invenio_notify_test.conftest import prepare_test_rdm_record, create_endorsement_service_data
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 
 
-
 def test_model_create(db, superuser_identity, minimal_record, create_reviewer):
     record = prepare_test_rdm_record(db, minimal_record)
 
-    assert EndorsementMetadataModel.query.count() == 0
+    assert EndorsementModel.query.count() == 0
     record_uuid = record.id
-    data = {
-        'field_a': 'some random data for frontend',
-    }
 
     reviewer = create_reviewer()
-    model = EndorsementMetadataModel(
-        data=data,
+    data = dict(
         record_id=record_uuid,
         reviewer_id=reviewer.id,
         review_type='endorsement',
-        user_id=superuser_identity.id
+        user_id=superuser_identity.id,
+        result_url='https://fake.url',
     )
-    model.create()
+    model = EndorsementModel()
+    model.create(data)
     model.commit()
 
-    assert EndorsementMetadataModel.query.count() == 1
 
-    new_model = model.get(model.id)
-    assert new_model.json == data
+
+    assert EndorsementModel.query.count() == 1
+    new_model = EndorsementModel.query.first()
+    assert new_model.review_type == 'endorsement'
 
 
 def test_service_create(db, superuser_identity, minimal_record, test_app, create_inbox,
                         create_reviewer):
     record = prepare_test_rdm_record(db, minimal_record)
-    service = EndorsementService(EndorsementServiceConfig.build(test_app))
+    service = proxies.current_endorsement_service
 
-    assert EndorsementMetadataModel.query.count() == 0
+    assert EndorsementModel.query.count() == 0
 
     inbox = create_inbox(recid='r1')
 
@@ -51,9 +48,7 @@ def test_service_create(db, superuser_identity, minimal_record, test_app, create
         record_id, inbox.id, superuser_identity.id, create_reviewer().id)
     service.create(superuser_identity, endorsement_service_data)
 
-    assert EndorsementMetadataModel.query.count() == 1
-
-    EndorsementRecord.index.refresh()
+    assert EndorsementModel.query.count() == 1
 
     s: RecordList = service.search(superuser_identity)
 
@@ -61,36 +56,32 @@ def test_service_create(db, superuser_identity, minimal_record, test_app, create
 
     assert len(hits) == 1
 
-    assert hits[0]['metadata']['record_id'] == record_id
+    assert hits[0]['review_type'] == 'endorsement'
 
     print(json.dumps(s.to_dict(), indent=2))
 
 
 def test_service_update(db, superuser_identity, minimal_record, test_app, create_inbox, create_reviewer):
     record = prepare_test_rdm_record(db, minimal_record)
-    end_service = EndorsementService(EndorsementServiceConfig.build(test_app))
+    endo_serv = proxies.current_endorsement_service
     inbox = create_inbox(recid='r1')
-    
+
     reviewer = create_reviewer()
     endorsement_service_data = create_endorsement_service_data(
         str(record.id), inbox.id, superuser_identity.id, reviewer.id)
-    end_service.create(superuser_identity, endorsement_service_data)
+    endo_serv.create(superuser_identity, endorsement_service_data)
 
-    record = EndorsementMetadataModel.query.all()[0]
-    record: EndorsementMetadataModel
-    print(record)
+    endo_record = EndorsementModel.query.all()[0]
 
     endorsement_service_data2 = create_endorsement_service_data(
         str(record.id), inbox.id, superuser_identity.id, reviewer.id)
-    endorsement_service_data2['metadata']['record_id'] = 'r2'
-    end_service.update(superuser_identity, record.id, endorsement_service_data2)
+    endorsement_service_data2['review_type'] = 'endorsement2'
+    endo_serv.update(superuser_identity, endo_record.id, endorsement_service_data2)
 
-    assert EndorsementMetadataModel.query.count() == 1
+    assert EndorsementModel.query.count() == 1
 
-    EndorsementRecord.index.refresh()
-
-    s: RecordList = end_service.search(superuser_identity,
-                                       params={'q': 'metadata.record_id:r2'},
+    s: RecordList = endo_serv.search(superuser_identity,
+                                       params={'q': 'review_type:endorsement2'},
                                        )
 
     print(json.dumps(s.to_dict(), indent=2))

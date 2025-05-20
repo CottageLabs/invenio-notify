@@ -37,7 +37,7 @@ class InvenioNotify:
     def init_services(self, app):
         """Initialize the services for notifications."""
         self.notify_inbox_service = NotifyInboxService(config=NotifyInboxServiceConfig)
-        self.endorsement_service = EndorsementService(config=EndorsementServiceConfig.build(app))
+        self.endorsement_service = EndorsementService(config=EndorsementServiceConfig)
         self.reviewer_map_service = ReviewerMapService(config=ReviewerMapServiceConfig)
         self.reviewer_service = ReviewerService(config=ReviewerServiceConfig)
 

@@ -1,7 +1,8 @@
 import json
 import logging
-from celery import shared_task
 from datetime import datetime
+
+from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
 from invenio_db.uow import unit_of_work
@@ -69,22 +70,16 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     review_url = notification_raw['object'].get(constants.KEY_INBOX_REVIEW_URL)
     if not review_url:
         log.warning(f"Could not extract review_url from notification {inbox_id} use object.id instead")
-        review_url = notification_raw['object']['id']
 
 
     # Create the endorsement record data
     endorsement_data = {
-        'metadata': {
-            'record_id': record_id,
-            'record_url': notification_raw['context']['id'],
-            'result_url': review_url,
-        },
         'record_id': record_id,
         'reviewer_id': reviewer_id,
         'review_type': reviewer_type,
-
         'user_id': user_id,
         'inbox_id': inbox_id,
+        'result_url': review_url,
     }
 
     # Create the endorsement record
@@ -135,7 +130,7 @@ def inbox_processing():
             inbox_record.id,
             notification_raw
         )
-        log.info(f"Created endorsement record: {endorsement.id}")
+        log.info(f"Created endorsement record: {endorsement._record.id}")
 
         # Mark inbox as processed after successful endorsement creation
         mark_as_processed(inbox_record)
