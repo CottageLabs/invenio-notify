@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 
 import click
@@ -51,12 +50,9 @@ def list_notify(size):
     for r in get_sorted_records(EndorsementModel, size, order_field=desc('created')):
         print('----------------------------')
         key_values = vars(r).items()
-        key_values = (i for i in key_values if i[0] != 'json')
         key_values = (i for i in key_values if not i[0].startswith('_'))
         for k, v in key_values:
             print_key_value(k, v)
-        console.print('Json:')
-        console.print_json(json.dumps(r.json))
         print()
     print()
 
