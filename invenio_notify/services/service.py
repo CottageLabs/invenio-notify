@@ -1,17 +1,15 @@
 import json
-from invenio_db import db
 
 import regex
 from flask import current_app
 from flask import g
+from invenio_accounts.models import User
+from invenio_db import db
 from invenio_db.uow import unit_of_work
-from invenio_rdm_records.services import RDMRecordService
 from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.base.utils import map_search_params
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
-from invenio_accounts.models import User
-
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
@@ -20,6 +18,7 @@ from invenio_notify.errors import COARProcessFail
 from invenio_notify.records.models import ReviewerMapModel, ReviewerModel
 from invenio_notify.utils import user_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
+from invenio_rdm_records.services import RDMRecordService
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
 
@@ -156,7 +155,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         return COARNotifyReceipt(COARNotifyReceipt.ACCEPTED)
 
 
-class EndorsementService(RecordService):
+class EndorsementService(BasicDbService):
     pass
 
 

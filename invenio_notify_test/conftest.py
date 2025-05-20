@@ -1,17 +1,17 @@
 from collections import namedtuple
 
-import pytest
 from invenio_access.models import ActionRoles, Role
 from invenio_access.permissions import superuser_access
 from invenio_access.permissions import system_identity
 from invenio_administration.permissions import administration_access_action
 from invenio_app.factory import create_app as _create_app
 from invenio_files_rest.models import Location
-from invenio_rdm_records.proxies import current_rdm_records
-from invenio_rdm_records.records import RDMParent, RDMRecord
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
-from invenio_notify_test.fixtures.reviewer_fixture import * # noqa
+
+from invenio_notify_test.fixtures.reviewer_fixture import *  # noqa
+from invenio_rdm_records.proxies import current_rdm_records
+from invenio_rdm_records.records import RDMParent, RDMRecord
 
 RunningApp = namedtuple(
     "RunningApp",
@@ -168,16 +168,12 @@ def prepare_test_rdm_record(db, record_data):
 def create_endorsement_service_data(record_id, inbox_id, user_id, reviewer_id):
     """Create data for endorsement service tests."""
     return {
-        'metadata': {
-            'record_id': record_id,
-            'record_url': f'https://example.com/records/{record_id}',
-            'result_url': f'https://example.com/endorsements/results/{record_id}',
-        },
         'record_id': record_id,
         'reviewer_id': reviewer_id,
         'review_type': 'endorsement',
         'user_id': user_id,
-        'inbox_id': inbox_id
+        'inbox_id': inbox_id,
+        'result_url': 'https://record.result.url',
     }
 
 
