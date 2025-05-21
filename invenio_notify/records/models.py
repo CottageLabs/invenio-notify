@@ -149,8 +149,9 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
     members = db.relationship(
         "User",
         secondary=ReviewerMapModel.__tablename__,
-        # back_populates="reviewers",
     )
+
+    endorsements = db.relationship("EndorsementModel", back_populates="reviewer")
 
     @classmethod
     def has_member_with_email(cls, email, coar_id) -> bool:
@@ -207,10 +208,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
         index=True,
     )
     """ id of Review service provider (e.g. id of PCI) """
-
-    reviewer = db.relationship(
-        "ReviewerModel", foreign_keys=[reviewer_id]
-    )
+    reviewer = db.relationship("ReviewerModel", back_populates="endorsements")
 
     review_type = db.Column(db.Text, nullable=True)
     """ review or endorsement """

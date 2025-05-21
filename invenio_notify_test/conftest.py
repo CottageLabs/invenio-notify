@@ -165,18 +165,6 @@ def prepare_test_rdm_record(db, record_data):
     return record
 
 
-def create_endorsement_service_data(record_id, inbox_id, user_id, reviewer_id):
-    """Create data for endorsement service tests."""
-    return {
-        'record_id': record_id,
-        'reviewer_id': reviewer_id,
-        'review_type': 'endorsement',
-        'user_id': user_id,
-        'inbox_id': inbox_id,
-        'result_url': 'https://record.result.url',
-    }
-
-
 @pytest.fixture(scope="module")
 def resource_type_type(app):
     """Resource type vocabulary type."""
