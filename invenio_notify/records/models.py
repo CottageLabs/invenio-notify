@@ -1,12 +1,19 @@
 from invenio_accounts.models import User
 from invenio_db import db
 from sqlalchemy import or_
-from sqlalchemy_utils import UUIDType
-from sqlalchemy_utils.models import Timestamp
+from sqlalchemy.dialects import postgresql
+from sqlalchemy_utils import Timestamp
+from sqlalchemy_utils.types import JSONType, UUIDType
 
 from invenio_notify.errors import NotExistsError
 from invenio_rdm_records.records.models import RDMRecordMetadata
 
+JSON = (
+    db.JSON()
+    .with_variant(postgresql.JSONB(none_as_null=True), "postgresql")
+    .with_variant(JSONType(), "sqlite")
+    .with_variant(JSONType(), "mysql")
+)
 
 class DbOperationMixin:
     @classmethod
@@ -59,7 +66,7 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    raw = db.Column(db.Text, nullable=False)
+    raw = db.Column(JSON, nullable=False)
     """ Coar notification data as json string """
 
     recid = db.Column(db.Text, nullable=False)

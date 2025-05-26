@@ -1,4 +1,3 @@
-import json
 import logging
 from celery import shared_task
 from datetime import datetime
@@ -12,6 +11,7 @@ from invenio_notify import constants
 from invenio_notify.constants import REVIEW_TYPES
 from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
+from invenio_rdm_records.proxies import current_rdm_records_service
 
 log = logging.getLogger(__name__)
 
@@ -85,13 +85,13 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
 
 def inbox_processing():
-    records_service = current_app.extensions["invenio-rdm-records"].records_service
+    records_service = current_rdm_records_service
 
     tobe_update_records = []
     for inbox_record in NotifyInboxModel.search(None, [
         NotifyInboxModel.process_date.is_(None),
     ]):
-        notification = COARNotifyFactory.get_by_object(json.loads(inbox_record.raw))
+        notification = COARNotifyFactory.get_by_object(inbox_record.raw)
         notification_raw: dict = notification.to_jsonld()
 
         # Check if the notification type is supported
