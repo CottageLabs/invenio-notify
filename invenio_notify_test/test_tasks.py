@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from invenio_accounts.models import User
 
@@ -43,7 +42,7 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
 
     # Create inbox record with real notification data
     inbox = NotifyInboxModel.create({
-        'raw': json.dumps(notification_data),
+        'raw': notification_data,
         'recid': recid,
         'user_id': superuser_identity.id,
     })
@@ -93,7 +92,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
     # Create inbox record with notification pointing to non-existent record
     inbox = create_inbox(
         recid=recid,
-        raw=json.dumps(notification_data)
+        raw=notification_data
     )
 
     # Verify no endorsements exist before processing

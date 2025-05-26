@@ -1,4 +1,3 @@
-import json
 import regex
 from flask import current_app
 from flask import g
@@ -15,9 +14,11 @@ from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
+from invenio_notify.proxies import current_inbox_service
 from invenio_notify.records.models import ReviewerMapModel, ReviewerModel, EndorsementModel
 from invenio_notify.utils import user_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
+from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services import RDMRecordService
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
@@ -145,12 +146,11 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
 
         # check if record exists
-        records_service: RDMRecordService = current_app.extensions["invenio-rdm-records"].records_service
+        records_service: RDMRecordService = current_rdm_records_service
         records_service.record_cls.pid.resolve(recid)  # raises PIDDoesNotExistError if not found
 
         current_app.logger.debug(f'client input raw: {raw}')
-        inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
-        inbox_service.create(g.identity, {"raw": json.dumps(raw), 'recid': recid})
+        current_inbox_service.create(g.identity, {"raw": raw, 'recid': recid})
 
         return COARNotifyReceipt(COARNotifyReceipt.ACCEPTED)
 

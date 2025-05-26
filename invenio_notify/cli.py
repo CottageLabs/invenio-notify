@@ -1,7 +1,6 @@
-from datetime import datetime
-
 import click
 import rich
+from datetime import datetime
 from flask.cli import with_appcontext
 from invenio_db import db
 from rich.markdown import Markdown
@@ -65,7 +64,7 @@ def list_notify(size):
         for k, v in key_values:
             print_key_value(k, v)
         console.print('Raw:')
-        console.print_json(r.raw)
+        console.print_json(data=r.raw)
         print()
 
 
