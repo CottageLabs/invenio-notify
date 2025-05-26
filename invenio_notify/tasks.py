@@ -1,8 +1,7 @@
 import json
 import logging
-from datetime import datetime
-
 from celery import shared_task
+from datetime import datetime
 from flask import current_app
 from invenio_access.permissions import system_identity
 from invenio_db.uow import unit_of_work
@@ -71,7 +70,6 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     if not review_url:
         log.warning(f"Could not extract review_url from notification {inbox_id} use object.id instead")
 
-
     # Create the endorsement record data
     endorsement_data = {
         'record_id': record_id,
@@ -87,9 +85,9 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
 
 def inbox_processing():
-
     records_service = current_app.extensions["invenio-rdm-records"].records_service
 
+    tobe_update_records = []
     for inbox_record in NotifyInboxModel.search(None, [
         NotifyInboxModel.process_date.is_(None),
     ]):
@@ -134,6 +132,20 @@ def inbox_processing():
 
         # Mark inbox as processed after successful endorsement creation
         mark_as_processed(inbox_record)
+
+        tobe_update_records.append(record)
+
+    refresh_endorsements_field(tobe_update_records)
+
+
+@unit_of_work()
+def refresh_endorsements_field(records, uow=None):
+    # re-commit rdm-record to refresh record.endorsements field
+    existing_ids = set()
+    for r in records:
+        if r.id in existing_ids:
+            continue
+        r.commit()
 
 
 @shared_task

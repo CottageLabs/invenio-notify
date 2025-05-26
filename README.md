@@ -14,6 +14,8 @@ pip install -e .
 cd my-site
 invenio-cli packages install /your_path/invenio-notify/  
 
+# clone invenio-rdm-records that support endorsements field
+invenio-cli packages install /your_path/invenio-rdm-records/
 
 # some how my alembic upgrade not working, re-build services instead
 # invenio alembic upgrade
