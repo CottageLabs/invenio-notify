@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-
 from invenio_accounts.models import User
 
 from invenio_notify import constants
@@ -42,7 +41,6 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
         [User.query.get(superuser_identity.id).email]
     )
 
-
     # Create inbox record with real notification data
     inbox = NotifyInboxModel.create({
         'raw': json.dumps(notification_data),
@@ -66,12 +64,23 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     endorsements = EndorsementModel.query.all()
     assert len(endorsements) == 1
 
+    record = current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id)
+
     # Verify the endorsement has the correct data
     endorsement = endorsements[0]
-    assert endorsement.record_id == current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id).id
+    assert endorsement.record_id == record.id
     assert endorsement.user_id == superuser_identity.id
     assert endorsement.inbox_id == inbox.id
     assert endorsement.review_type == constants.TYPE_REVIEW
+
+    # Verify record.endorsements is updated
+    assert record.endorsements == [
+        {'endorsement_count': 0,
+         'endorsement_urls': [],
+         'review_count': 1,
+         'reviewer_id': reviewer.id,
+         'reviewer_name': reviewer.name}
+    ]
 
 
 def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox):
