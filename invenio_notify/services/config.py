@@ -8,7 +8,7 @@ from invenio_notify.services.links import EndorsementLink, NotifyInboxLink, IdLi
 from invenio_notify.services.policies import NotifyInboxPermissionPolicy, AdminPermissionPolicy, \
     EndorsementPermissionPolicy
 from invenio_notify.services.results import BasicDbModelRecordList
-from invenio_notify.services.schemas import AddMemberSchema, DelMemberSchema
+from invenio_notify.services.schemas import AddMemberSchema, DelMemberSchema, ApiNotifyInboxSchema
 from invenio_notify.services.schemas import NotifyInboxSchema, EndorsementSchema, ReviewerMapSchema, ReviewerSchema
 
 
@@ -18,6 +18,7 @@ class NotifyInboxServiceConfig(RecordServiceConfig):
     result_list_cls = BasicDbModelRecordList
     record_cls = NotifyInboxModel
     schema = NotifyInboxSchema
+    schema_api = ApiNotifyInboxSchema
 
     permission_policy_cls = NotifyInboxPermissionPolicy
 
