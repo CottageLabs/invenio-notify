@@ -10,7 +10,7 @@ def create_current_utc_datetime():
 
 
 class NotifyInboxSchema(BaseRecordSchema):
-    raw = fields.Dict(required=True)
+    raw = fields.String(required=True)
     recid = fields.String(required=True)
 
     user_id = fields.Integer(required=True)
