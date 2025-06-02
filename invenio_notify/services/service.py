@@ -157,7 +157,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
 
 class EndorsementService(BasicDbService):
     """Service for managing endorsements."""
-    
+
     def get_endorsement_info(self, record_id):
         """Get the endorsement information for a record by its ID.
         
@@ -189,24 +189,29 @@ class EndorsementService(BasicDbService):
 
         if not reviewers:
             return []
-            
+
         result = []
         for reviewer in reviewers:
             endorsements = reviewer.endorsements
             endorsement_count = sum(1 for e in endorsements if e.review_type == constants.TYPE_ENDORSEMENT)
             review_count = sum(1 for e in endorsements if e.review_type == constants.TYPE_REVIEW)
-            
-            endorsement_urls = [e.result_url for e in endorsements 
-                                if e.result_url and e.review_type == constants.TYPE_ENDORSEMENT]
-            
+
+            sub_endorsement_list = []
+            for e in endorsements:
+                if e.review_type == constants.TYPE_ENDORSEMENT:
+                    sub_endorsement_list.append({
+                        'created': e.created.isoformat(),
+                        'url': e.result_url
+                    })
+
             result.append({
                 'reviewer_id': reviewer.id,
                 'reviewer_name': reviewer.name,
                 'endorsement_count': endorsement_count,
                 'review_count': review_count,
-                'endorsement_urls': endorsement_urls
+                'endorsement_list': sub_endorsement_list,
             })
-            
+
         return result
 
 
@@ -286,10 +291,10 @@ class ReviewerService(BasicDbService):
                 added_members.append(user)
             else:
                 current_app.logger.warning(f'User with email {email} not found')
-        
+
         reviewer = self.record_cls.get(reviewer_id)
         return reviewer
-    
+
     def del_member(self, identity, id, data, raise_errors=True):
         self.require_permission(identity, "update")
 
@@ -301,7 +306,7 @@ class ReviewerService(BasicDbService):
         )
 
         return self.del_member_by_id(id, valid_data['user_id'])
-    
+
     @unit_of_work()
     def del_member_by_id(self, reviewer_id, user_id, uow=None):
         reviewer: ReviewerModel = self.record_cls.get(reviewer_id)
@@ -319,8 +324,7 @@ class ReviewerService(BasicDbService):
         if not reviewer_map:
             current_app.logger.warning(f'No mapping found for user [{user.email}] and reviewer [{reviewer.coar_id}]')
             return reviewer
-        
-        
+
         ReviewerMapModel.delete(reviewer_map)
 
         reviewer = self.record_cls.get(reviewer_id)
@@ -329,11 +333,11 @@ class ReviewerService(BasicDbService):
     def get_members(self, identity, id):
         """Get members for a reviewer by ID."""
         self.require_permission(identity, "read")
-        
+
         reviewer = self.record_cls.get(id)
         if not reviewer:
             raise Exception(f"Reviewer {id} not found")
-            
+
         # Transform members data for API consumption
         member_data = []
         for member in reviewer.members:
@@ -341,6 +345,5 @@ class ReviewerService(BasicDbService):
                 "id": member.id,
                 "email": member.email
             })
-            
-        return member_data
 
+        return member_data
