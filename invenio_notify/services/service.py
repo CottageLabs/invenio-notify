@@ -72,11 +72,13 @@ class BasicDbService(RecordService):
         )
 
     @unit_of_work()
-    def create(self, identity, data, raise_errors=True, uow=None):
+    def create(self, identity, data, raise_errors=True, uow=None, schema=None):
         self.require_permission(identity, "create")
 
+        schema = schema or self.schema
+
         # validate data
-        valid_data, errors = self.schema.load(
+        valid_data, errors = schema.load(
             data,
             context={"identity": identity},
             raise_errors=raise_errors,
@@ -113,17 +115,27 @@ class BasicDbService(RecordService):
 
 class NotifyInboxService(BasicDbService):
 
-    @unit_of_work()
-    def create(self, identity, data, raise_errors=True, uow=None):
-        data['user_id'] = identity.id
-        return super().create(identity, data, raise_errors=raise_errors, uow=uow)
-
     def receive_notification(self, notification_raw: dict) -> COARNotifyReceipt:
         server = COARNotifyServer(InboxCOARBinding())
         current_app.logger.debug(f'input announcement:')
         result = server.receive(notification_raw, validate=True)
         current_app.logger.debug(f'result: {result}')
         return result
+
+    @property
+    def schema_api(self):
+        return ServiceSchemaWrapper(self, schema=self.config.schema_api)
+
+    @unit_of_work()
+    def create(self, identity, data, raise_errors=True, uow=None):
+        data['user_id'] = identity.id
+        return super().create(
+            identity,
+            data,
+            raise_errors=raise_errors,
+            uow=uow,
+            schema=self.schema_api
+        )
 
 
 class InboxCOARBinding(COARNotifyServiceBinding):
