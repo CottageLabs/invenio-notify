@@ -1,4 +1,5 @@
 import json
+
 import pytest
 from invenio_records_resources.services.records.results import RecordList
 from sqlalchemy.exc import StatementError
@@ -167,16 +168,18 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     assert sorted_info[0]['reviewer_name'] == "Reviewer One"
     assert sorted_info[0]['endorsement_count'] == 1
     assert sorted_info[0]['review_count'] == 1
-    assert len(sorted_info[0]['endorsement_urls']) == 1
-    assert 'https://example.com/endorsement1' in sorted_info[0]['endorsement_urls']
+    assert len(sorted_info[0]['endorsement_list']) == 1
+    assert sorted_info[0]['endorsement_list'][0]['url'] == 'https://example.com/endorsement1'
+    assert 'created' in sorted_info[0]['endorsement_list'][0]
 
     # Check second reviewer's endorsement info
     assert sorted_info[1]['reviewer_id'] == reviewer2.id
     assert sorted_info[1]['reviewer_name'] == "Reviewer Two"
     assert sorted_info[1]['endorsement_count'] == 1
     assert sorted_info[1]['review_count'] == 0
-    assert len(sorted_info[1]['endorsement_urls']) == 1
-    assert 'https://example.com/endorsement2' in sorted_info[1]['endorsement_urls']
+    assert len(sorted_info[1]['endorsement_list']) == 1
+    assert sorted_info[1]['endorsement_list'][0]['url'] == 'https://example.com/endorsement2'
+    assert 'created' in sorted_info[1]['endorsement_list'][0]
 
     # Test with a non-uuid record ID - should raise StatementError
     with pytest.raises(StatementError):
