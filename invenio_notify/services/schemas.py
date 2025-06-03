@@ -58,7 +58,7 @@ class ReviewerSchema(BaseRecordSchema):
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
-    members = fields.List(fields.Nested(UserSchema), required=False)
+    members = fields.List(fields.Nested(UserSchema), required=False, dump_only=True)
 
 
 class AddMemberSchema(BaseRecordSchema):
