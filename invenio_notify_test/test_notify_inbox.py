@@ -1,9 +1,7 @@
-import datetime
-
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify.services.config import NotifyInboxServiceConfig
 from invenio_notify.services.service import NotifyInboxService
-from invenio_notify_test.inbox_fixture import create_inbox
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox, create_notification_data
 
 
 def create_notify_inbox_service():
@@ -27,7 +25,9 @@ def test_service_create(test_app, superuser_identity):
 
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
-    result = notify_inbox_serv.create(superuser_identity, {'raw': 'test', 'recid': record_id})
+    result = notify_inbox_serv.create(superuser_identity, {
+        'raw': create_notification_data(record_id), 'recid': record_id
+    })
     result_dict = result.to_dict()
     assert result_dict['recid'] == record_id
     assert 'links' in result_dict
@@ -37,7 +37,6 @@ def test_service_create(test_app, superuser_identity):
 def test_service_search(test_app, superuser_identity):
     notify_inbox_serv = create_notify_inbox_service()
 
-    today = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
     # Create multiple inbox records
     record_id_1 = 'record1'
@@ -45,9 +44,15 @@ def test_service_search(test_app, superuser_identity):
     record_id_3 = 'record3'
 
     # Create test records
-    notify_inbox_serv.create(superuser_identity, {'raw': 'test1', 'recid': record_id_1, 'process_date': today})
-    notify_inbox_serv.create(superuser_identity, {'raw': 'test2', 'recid': record_id_2, 'process_date': today})
-    notify_inbox_serv.create(superuser_identity, {'raw': 'test3', 'recid': record_id_3, 'process_date': today})
+    notify_inbox_serv.create(superuser_identity, {
+        'raw': create_notification_data(record_id_1), 'recid': record_id_1,
+    })
+    notify_inbox_serv.create(superuser_identity, {
+        'raw': create_notification_data(record_id_2), 'recid': record_id_2,
+    })
+    notify_inbox_serv.create(superuser_identity, {
+        'raw': create_notification_data(record_id_3), 'recid': record_id_3,
+    })
 
     assert NotifyInboxModel.query.count() == 3
 
@@ -55,7 +60,6 @@ def test_service_search(test_app, superuser_identity):
     result = notify_inbox_serv.search(superuser_identity)
     result_list = result.to_dict()['hits']['hits']
     assert len(result_list) == 3
-    assert result_list[0].get('process_date') == today
 
     # Verify record_ids are in the results
     record_ids = [item['recid'] for item in result_list]

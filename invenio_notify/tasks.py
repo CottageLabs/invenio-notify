@@ -1,4 +1,3 @@
-import json
 import logging
 from celery import shared_task
 from datetime import datetime
@@ -10,8 +9,9 @@ from invenio_pidstore.errors import PIDDoesNotExistError
 from coarnotify.factory import COARNotifyFactory
 from invenio_notify import constants
 from invenio_notify.constants import REVIEW_TYPES
-from invenio_notify.records.models import NotifyInboxModel
+from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
+from invenio_rdm_records.proxies import current_rdm_records_service
 
 log = logging.getLogger(__name__)
 
@@ -46,8 +46,17 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     """
     endorsement_service = current_app.extensions["invenio-notify"].endorsement_service
 
-    # Extract reviewer ID from notification if available, otherwise use a default
-    reviewer_id = notification_raw.get('actor', {}).get('id', 'unknown-reviewer')
+    # Extract actor ID (coar_id) from notification
+    actor_id = notification_raw.get('actor', {}).get('id', 'unknown-reviewer')
+
+    # Find ReviewerModel with matching coar_id
+    reviewer = ReviewerModel.query.filter_by(coar_id=actor_id).first()
+    if not reviewer:
+        log.warning(f"Could not find reviewer with coar_id '{actor_id}'. Using None for reviewer_id.")
+        raise ValueError(f"Reviewer with coar_id '{actor_id}' not found")
+
+    reviewer_id = reviewer.id
+    log.info(f"Found reviewer ID {reviewer_id} for coar_id '{actor_id}'")
 
     reviewer_type = 'unknown'
     for t in constants.REVIEW_TYPES:
@@ -60,22 +69,15 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     review_url = notification_raw['object'].get(constants.KEY_INBOX_REVIEW_URL)
     if not review_url:
         log.warning(f"Could not extract review_url from notification {inbox_id} use object.id instead")
-        review_url = notification_raw['object']['id']
-
 
     # Create the endorsement record data
     endorsement_data = {
-        'metadata': {
-            'record_id': record_id,
-            'record_url': notification_raw['context']['id'],
-            'result_url': review_url,
-        },
         'record_id': record_id,
         'reviewer_id': reviewer_id,
         'review_type': reviewer_type,
-
         'user_id': user_id,
         'inbox_id': inbox_id,
+        'result_url': review_url,
     }
 
     # Create the endorsement record
@@ -83,16 +85,13 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
 
 def inbox_processing():
-    # TODO handle review record
-    # TODO should we send coar notification to the user if fail or rejected
-    # TODO validate actor.id whether match with the user_id
+    records_service = current_rdm_records_service
 
-    records_service = current_app.extensions["invenio-rdm-records"].records_service
-
+    tobe_update_records = []
     for inbox_record in NotifyInboxModel.search(None, [
         NotifyInboxModel.process_date.is_(None),
     ]):
-        notification = COARNotifyFactory.get_by_object(json.loads(inbox_record.raw))
+        notification = COARNotifyFactory.get_by_object(inbox_record.raw)
         notification_raw: dict = notification.to_jsonld()
 
         # Check if the notification type is supported
@@ -129,10 +128,24 @@ def inbox_processing():
             inbox_record.id,
             notification_raw
         )
-        log.info(f"Created endorsement record: {endorsement.id}")
+        log.info(f"Created endorsement record: {endorsement._record.id}")
 
         # Mark inbox as processed after successful endorsement creation
         mark_as_processed(inbox_record)
+
+        tobe_update_records.append(record)
+
+    refresh_endorsements_field(tobe_update_records)
+
+
+@unit_of_work()
+def refresh_endorsements_field(records, uow=None):
+    # re-commit rdm-record to refresh record.endorsements field
+    existing_ids = set()
+    for r in records:
+        if r.id in existing_ids:
+            continue
+        r.commit()
 
 
 @shared_task

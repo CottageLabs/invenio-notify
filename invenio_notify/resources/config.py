@@ -5,16 +5,16 @@ from invenio_records_resources.resources import (
     SearchRequestArgsSchema,
 )
 
+
 class BasicSearchRequestArgsSchema(SearchRequestArgsSchema):
     """Common search request parameters for basic resources."""
 
     sort_direction = ma.fields.Str()
 
 
-class NotifyInboxResourceConfig(RecordResourceConfig):
+class BasicResourceConfig(RecordResourceConfig):
+    """Common configuration for all resource configs."""
 
-    blueprint_name = "notify_inbox"
-    url_prefix = "/notify-inbox"
     routes = {
         "item": "/<record_id>",
         "list": "/",
@@ -24,45 +24,35 @@ class NotifyInboxResourceConfig(RecordResourceConfig):
         "record_id": ma.fields.String(),
     }
 
+    request_search_args = BasicSearchRequestArgsSchema
+
+    request_body_parsers = {"application/json": RequestBodyParser(JSONDeserializer())}
+    default_content_type = "application/json"
+
+    response_handlers = {
+        "application/vnd.inveniordm.v1+json": RecordResourceConfig.response_handlers[
+            "application/json"
+        ],
+        **RecordResourceConfig.response_handlers,
+    }
+
+
+class NotifyInboxResourceConfig(BasicResourceConfig):
+    blueprint_name = "notify_inbox"
+    url_prefix = "/notify-inbox"
     # request_extra_args = {
     #     "active": ma.fields.Boolean(),
     #     "url_path": ma.fields.String(),
     # }
 
-    request_search_args = BasicSearchRequestArgsSchema
-
-    request_body_parsers = {"application/json": RequestBodyParser(JSONDeserializer())}
-    default_content_type = "application/json"
-
-    response_handlers = {
-        "application/vnd.inveniordm.v1+json": RecordResourceConfig.response_handlers[
-            "application/json"
-        ],
-        **RecordResourceConfig.response_handlers,
-    }
 
 
-class ReviewerMapResourceConfig(RecordResourceConfig):
+class ReviewerResourceConfig(BasicResourceConfig):
+    blueprint_name = "reviewer"
+    url_prefix = "/reviewer"
 
-    blueprint_name = "reviewer_map"
-    url_prefix = "/reviewer-map"
-    routes = {
-        "item": "/<record_id>",
-        "list": "/",
-    }
+    routes = BasicResourceConfig.routes
+    # Updated route names for better consistency
+    routes['member'] = "/<record_id>/member"
+    routes['members'] = "/<record_id>/members"
 
-    request_view_args = {
-        "record_id": ma.fields.String(),
-    }
-
-    request_search_args = BasicSearchRequestArgsSchema
-
-    request_body_parsers = {"application/json": RequestBodyParser(JSONDeserializer())}
-    default_content_type = "application/json"
-
-    response_handlers = {
-        "application/vnd.inveniordm.v1+json": RecordResourceConfig.response_handlers[
-            "application/json"
-        ],
-        **RecordResourceConfig.response_handlers,
-    }
