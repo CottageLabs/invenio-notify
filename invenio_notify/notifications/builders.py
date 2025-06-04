@@ -9,7 +9,7 @@ from invenio_users_resources.notifications.generators import EmailRecipient
 from invenio_notify.records.models import EndorsementModel
 
 
-def get_endorsement_noti_context(record=None, reviewer_name="Unknown", endorsement_url="Unknown", receiver_email="Unknown"):
+def get_endorsement_noti_context(record=None, reviewer_name="Unknown", endorsement_url="Unknown", receiver_email="Unknown", user_id=None):
     """
     Build notification context with provided parameters.
 
@@ -18,6 +18,7 @@ def get_endorsement_noti_context(record=None, reviewer_name="Unknown", endorseme
         reviewer_name: Name of the reviewer (default: "Unknown")
         endorsement_url: URL of the endorsement (default: "Unknown")
         receiver_email: Email of the recipient (default: "Unknown")
+        user_id: ID of the user who should receive the notification (optional)
 
     Returns:
         dict: Dictionary containing record_title, record_url, endorsement_url,
@@ -26,6 +27,12 @@ def get_endorsement_noti_context(record=None, reviewer_name="Unknown", endorseme
 
     record_title = "Unknown"
     record_url = "Unknown"
+
+    # If receiver_email is "Unknown" and user_id is provided, try to get the email from the user
+    if receiver_email == "Unknown" and user_id is not None:
+        user = User.query.filter_by(id=user_id).first()
+        if user:
+            receiver_email = user.email
 
     if record:
         # Get record title
@@ -59,7 +66,8 @@ class TmpNotificationBuilder(NotificationBuilder):
     type = 'tmp-noti'
 
     @classmethod
-    def build(cls, record=None, reviewer_name="Unknown", endorsement_url="Unknown", receiver_email="Unknown"):
+    def build(cls, record=None, reviewer_name="Unknown", endorsement_url="Unknown",
+              receiver_email="Unknown", user_id=None):
         """
         Build notification with the provided parameters.
 
@@ -68,6 +76,7 @@ class TmpNotificationBuilder(NotificationBuilder):
             reviewer_name: Name of the reviewer (default: "Unknown")
             endorsement_url: URL of the endorsement (default: "Unknown")
             receiver_email: Email of the recipient (default: "Unknown")
+            user_id: ID of the user who should receive the notification (optional)
 
         Returns:
             Notification: A notification object with the context from the parameters
@@ -78,7 +87,8 @@ class TmpNotificationBuilder(NotificationBuilder):
                 record=record,
                 reviewer_name=reviewer_name,
                 endorsement_url=endorsement_url,
-                receiver_email=receiver_email
+                receiver_email=receiver_email,
+                user_id=user_id
             ),
         )
 
@@ -102,12 +112,8 @@ class TmpNotificationBuilder(NotificationBuilder):
         if hasattr(endorsement, 'reviewer') and endorsement.reviewer:
             reviewer_name = endorsement.reviewer.name
 
-        # Get user email
-        receiver_email = "Unknown"
-        if hasattr(endorsement, 'user_id') and endorsement.user_id:
-            user = User.query.filter_by(id=endorsement.user_id).first()
-            if user:
-                receiver_email = user.email
+        # Get user ID (to be used if receiver_email is not available)
+        user_id = endorsement.user_id if hasattr(endorsement, 'user_id') else None
 
         # Build endorsement URL
         endorsement_url = endorsement.result_url if hasattr(endorsement, 'result_url') and endorsement.result_url else f"https://example.com/endorsement/{endorsement.id}"
@@ -116,7 +122,7 @@ class TmpNotificationBuilder(NotificationBuilder):
             record=record,
             reviewer_name=reviewer_name,
             endorsement_url=endorsement_url,
-            receiver_email=receiver_email
+            user_id=user_id
         )
 
     context = [
