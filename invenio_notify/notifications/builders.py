@@ -9,52 +9,40 @@ from invenio_users_resources.notifications.generators import EmailRecipient
 from invenio_notify.records.models import EndorsementModel
 
 
-def get_endorsement_noti_context(endorsement):
+def get_endorsement_noti_context(record=None, reviewer_name="Unknown", endorsement_url="Unknown", receiver_email="Unknown"):
     """
-    Extract data from an endorsement and return it as a dictionary.
+    Build notification context with provided parameters.
 
     Args:
-        endorsement: The EndorsementModel instance
+        record: The record object (optional)
+        reviewer_name: Name of the reviewer (default: "Unknown")
+        endorsement_url: URL of the endorsement (default: "Unknown")
+        receiver_email: Email of the recipient (default: "Unknown")
 
     Returns:
-        dict: Dictionary containing record_name, record_url, endorsement_url,
+        dict: Dictionary containing record_title, record_url, endorsement_url,
               reviewer_name, and receiver_email
     """
 
     record_title = "Unknown"
     record_url = "Unknown"
 
-    if endorsement.record:
+    if record:
         # Get record title
         try:
-            record_title = endorsement.record.data['metadata']['title']
+            record_title = record.data['metadata']['title']
         except Exception:
             pass
 
         # Get record URL
-        r = RecordIdProviderV2.get(endorsement.record.data['id'])
-        rec_link = RecordEndpointLink("invenio_app_rdm_records.record_detail",
-                                      params=["pid_value"],
-                                      )
-        record_url = rec_link.expand(r, {})
-    else:
-        print(f"Endorsement {endorsement.id} has no associated record.")
-
-
-    # Get reviewer information
-    reviewer_name = "Unknown"
-    if endorsement.reviewer:
-        reviewer_name = endorsement.reviewer.name
-
-    # Get user email
-    receiver_email = "Unknown"
-    if endorsement.user_id:
-        user = User.query.filter_by(id=endorsement.user_id).first()
-        if user:
-            receiver_email = user.email
-
-    # Build endorsement URL
-    endorsement_url = endorsement.result_url if endorsement.result_url else f"https://example.com/endorsement/{endorsement.id}"
+        try:
+            r = RecordIdProviderV2.get(record.data['id'])
+            rec_link = RecordEndpointLink("invenio_app_rdm_records.record_detail",
+                                        params=["pid_value"],
+                                        )
+            record_url = rec_link.expand(r, {})
+        except Exception:
+            pass
 
     # Return data as dictionary
     return {
@@ -66,30 +54,69 @@ def get_endorsement_noti_context(endorsement):
     }
 
 
-
 class TmpNotificationBuilder(NotificationBuilder):
     """Notification builder for inclusion actions."""
     type = 'tmp-noti'
 
     @classmethod
-    def build(cls, endorsement: 'EndorsementModel'):
-        """Build notification with request context."""
-        # raise NotImplementedError()
+    def build(cls, record=None, reviewer_name="Unknown", endorsement_url="Unknown", receiver_email="Unknown"):
+        """
+        Build notification with the provided parameters.
+
+        Args:
+            record: The record object (optional)
+            reviewer_name: Name of the reviewer (default: "Unknown")
+            endorsement_url: URL of the endorsement (default: "Unknown")
+            receiver_email: Email of the recipient (default: "Unknown")
+
+        Returns:
+            Notification: A notification object with the context from the parameters
+        """
         return Notification(
             type=cls.type,
-            context={
-                # "request": EntityResolverRegistry.reference_entity(request),
-                # "executing_user": EntityResolverRegistry.reference_identity(identity),
-                **get_endorsement_noti_context(endorsement),
-                # 'data': {
-                #     # KTODO dump request data here for now
-                #     'record_name': 'Test Record Name',
-                #     'record_url': 'https://example.com/record/12345',
-                #     'endorsement_url': 'https://example.com/endorsement/67890',
-                #     'reviewer_name': 'Reviewer Name',
-                #     'receiver_email': 'kkh900922@gmail.com',
-                # },
-            },
+            context=get_endorsement_noti_context(
+                record=record,
+                reviewer_name=reviewer_name,
+                endorsement_url=endorsement_url,
+                receiver_email=receiver_email
+            ),
+        )
+
+    # For backward compatibility with endorsement objects
+    @classmethod
+    def build_from_endorsement(cls, endorsement: 'EndorsementModel'):
+        """
+        Build notification from an endorsement object.
+
+        Args:
+            endorsement: The endorsement model object
+
+        Returns:
+            Notification: A notification object with context from the endorsement
+        """
+        # Extract data from endorsement
+        record = endorsement.record if hasattr(endorsement, 'record') else None
+
+        # Get reviewer information
+        reviewer_name = "Unknown"
+        if hasattr(endorsement, 'reviewer') and endorsement.reviewer:
+            reviewer_name = endorsement.reviewer.name
+
+        # Get user email
+        receiver_email = "Unknown"
+        if hasattr(endorsement, 'user_id') and endorsement.user_id:
+            user = User.query.filter_by(id=endorsement.user_id).first()
+            if user:
+                receiver_email = user.email
+
+        # Build endorsement URL
+        endorsement_url = endorsement.result_url if hasattr(endorsement, 'result_url') and endorsement.result_url else f"https://example.com/endorsement/{endorsement.id}"
+
+        return cls.build(
+            record=record,
+            reviewer_name=reviewer_name,
+            endorsement_url=endorsement_url,
+            receiver_email=receiver_email
         )
 
     context = [
