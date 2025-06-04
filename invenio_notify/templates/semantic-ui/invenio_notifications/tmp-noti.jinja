@@ -1,0 +1,51 @@
+{% set record_title = notification.context.record_title %}
+{% set record_url = notification.context.record_url %}
+{% set endorsement_url = notification.context.endorsement_url %}
+{% set reviewer_name = notification.context.reviewer_name %}
+{% set account_settings_link = invenio_url_for("invenio_notifications_settings.index") %}
+
+{%- block subject -%}
+{{ _("🌟 New endorsement for your record '{record_title}'").format(record_title=record_title) }}
+{%- endblock subject -%}
+
+{%- block html_body -%}
+<table style="font-family:'Lato',Helvetica,Arial,sans-serif;border-spacing:15px">
+    <tr>
+        <td>{{ _("Your record '{record_title}' has received a new endorsement from '{reviewer_name}'.").format(record_title=record_title, reviewer_name=reviewer_name) }}</td>
+    </tr>
+    <tr>
+        <td><a href="{{ record_url }}" class="button">{{ _("View your record")}}</a></td>
+    </tr>
+    <tr>
+        <td><a href="{{ endorsement_url }}" class="button">{{ _("View endorsement")}}</a></td>
+    </tr>
+    <tr>
+        <td><strong>————</strong></td>
+    </tr>
+    <tr>
+        <td style="font-size:smaller">{{ _("This is an auto-generated message. To manage notifications, visit your")}} <a href="{{account_settings_link}}">{{ _("account settings")}}</a>.</td>
+    </tr>
+</table>
+{%- endblock html_body %}
+
+{%- block plain_body -%}
+{{ _("Your record '{record_title}' has received a new endorsement from '{reviewer_name}'.").format(record_title=record_title, reviewer_name=reviewer_name) }}
+
+{{ _("View your record: {record_url}").format(record_url=record_url) }}
+{{ _("View endorsement: {endorsement_url}").format(endorsement_url=endorsement_url) }}
+
+—
+{{ _("This is an auto-generated message. To manage notifications, visit your account settings at:") }} {{ account_settings_link }}
+{%- endblock plain_body %}
+
+{# Markdown for Slack/Mattermost/chat #}
+{%- block md_body -%}
+{{ _("Your record *{record_title}* has received a new endorsement from *{reviewer_name}*.").format(record_title=record_title, reviewer_name=reviewer_name) }}
+
+[{{ _("View your record") }}]({{ record_url }})
+[{{ _("View endorsement") }}]({{ endorsement_url }})
+
+—
+{{ _("This is an auto-generated message. To manage notifications, visit your") }} [{{ _("account settings") }}]({{ account_settings_link }}).
+{%- endblock md_body %}
+
