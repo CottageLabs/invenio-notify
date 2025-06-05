@@ -1,14 +1,14 @@
 import json
-from invenio_accounts.models import User
 from datetime import datetime
-from invenio_rdm_records.proxies import current_rdm_records
+from invenio_accounts.models import User
 
 from invenio_notify import constants
-from invenio_notify.records.models import NotifyInboxModel, EndorsementMetadataModel
+from invenio_notify.records.models import NotifyInboxModel, EndorsementModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
-from invenio_notify_test.fixtures.inbox_fixture import create_notification_data
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
+from invenio_notify_test.fixtures.inbox_fixture import create_notification_data
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer_service
+from invenio_rdm_records.proxies import current_rdm_records
 
 
 def test_mark_as_processed(db, superuser_identity, create_inbox):
@@ -41,7 +41,6 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
         [User.query.get(superuser_identity.id).email]
     )
 
-
     # Create inbox record with real notification data
     inbox = NotifyInboxModel.create({
         'raw': json.dumps(notification_data),
@@ -50,7 +49,7 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     })
 
     # Verify no endorsements exist before processing
-    assert EndorsementMetadataModel.query.count() == 0
+    assert EndorsementModel.query.count() == 0
 
     # Run the processing task
     inbox_processing()
@@ -62,15 +61,26 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     assert updated_inbox.process_date is not None
 
     # Verify an endorsement was created
-    endorsements = EndorsementMetadataModel.query.all()
+    endorsements = EndorsementModel.query.all()
     assert len(endorsements) == 1
+
+    record = current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id)
 
     # Verify the endorsement has the correct data
     endorsement = endorsements[0]
-    assert endorsement.record_id == current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id).id
+    assert endorsement.record_id == record.id
     assert endorsement.user_id == superuser_identity.id
     assert endorsement.inbox_id == inbox.id
     assert endorsement.review_type == constants.TYPE_REVIEW
+
+    # Verify record.endorsements is updated
+    assert record.endorsements == [
+        {'endorsement_count': 0,
+         'endorsement_urls': [],
+         'review_count': 1,
+         'reviewer_id': reviewer.id,
+         'reviewer_name': reviewer.name}
+    ]
 
 
 def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox):
@@ -87,7 +97,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
     )
 
     # Verify no endorsements exist before processing
-    assert EndorsementMetadataModel.query.count() == 0
+    assert EndorsementModel.query.count() == 0
 
     # Run the processing task
     inbox_processing()
@@ -100,4 +110,4 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
     assert updated_inbox.process_note is not None
 
     # Verify no endorsement was created
-    assert EndorsementMetadataModel.query.count() == 0
+    assert EndorsementModel.query.count() == 0

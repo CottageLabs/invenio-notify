@@ -13,6 +13,9 @@ __pycache__/
 
 # generated from Gradle or Maven project
 .idea/libraries/
+.idea/csv-editor.xml
+.idea/invenio-notify.iml
+.idea/vcs.xml
 
 _playground
 

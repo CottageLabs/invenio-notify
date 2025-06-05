@@ -1,11 +1,8 @@
 from invenio_i18n import gettext as _
 from invenio_records_resources.services import RecordServiceConfig
-from invenio_records_resources.services.base.config import FromConfig, ConfiguratorMixin
 from invenio_records_resources.services.records.links import pagination_links
 
-from invenio_notify.records.models import NotifyInboxModel, ReviewerMapModel, ReviewerModel
-from invenio_notify.records.records import EndorsementRecord
-from invenio_notify.services.components import DefaultEndorsementComponents
+from invenio_notify.records.models import NotifyInboxModel, ReviewerMapModel, ReviewerModel, EndorsementModel
 from invenio_notify.services.config_utils import DefaultSearchOptions
 from invenio_notify.services.links import EndorsementLink, NotifyInboxLink, IdLink
 from invenio_notify.services.policies import NotifyInboxPermissionPolicy, AdminPermissionPolicy, \
@@ -34,19 +31,17 @@ class NotifyInboxServiceConfig(RecordServiceConfig):
     links_search = pagination_links("{+api}/notify-inbox{?args*}")
 
 
-class EndorsementServiceConfig(RecordServiceConfig, ConfiguratorMixin):
-    record_cls = EndorsementRecord
+class EndorsementServiceConfig(RecordServiceConfig):
+    result_list_cls = BasicDbModelRecordList
+    record_cls = EndorsementModel
+    schema = EndorsementSchema
     permission_policy_cls = EndorsementPermissionPolicy
 
-    schema = EndorsementSchema
+    search = DefaultSearchOptions
 
     links_item = {
-        "self": EndorsementLink("{+api}/endorsement/{id}"), 
+        "self": EndorsementLink("{+api}/endorsement/{id}"),
     }
-    # components =  DefaultEndorsementComponents
-    components = FromConfig(
-        "ENDORSEMENT_SERVICE_COMPONENTS", default=DefaultEndorsementComponents
-    )
 
 
 class ReviewerMapSearchOptions(DefaultSearchOptions):

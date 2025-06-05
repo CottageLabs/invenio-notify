@@ -1,14 +1,14 @@
-import click
-import json
-import rich
 from datetime import datetime
+
+import click
+import rich
 from flask.cli import with_appcontext
 from invenio_db import db
 from rich.markdown import Markdown
 from sqlalchemy import desc
 
 from invenio_notify import tasks
-from invenio_notify.records.models import EndorsementMetadataModel, NotifyInboxModel, ReviewerMapModel, ReviewerModel
+from invenio_notify.records.models import EndorsementModel, NotifyInboxModel, ReviewerMapModel, ReviewerModel
 from invenio_notify.utils import user_utils
 
 
@@ -47,15 +47,12 @@ def list_notify(size):
 
     console = rich.get_console()
     console.print(Markdown('# Endorsement'))
-    for r in get_sorted_records(EndorsementMetadataModel, size, order_field=desc('created')):
+    for r in get_sorted_records(EndorsementModel, size, order_field=desc('created')):
         print('----------------------------')
         key_values = vars(r).items()
-        key_values = (i for i in key_values if i[0] != 'json')
         key_values = (i for i in key_values if not i[0].startswith('_'))
         for k, v in key_values:
             print_key_value(k, v)
-        console.print('Json:')
-        console.print_json(json.dumps(r.json))
         print()
     print()
 

@@ -69,22 +69,15 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     review_url = notification_raw['object'].get(constants.KEY_INBOX_REVIEW_URL)
     if not review_url:
         log.warning(f"Could not extract review_url from notification {inbox_id} use object.id instead")
-        review_url = notification_raw['object']['id']
-
 
     # Create the endorsement record data
     endorsement_data = {
-        'metadata': {
-            'record_id': record_id,
-            'record_url': notification_raw['context']['id'],
-            'result_url': review_url,
-        },
         'record_id': record_id,
         'reviewer_id': reviewer_id,
         'review_type': reviewer_type,
-
         'user_id': user_id,
         'inbox_id': inbox_id,
+        'result_url': review_url,
     }
 
     # Create the endorsement record
@@ -92,9 +85,9 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
 
 def inbox_processing():
-
     records_service = current_app.extensions["invenio-rdm-records"].records_service
 
+    tobe_update_records = []
     for inbox_record in NotifyInboxModel.search(None, [
         NotifyInboxModel.process_date.is_(None),
     ]):
@@ -135,10 +128,24 @@ def inbox_processing():
             inbox_record.id,
             notification_raw
         )
-        log.info(f"Created endorsement record: {endorsement.id}")
+        log.info(f"Created endorsement record: {endorsement._record.id}")
 
         # Mark inbox as processed after successful endorsement creation
         mark_as_processed(inbox_record)
+
+        tobe_update_records.append(record)
+
+    refresh_endorsements_field(tobe_update_records)
+
+
+@unit_of_work()
+def refresh_endorsements_field(records, uow=None):
+    # re-commit rdm-record to refresh record.endorsements field
+    existing_ids = set()
+    for r in records:
+        if r.id in existing_ids:
+            continue
+        r.commit()
 
 
 @shared_task
