@@ -128,7 +128,6 @@ class NewEndorsementNotificationBuilder(NotificationBuilder):
         )
 
     context = [
-        # EntityResolve(key="data.title"),
     ]
 
     recipients = [
@@ -136,8 +135,6 @@ class NewEndorsementNotificationBuilder(NotificationBuilder):
     ]
 
     recipient_filters = [
-        # UserPreferencesRecipientFilter(),
-        # UserRecipientFilter("executing_user"),
     ]
 
     recipient_backends = [
