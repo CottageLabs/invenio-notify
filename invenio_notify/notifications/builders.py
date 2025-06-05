@@ -7,6 +7,7 @@ from invenio_records_resources.services import RecordEndpointLink
 from invenio_users_resources.notifications.generators import EmailRecipient
 
 from invenio_notify.records.models import EndorsementModel
+from invenio_rdm_records.records.models import RDMRecordMetadata
 
 
 def get_endorsement_noti_context(record=None, reviewer_name="Unknown", endorsement_url="Unknown", receiver_email="Unknown", user_id=None):
@@ -61,12 +62,13 @@ def get_endorsement_noti_context(record=None, reviewer_name="Unknown", endorseme
     }
 
 
-class TmpNotificationBuilder(NotificationBuilder):
-    """Notification builder for inclusion actions."""
-    type = 'tmp-noti'
+class NewEndorsementNotificationBuilder(NotificationBuilder):
+    """Notification builder for record endorsement actions."""
+    type = 'new-endorsement'
 
     @classmethod
-    def build(cls, record=None, reviewer_name="Unknown", endorsement_url="Unknown",
+    def build(cls, record: RDMRecordMetadata=None,
+              reviewer_name="Unknown", endorsement_url="Unknown",
               receiver_email="Unknown", user_id=None):
         """
         Build notification with the provided parameters.
