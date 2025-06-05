@@ -15,7 +15,6 @@ class NotifyInboxPermissionPolicy(BasePermissionPolicy):
 
 
 class AdminPermissionPolicy(BasePermissionPolicy):
-    # TODO to be review
     can_create = [Administration(), SystemProcess()]
     can_read = [Administration(), SystemProcess()]
     can_search = [Administration(), SystemProcess()]
@@ -29,5 +28,7 @@ class ReviewerMapPermissionPolicy(AdminPermissionPolicy):
 
 
 class EndorsementPermissionPolicy(AdminPermissionPolicy):
-    # TODO to be review
+    pass
+
+class ReviewerPermissionPolicy(AdminPermissionPolicy):
     pass

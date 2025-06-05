@@ -30,4 +30,10 @@ class ErrorHandlersMixin:
         ma.ValidationError: create_error_handler(
             lambda e: HTTPJSONValidationException(e)
         ),
+        ValueError: create_error_handler(
+            lambda e: HTTPJSONException(
+                code=400,
+                description=str(e)
+            )
+        ),
     }

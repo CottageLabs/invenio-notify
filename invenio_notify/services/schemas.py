@@ -22,7 +22,6 @@ class NotifyInboxSchema(BaseRecordSchema):
 
 
 class EndorsementMetadataSchema(Schema):
-    # TODO review fields
     record_id = fields.String(required=True)
 
     record_url = fields.String(required=True)
@@ -39,11 +38,10 @@ class EndorsementMetadataSchema(Schema):
 
 
 class EndorsementSchema(BaseRecordSchema):
-    # TODO review fields
     metadata = NestedAttribute(EndorsementMetadataSchema, required=True)
 
     record_id = fields.String(required=True)
-    reviewer_id = fields.String(required=True)
+    reviewer_id = fields.Integer(required=True)
     review_type = fields.String(required=True)
     user_id = fields.Integer(required=True)
     inbox_id = fields.Integer(required=True)
@@ -51,7 +49,32 @@ class EndorsementSchema(BaseRecordSchema):
 
 class ReviewerMapSchema(BaseRecordSchema):
     user_id = fields.Integer(required=True)
-    reviewer_id = fields.String(required=True)
+    reviewer_id = fields.Integer(required=True)
 
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
+
+
+class UserSchema(Schema):
+    id = fields.Integer(required=True)
+    email = fields.String(required=True)
+
+
+class ReviewerSchema(BaseRecordSchema):
+    name = fields.String(required=True)
+    coar_id = fields.String(required=True)
+    inbox_url = fields.String(required=True)
+    description = fields.String(required=False)
+
+    created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
+    updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
+
+    members = fields.List(fields.Nested(UserSchema), required=False)
+
+
+class AddMemberSchema(BaseRecordSchema):
+    emails = fields.List(fields.String(), required=True)
+
+
+class DelMemberSchema(BaseRecordSchema):
+    user_id = fields.Integer(required=True)

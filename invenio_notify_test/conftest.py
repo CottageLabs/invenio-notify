@@ -11,6 +11,7 @@ from invenio_rdm_records.proxies import current_rdm_records
 from invenio_rdm_records.records import RDMParent, RDMRecord
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
+from invenio_notify_test.fixtures.reviewer_fixture import * # noqa
 
 RunningApp = namedtuple(
     "RunningApp",
@@ -164,7 +165,7 @@ def prepare_test_rdm_record(db, record_data):
     return record
 
 
-def create_endorsement_service_data(record_id, inbox_id, user_id):
+def create_endorsement_service_data(record_id, inbox_id, user_id, reviewer_id):
     """Create data for endorsement service tests."""
     return {
         'metadata': {
@@ -173,7 +174,7 @@ def create_endorsement_service_data(record_id, inbox_id, user_id):
             'result_url': f'https://example.com/endorsements/results/{record_id}',
         },
         'record_id': record_id,
-        'reviewer_id': 'reviewer-123',
+        'reviewer_id': reviewer_id,
         'review_type': 'endorsement',
         'user_id': user_id,
         'inbox_id': inbox_id

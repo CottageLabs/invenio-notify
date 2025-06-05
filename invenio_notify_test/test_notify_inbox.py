@@ -3,7 +3,7 @@ import datetime
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify.services.config import NotifyInboxServiceConfig
 from invenio_notify.services.service import NotifyInboxService
-from invenio_notify_test.inbox_fixture import create_inbox
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 
 
 def create_notify_inbox_service():

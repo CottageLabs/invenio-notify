@@ -10,7 +10,7 @@ from invenio_pidstore.errors import PIDDoesNotExistError
 from coarnotify.factory import COARNotifyFactory
 from invenio_notify import constants
 from invenio_notify.constants import REVIEW_TYPES
-from invenio_notify.records.models import NotifyInboxModel
+from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 
 log = logging.getLogger(__name__)
@@ -46,8 +46,17 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     """
     endorsement_service = current_app.extensions["invenio-notify"].endorsement_service
 
-    # Extract reviewer ID from notification if available, otherwise use a default
-    reviewer_id = notification_raw.get('actor', {}).get('id', 'unknown-reviewer')
+    # Extract actor ID (coar_id) from notification
+    actor_id = notification_raw.get('actor', {}).get('id', 'unknown-reviewer')
+
+    # Find ReviewerModel with matching coar_id
+    reviewer = ReviewerModel.query.filter_by(coar_id=actor_id).first()
+    if not reviewer:
+        log.warning(f"Could not find reviewer with coar_id '{actor_id}'. Using None for reviewer_id.")
+        raise ValueError(f"Reviewer with coar_id '{actor_id}' not found")
+
+    reviewer_id = reviewer.id
+    log.info(f"Found reviewer ID {reviewer_id} for coar_id '{actor_id}'")
 
     reviewer_type = 'unknown'
     for t in constants.REVIEW_TYPES:
@@ -83,9 +92,6 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
 
 def inbox_processing():
-    # TODO handle review record
-    # TODO should we send coar notification to the user if fail or rejected
-    # TODO validate actor.id whether match with the user_id
 
     records_service = current_app.extensions["invenio-rdm-records"].records_service
 

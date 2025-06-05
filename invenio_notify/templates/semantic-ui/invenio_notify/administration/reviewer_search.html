@@ -1,0 +1,8 @@
+
+{% extends "invenio_administration/search.html" %}
+
+
+{% block javascript %}
+  {{ super() }}
+  {{ webpack['invenio-administration-reviewer-search.js'] }}
+{% endblock %}
