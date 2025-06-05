@@ -6,8 +6,8 @@ from coarnotify.server import COARNotifyServerError, COARNotifyReceipt
 from invenio_notify import constants
 from invenio_notify.blueprints import rest_blueprint
 from invenio_notify.errors import COARProcessFail
+from invenio_notify.proxies import current_inbox_service
 from invenio_notify.scopes import inbox_scope
-from invenio_notify.services.service import NotifyInboxService
 
 
 @rest_blueprint.route("/inbox", methods=['POST'])
@@ -23,10 +23,8 @@ def inbox():
         # return jsonify({"error": "Request must be JSON"}), 400
         return create_fail_response(constants.STATUS_BAD_REQUEST, "Request must be JSON")
 
-    inbox_service: NotifyInboxService = current_app.extensions["invenio-notify"].notify_inbox_service
-
     try:
-        result = inbox_service.receive_notification(request.get_json())
+        result = current_inbox_service.receive_notification(request.get_json())
         return response_coar_notify_receipt(result)
 
     except COARNotifyServerError as e:
