@@ -146,10 +146,10 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
 
     name = db.Column(db.Text, nullable=False)
 
-    coar_id = db.Column(db.Text, nullable=False)
+    actor_id = db.Column(db.Text, nullable=True, unique=True)
     """ id that used in COAR notification (json) """
 
-    inbox_url = db.Column(db.Text, nullable=False)
+    inbox_url = db.Column(db.Text, nullable=True)
 
     inbox_api_token = db.Column(db.Text, nullable=True)
 
@@ -163,12 +163,12 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
     endorsements = db.relationship("EndorsementModel", back_populates="reviewer")
 
     @classmethod
-    def has_member_with_email(cls, email, coar_id) -> bool:
-        """Check if a user with given email is a member of a reviewer with the given coar_id.
+    def has_member_with_email(cls, email, actor_id) -> bool:
+        """Check if a user with given email is a member of a reviewer with the given actor_id.
         
         Args:
             email: Email address of the user
-            coar_id: The coar_id of the reviewer
+            actor_id: The actor_id of the reviewer
             
         Returns:
             bool: True if the user is a member of the reviewer, False otherwise
@@ -176,24 +176,24 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
         result = (db.session.query(cls)
                   .join(ReviewerMapModel, ReviewerMapModel.reviewer_id == cls.id)
                   .join(User, User.id == ReviewerMapModel.user_id)
-                  .filter(User.email == email, cls.coar_id == coar_id)
+                  .filter(User.email == email, cls.actor_id == actor_id)
                   .first())
         return result is not None
 
     @classmethod
-    def has_member(cls, user_id, coar_id) -> bool:
-        """Check if a user with given user_id is a member of a reviewer with the given coar_id.
+    def has_member(cls, user_id, actor_id) -> bool:
+        """Check if a user with given user_id is a member of a reviewer with the given actor_id.
         
         Args:
             user_id: ID of the user
-            coar_id: The coar_id of the reviewer
+            actor_id: The actor_id of the reviewer
             
         Returns:
             bool: True if the user is a member of the reviewer, False otherwise
         """
         result = (db.session.query(cls)
                   .join(ReviewerMapModel, ReviewerMapModel.reviewer_id == cls.id)
-                  .filter(ReviewerMapModel.user_id == user_id, cls.coar_id == coar_id)
+                  .filter(ReviewerMapModel.user_id == user_id, cls.actor_id == actor_id)
                   .first())
         return result is not None
 

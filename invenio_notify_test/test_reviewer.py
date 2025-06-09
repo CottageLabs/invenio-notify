@@ -18,7 +18,7 @@ def test_create_model(db, superuser_identity):
 
     # Retrieve the record and verify attributes
     retrieved = ReviewerModel.get(reviewer.id)
-    assert retrieved.coar_id == data['coar_id']
+    assert retrieved.actor_id == data['actor_id']
     assert retrieved.name == data['name']
     assert retrieved.inbox_url == data['inbox_url']
     assert retrieved.inbox_api_token == data['inbox_api_token']
@@ -34,7 +34,7 @@ def test_service_create(test_app, superuser_identity):
     result = reviewer_serv.create(superuser_identity, data)
 
     result_dict = result.to_dict()
-    assert result_dict['coar_id'] == data['coar_id']
+    assert result_dict['actor_id'] == data['actor_id']
     assert result_dict['name'] == data['name']
     assert result_dict['inbox_url'] == data['inbox_url']
     assert result_dict['inbox_api_token'] == data['inbox_api_token']
@@ -165,7 +165,7 @@ def test_inbox_api_token_field(db, superuser_identity):
     
     # Test creating reviewer with inbox_api_token
     data_with_token = reviewer_data(
-        coar_id='reviewer-with-token',
+        actor_id='reviewer-with-token',
         inbox_api_token='secret-api-token-123'
     )
     
@@ -176,7 +176,7 @@ def test_inbox_api_token_field(db, superuser_identity):
     
     # Test creating reviewer without inbox_api_token (should be None)
     data_without_token = reviewer_data(
-        coar_id='reviewer-without-token',
+        actor_id='reviewer-without-token',
         inbox_api_token=None
     )
     
@@ -189,7 +189,7 @@ def test_inbox_api_token_field(db, superuser_identity):
     reviewer_serv = create_reviewer_service()
     
     data_service_test = reviewer_data(
-        coar_id='service-test-reviewer',
+        actor_id='service-test-reviewer',
         inbox_api_token='service-token-456'
     )
     

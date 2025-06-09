@@ -29,8 +29,8 @@ class SearchResultItemComponent extends Component {
             {result.name}
           </a>
         </Table.Cell>
-        <Table.Cell data-label={i18next.t("COAR ID")}>
-          {result.coar_id}
+        <Table.Cell data-label={i18next.t("Actor ID")}>
+          {result.actor_id}
         </Table.Cell>
         <Table.Cell data-label={i18next.t("Inbox URL")}>
           {result.inbox_url}
