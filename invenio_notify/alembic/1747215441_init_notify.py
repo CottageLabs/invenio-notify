@@ -26,12 +26,13 @@ def upgrade():
     op.create_table('reviewer',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.Text(), nullable=False),
-    sa.Column('coar_id', sa.Text(), nullable=False),
-    sa.Column('inbox_url', sa.Text(), nullable=False),
+    sa.Column('actor_id', sa.Text(), nullable=True),
+    sa.Column('inbox_url', sa.Text(), nullable=True),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('updated', sa.DateTime(), nullable=False),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_reviewer'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_reviewer')),
+    sa.UniqueConstraint('actor_id', name='uq_reviewer_actor_id')
     )
     op.create_table('notify_inbox',
     sa.Column('id', sa.Integer(), nullable=False),
