@@ -151,6 +151,8 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
 
     inbox_url = db.Column(db.Text, nullable=False)
 
+    inbox_api_token = db.Column(db.Text, nullable=True)
+
     description = db.Column(db.Text, nullable=True)
 
     members = db.relationship(
