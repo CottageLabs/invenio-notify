@@ -1,9 +1,7 @@
 import pytest
-from invenio_accounts.models import User
+
 from invenio_notify.records.models import ReviewerModel
-from invenio_notify.services.config import ReviewerServiceConfig
 from invenio_notify.services.service import ReviewerService
-from invenio_notify_test.utils import resolve_user_id
 
 
 @pytest.fixture
@@ -12,13 +10,15 @@ def create_reviewer(db, superuser_identity):
 
     def _create_reviewer(coar_id='test-reviewer-id', name='Test Reviewer',
                          inbox_url='https://example.com/inbox',
-                         description=None):
+
+                         inbox_api_token=None, description=None):
         """Create a ReviewerModel instance.
         
         Args:
             coar_id: COAR ID for the reviewer (default: 'test-reviewer-id')
             name: Name of the reviewer (default: 'Test Reviewer')
             inbox_url: URL for the reviewer's inbox (default: 'https://example.com/inbox')
+            inbox_api_token: Optional API token for the reviewer's inbox
             description: Optional description of the reviewer
 
         Returns:
@@ -29,6 +29,7 @@ def create_reviewer(db, superuser_identity):
             'coar_id': coar_id,
             'name': name,
             'inbox_url': inbox_url,
+            'inbox_api_token': inbox_api_token,
             'description': description
         })
         return reviewer
@@ -38,13 +39,14 @@ def create_reviewer(db, superuser_identity):
 
 def reviewer_data(coar_id='reviewer-coar-123', name='Test Reviewer',
                  inbox_url='https://example.com/inbox',
-                 description='Test description'):
+                 inbox_api_token='test-inbox-api-token', description='Test description'):
     """Generate a reviewer data dictionary.
     
     Args:
         coar_id: COAR ID for the reviewer
         name: Name of the reviewer
         inbox_url: URL for the reviewer's inbox
+        inbox_api_token: Optional API token for the reviewer's inbox
         description: Description of the reviewer
         
     Returns:
@@ -54,6 +56,7 @@ def reviewer_data(coar_id='reviewer-coar-123', name='Test Reviewer',
         'coar_id': coar_id,
         'name': name,
         'inbox_url': inbox_url,
+        'inbox_api_token': inbox_api_token,
         'description': description
     }
 
@@ -72,6 +75,7 @@ def sample_reviewers(count=3):
             'coar_id': f'reviewer-coar-{i}',
             'name': f'Reviewer {i}',
             'inbox_url': f'https://example.com/inbox{i}',
+            'inbox_api_token': f'test-token-{i}' if i % 2 == 0 else None,
             'description': f'Description for reviewer {i}'
         }
         for i in range(1, count + 1)
