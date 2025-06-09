@@ -51,8 +51,8 @@ class UserSchema(Schema):
 
 class ReviewerSchema(BaseRecordSchema):
     name = fields.String(required=True)
-    coar_id = fields.String(required=True)
-    inbox_url = fields.String(required=True)
+    actor_id = fields.String(required=False, allow_none=True)
+    inbox_url = fields.String(required=False, allow_none=True)
     inbox_api_token = fields.String(required=False, allow_none=True)
     description = fields.String(required=False)
 

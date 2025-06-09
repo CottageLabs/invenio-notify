@@ -302,7 +302,7 @@ class ReviewerService(BasicDbService):
         for email in new_emails:
             user = user_utils.find_user_by_email(email)
             if user:
-                current_app.logger.info(f'Adding user [{user.email}] to reviewer [{reviewer.coar_id}]')
+                current_app.logger.info(f'Adding user [{user.email}] to reviewer [{reviewer.actor_id}]')
                 ReviewerMapModel.create({
                     'user_id': user.id,
                     'reviewer_id': reviewer.id
@@ -333,16 +333,16 @@ class ReviewerService(BasicDbService):
         user: User = User.query.get(user_id)
 
         if user not in reviewer.members:
-            current_app.logger.info(f'User [{user.email}] is not a member of reviewer [{reviewer.coar_id}]')
+            current_app.logger.info(f'User [{user.email}] is not a member of reviewer [{reviewer.actor_id}]')
             return reviewer
 
-        current_app.logger.info(f'Removing user [{user.email}] from reviewer [{reviewer.coar_id}]')
+        current_app.logger.info(f'Removing user [{user.email}] from reviewer [{reviewer.actor_id}]')
         reviewer_map = ReviewerMapModel.query.filter_by(
             user_id=user.id,
             reviewer_id=reviewer.id
         ).first()
         if not reviewer_map:
-            current_app.logger.warning(f'No mapping found for user [{user.email}] and reviewer [{reviewer.coar_id}]')
+            current_app.logger.warning(f'No mapping found for user [{user.email}] and reviewer [{reviewer.actor_id}]')
             return reviewer
 
         ReviewerMapModel.delete(reviewer_map)
