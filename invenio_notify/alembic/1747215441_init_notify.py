@@ -17,7 +17,7 @@ from sqlalchemy.dialects import postgresql
 revision = '1747215441'
 down_revision = None
 branch_labels = ('invenio_notify',)
-depends_on = None
+depends_on = '843bc79c426f'
 
 
 def upgrade():
