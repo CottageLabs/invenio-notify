@@ -80,7 +80,11 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
             'endorsement_list': [],
             'review_count': 1,
             'reviewer_id': reviewer.id,
-            'reviewer_name': reviewer.name
+            'reviewer_name': reviewer.name,
+            'review_list': [{
+                'created': endorsement.created.isoformat(),
+                'url': endorsement.result_url,
+            }]
         }
     ]
 
