@@ -170,7 +170,8 @@ class InboxCOARBinding(COARNotifyServiceBinding):
 class EndorsementService(BasicDbService):
     """Service for managing endorsements."""
 
-    def get_endorsement_info(self, record_id):
+    @staticmethod
+    def get_endorsement_info(record_id):
         """Get the endorsement information for a record by its ID.
         
         Args:
@@ -209,9 +210,15 @@ class EndorsementService(BasicDbService):
             review_count = sum(1 for e in endorsements if e.review_type == constants.TYPE_REVIEW)
 
             sub_endorsement_list = []
+            sub_review_list = []
             for e in endorsements:
                 if e.review_type == constants.TYPE_ENDORSEMENT:
                     sub_endorsement_list.append({
+                        'created': e.created.isoformat(),
+                        'url': e.result_url
+                    })
+                elif e.review_type == constants.TYPE_REVIEW:
+                    sub_review_list.append({
                         'created': e.created.isoformat(),
                         'url': e.result_url
                     })
@@ -222,6 +229,7 @@ class EndorsementService(BasicDbService):
                 'endorsement_count': endorsement_count,
                 'review_count': review_count,
                 'endorsement_list': sub_endorsement_list,
+                'review_list': sub_review_list,
             })
 
         return result

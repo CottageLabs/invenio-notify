@@ -171,6 +171,9 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     assert len(sorted_info[0]['endorsement_list']) == 1
     assert sorted_info[0]['endorsement_list'][0]['url'] == 'https://example.com/endorsement1'
     assert 'created' in sorted_info[0]['endorsement_list'][0]
+    assert len(sorted_info[0]['review_list']) == 1
+    assert sorted_info[0]['review_list'][0]['url'] == 'https://example.com/review1'
+    assert 'created' in sorted_info[0]['review_list'][0]
 
     # Check second reviewer's endorsement info
     assert sorted_info[1]['reviewer_id'] == reviewer2.id
@@ -180,6 +183,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     assert len(sorted_info[1]['endorsement_list']) == 1
     assert sorted_info[1]['endorsement_list'][0]['url'] == 'https://example.com/endorsement2'
     assert 'created' in sorted_info[1]['endorsement_list'][0]
+    assert len(sorted_info[1]['review_list']) == 0
 
     # Test with a non-uuid record ID - should raise StatementError
     with pytest.raises(StatementError):
