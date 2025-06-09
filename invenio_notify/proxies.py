@@ -10,3 +10,8 @@ current_reviewer_service = LocalProxy(
     lambda: current_app.extensions["invenio-notify"].reviewer_service
 )
 """Helper proxy to get the current Reviewer service extension."""
+
+
+current_endorsement_service = LocalProxy(
+    lambda: current_app.extensions["invenio-notify"].endorsement_service
+)

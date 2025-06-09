@@ -1,25 +1,24 @@
 import json
-from invenio_db import db
-
 import regex
 from flask import current_app
 from flask import g
+from invenio_accounts.models import User
+from invenio_db import db
 from invenio_db.uow import unit_of_work
-from invenio_rdm_records.services import RDMRecordService
 from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.base.utils import map_search_params
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
-from invenio_accounts.models import User
-
+from sqlalchemy.orm import with_loader_criteria, selectinload
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
-from invenio_notify.records.models import ReviewerMapModel, ReviewerModel
+from invenio_notify.records.models import ReviewerMapModel, ReviewerModel, EndorsementModel
 from invenio_notify.utils import user_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
+from invenio_rdm_records.services import RDMRecordService
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
 
@@ -156,8 +155,59 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         return COARNotifyReceipt(COARNotifyReceipt.ACCEPTED)
 
 
-class EndorsementService(RecordService):
-    pass
+class EndorsementService(BasicDbService):
+    """Service for managing endorsements."""
+    
+    def get_endorsement_info(self, record_id):
+        """Get the endorsement information for a record by its ID.
+        
+        Args:
+            record_id: The UUID of the record
+            
+        Returns:
+            list: A list of dictionaries containing endorsement information
+        """
+        if not record_id:
+            return []
+
+        # Find all reviewers who have endorsed this record using EXISTS
+        reviewers = (
+            db.session.query(ReviewerModel)
+            .filter(
+                db.exists().where(
+                    db.and_(
+                        EndorsementModel.reviewer_id == ReviewerModel.id,
+                        EndorsementModel.record_id == record_id
+                    )
+                )
+            )
+            .options(
+                selectinload(ReviewerModel.endorsements),
+                with_loader_criteria(EndorsementModel, lambda e: e.record_id == record_id)
+            ).all()
+        )
+
+        if not reviewers:
+            return []
+            
+        result = []
+        for reviewer in reviewers:
+            endorsements = reviewer.endorsements
+            endorsement_count = sum(1 for e in endorsements if e.review_type == constants.TYPE_ENDORSEMENT)
+            review_count = sum(1 for e in endorsements if e.review_type == constants.TYPE_REVIEW)
+            
+            endorsement_urls = [e.result_url for e in endorsements 
+                                if e.result_url and e.review_type == constants.TYPE_ENDORSEMENT]
+            
+            result.append({
+                'reviewer_id': reviewer.id,
+                'reviewer_name': reviewer.name,
+                'endorsement_count': endorsement_count,
+                'review_count': review_count,
+                'endorsement_urls': endorsement_urls
+            })
+            
+        return result
 
 
 class ReviewerMapService(BasicDbService):

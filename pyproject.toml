@@ -59,14 +59,12 @@ oauth_noti = "invenio_notify.scopes:inbox_scope"
 [project.entry-points."invenio_assets.webpack"]
 invenio_notify = "invenio_notify.webpack:theme"
 
+[project.entry-points."invenio_jobs.jobs"]
+process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
 
 [tool.setuptools.packages.find]
 
 
-[project.entry-points."invenio_search.mappings"]
-endorsement = "invenio_notify.records.mappings"
 
 
-[project.entry-points."invenio_jobs.jobs"]
-process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
 
