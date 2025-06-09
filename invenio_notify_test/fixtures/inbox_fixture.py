@@ -52,7 +52,7 @@ def create_notification_data(record_id):
         "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
         "object": {
             "id": "https://evolbiol.peercommunityin.org/articles/rec?articleId=794#review-3136",
-            "ietf:cite-as": "",
+            "ietf:cite-as": "https://evolbiol.peercommunityin.org/articles/rec?articleId=794#review-3136",
             "type": [
                 "Page",
                 "sorg:WebPage"
