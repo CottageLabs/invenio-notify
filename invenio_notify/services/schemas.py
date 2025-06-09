@@ -53,6 +53,7 @@ class ReviewerSchema(BaseRecordSchema):
     name = fields.String(required=True)
     coar_id = fields.String(required=True)
     inbox_url = fields.String(required=True)
+    inbox_api_token = fields.String(required=False)
     description = fields.String(required=False)
 
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
