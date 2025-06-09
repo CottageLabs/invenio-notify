@@ -1,6 +1,7 @@
+from datetime import datetime
+
 import click
 import rich
-from datetime import datetime
 from flask.cli import with_appcontext
 from invenio_db import db
 from rich.markdown import Markdown
@@ -94,13 +95,13 @@ def list(user, reviewer_id):
 
 @user.command()
 @click.argument('email')
-@click.argument('coar_ids', nargs=-1, required=True)
+@click.argument('actor_ids', nargs=-1, required=True)
 @with_appcontext
-def add(email, coar_ids):
+def add(email, actor_ids):
     """ assign coarnotify role and reviewer ids to user """
     from invenio_notify.proxies import current_reviewer_service
 
-    print(f'Assigning reviewer_id(s) {coar_ids} to user[{email}]')
+    print(f'Assigning reviewer_id(s) {actor_ids} to user[{email}]')
     user = user_utils.find_user_by_email(email)
     if user is None:
         print(f'User with email {email} not found.')
@@ -109,18 +110,18 @@ def add(email, coar_ids):
     user_utils.add_coarnotify_action(db, user.id)
 
     assigned_count = 0
-    for coar_id in coar_ids:
-        if ReviewerModel.has_member_with_email(email, coar_id):
-            print(f'User {user.email} already has reviewer ID ({coar_id}) assigned.')
+    for actor_id in actor_ids:
+        if ReviewerModel.has_member_with_email(email, actor_id):
+            print(f'User {user.email} already has reviewer ID ({actor_id}) assigned.')
             continue
 
-        reviewer_id = db.session.query(ReviewerModel.id).filter_by(coar_id=coar_id).scalar()
+        reviewer_id = db.session.query(ReviewerModel.id).filter_by(actor_id=actor_id).scalar()
 
         if reviewer_id:
             current_reviewer_service.add_member_by_emails(reviewer_id, [email])
             assigned_count += 1
         else:
-            print(f"No reviewer found with COAR ID: {coar_id}")
+            print(f"No reviewer found with actor ID: {actor_id}")
 
     if assigned_count:
         db.session.commit()
@@ -139,12 +140,12 @@ def test_data(email):
     # Generate reviewer record
     reviewer = ReviewerModel.create({
         'name': "Peer Community in Evolutionary Biology",
-        'coar_id': 'https://evolbiol.peercommunityin.org/coar_notify/',
+        'actor_id': 'https://evolbiol.peercommunityin.org/coar_notify/',
         'inbox_url': "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
         'description': f"Test reviewer generated on {datetime.now().strftime('%Y-%m-%d')}"
     })
     
-    print(f"Created reviewer: {reviewer.name} with COAR ID: {reviewer.coar_id}")
+    print(f"Created reviewer: {reviewer.name} with actor ID: {reviewer.actor_id}")
 
     # If email is provided, create a ReviewerMapModel for the user
     if email:
