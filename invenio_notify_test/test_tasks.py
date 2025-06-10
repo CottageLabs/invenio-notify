@@ -11,6 +11,25 @@ from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer_servic
 from invenio_rdm_records.proxies import current_rdm_records
 
 
+def assert_inbox_processing_failed(inbox, expected_note_prefix):
+    """Assert that inbox processing failed with expected behavior."""
+    # Verify no endorsements exist before processing
+    assert EndorsementModel.query.count() == 0
+
+    # Run the processing task
+    inbox_processing()
+
+    # Refresh the inbox record from DB
+    updated_inbox = NotifyInboxModel.get(inbox.id)
+
+    # Check that the inbox record was marked as processed with expected comment
+    assert updated_inbox.process_date is not None
+    assert updated_inbox.process_note.startswith(expected_note_prefix)
+
+    # Verify no endorsement was created
+    assert EndorsementModel.query.count() == 0
+
+
 def test_mark_as_processed(db, superuser_identity, create_inbox):
     """Test the mark_as_processed function."""
     # Create a test inbox record
@@ -102,21 +121,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
         raw=notification_data
     )
 
-    # Verify no endorsements exist before processing
-    assert EndorsementModel.query.count() == 0
-
-    # Run the processing task
-    inbox_processing()
-
-    # Refresh the inbox record from DB
-    updated_inbox = NotifyInboxModel.get(inbox.id)
-
-    # Check that the inbox record was marked as processed
-    assert updated_inbox.process_date is not None
-    assert updated_inbox.process_note.startswith("Record with ID")
-
-    # Verify no endorsement was created
-    assert EndorsementModel.query.count() == 0
+    assert_inbox_processing_failed(inbox, "Record with ID")
 
 
 def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity, create_inbox):
@@ -132,18 +137,4 @@ def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity,
         raw=notification_data
     )
 
-    # Verify no endorsements exist before processing
-    assert EndorsementModel.query.count() == 0
-
-    # Run the processing task
-    inbox_processing()
-
-    # Refresh the inbox record from DB
-    updated_inbox = NotifyInboxModel.get(inbox.id)
-
-    # Check that the inbox record was marked as processed with reviewer not found comment
-    assert updated_inbox.process_date is not None
-    assert updated_inbox.process_note.startswith("Reviewer not found")
-
-    # Verify no endorsement was created
-    assert EndorsementModel.query.count() == 0
+    assert_inbox_processing_failed(inbox, "Reviewer not found")
