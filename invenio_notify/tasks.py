@@ -113,8 +113,6 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
 
 def inbox_processing():
-    records_service = current_rdm_records_service
-
     tobe_update_records = []
     for inbox_record in NotifyInboxModel.search(None, [
         NotifyInboxModel.process_date.is_(None),
@@ -140,7 +138,7 @@ def inbox_processing():
         # Get the record using the PID resolver
         try:
             # TODO study register_only=False, should we use registered_only=False
-            record = records_service.record_cls.pid.resolve(record_id, registered_only=False)
+            record = current_rdm_records_service.record_cls.pid.resolve(record_id, registered_only=False)
             log.info(f"Successfully retrieved record with ID: {record_id}")
 
         except PIDDoesNotExistError:
