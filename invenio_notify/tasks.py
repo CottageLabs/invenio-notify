@@ -35,6 +35,11 @@ def mark_as_processed(inbox_record: NotifyInboxModel, comment=None, uow=None):
         inbox_record.process_note = comment
 
 
+class ReviewerNotFoundError(Exception):
+    """Custom exception for when a reviewer is not found."""
+    pass
+
+
 @unit_of_work()
 def create_endorsement_record(identity, user_id, record_id, inbox_id, notification_raw,
                               uow=None):
@@ -53,13 +58,16 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     endorsement_service = current_app.extensions["invenio-notify"].endorsement_service
 
     # Extract actor ID from notification
-    actor_id = notification_raw.get('actor', {}).get('id', 'unknown-reviewer')
+    actor_id = notification_raw.get('actor', {}).get('id', None)
+    if not actor_id:
+        log.warning(f"Could not extract actor_id from notification {inbox_id}")
+        raise ReviewerNotFoundError(f"Actor ID not found in notification {inbox_id}")
 
     # Find ReviewerModel with matching actor_id
     reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
     if not reviewer:
         log.warning(f"Could not find reviewer with actor_id '{actor_id}'. Using None for reviewer_id.")
-        raise ValueError(f"Reviewer with actor_id '{actor_id}' not found")
+        raise ReviewerNotFoundError(f"Reviewer with actor_id '{actor_id}' not found")
 
     reviewer_id = reviewer.id
     log.info(f"Found reviewer ID {reviewer_id} for actor_id '{actor_id}'")
@@ -147,13 +155,19 @@ def inbox_processing():
             continue
 
         # Create endorsement record
-        endorsement = create_endorsement_record(
-            system_identity,
-            inbox_record.user_id,
-            record.id,
-            inbox_record.id,
-            notification_raw
-        )
+        try:
+            endorsement = create_endorsement_record(
+                system_identity,
+                inbox_record.user_id,
+                record.id,
+                inbox_record.id,
+                notification_raw
+            )
+        except ReviewerNotFoundError as e:
+            log.warning(f"Failed to create endorsement record: {e}")
+            mark_as_processed(inbox_record, comment="Reviewer not found")
+            continue
+
         log.info(f"Created endorsement record: {endorsement._record.id}")
 
         # Mark inbox as processed after successful endorsement creation
