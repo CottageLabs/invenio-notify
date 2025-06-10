@@ -117,3 +117,33 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
 
     # Verify no endorsement was created
     assert EndorsementModel.query.count() == 0
+
+
+def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity, create_inbox):
+    """Test inbox processing when the reviewer is not found."""
+    recid = rdm_record.id
+
+    notification_data = create_notification_data(recid)
+    # Do not create reviewer, so actor_id won't match any reviewer
+
+    # Create inbox record
+    inbox = create_inbox(
+        recid=recid,
+        raw=notification_data
+    )
+
+    # Verify no endorsements exist before processing
+    assert EndorsementModel.query.count() == 0
+
+    # Run the processing task
+    inbox_processing()
+
+    # Refresh the inbox record from DB
+    updated_inbox = NotifyInboxModel.get(inbox.id)
+
+    # Check that the inbox record was marked as processed with reviewer not found comment
+    assert updated_inbox.process_date is not None
+    assert updated_inbox.process_note == "Reviewer not found"
+
+    # Verify no endorsement was created
+    assert EndorsementModel.query.count() == 0
