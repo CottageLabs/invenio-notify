@@ -238,5 +238,5 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     result_url = db.Column(db.Text, nullable=False)
     """ url of review results """
 
-    reviewer_name = db.Column(db.Text, nullable=True)
+    reviewer_name = db.Column(db.Text, nullable=False)
     """ name of the reviewer, copy it in case the reviewer is deleted """

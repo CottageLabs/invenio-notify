@@ -34,7 +34,7 @@ class EndorsementSchema(BaseRecordSchema):
     user_id = fields.Integer(required=True)
     inbox_id = fields.Integer(required=True)
     result_url = fields.String(required=True)
-    reviewer_name = fields.String(required=False, allow_none=True)
+    reviewer_name = fields.String(required=True)
 
 
 class ReviewerMapSchema(BaseRecordSchema):
