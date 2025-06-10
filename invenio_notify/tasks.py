@@ -84,6 +84,7 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
         'user_id': user_id,
         'inbox_id': inbox_id,
         'result_url': review_url,
+        'reviewer_name': reviewer.name,
     }
 
     # Get reviewer name for notification
