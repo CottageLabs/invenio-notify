@@ -59,6 +59,7 @@ class ReviewerDetailView(AdminResourceDetailView):
         "name": {"text": _("Name"), "order": 2, "width": 2},
         "actor_id": {"text": _("Actor ID"), "order": 3, "width": 2},
         "inbox_url": {"text": _("Inbox URL"), "order": 4, "width": 2},
+        "inbox_api_token": {"text": _("Inbox API Token"), "order": 4, "width": 2},
         "description": {"text": _("Description"), "order": 5, "width": 3},
         "created": {"text": _("Created"), "order": 6, "width": 2},
         "updated": {"text": _("Updated"), "order": 7, "width": 2},
@@ -68,22 +69,27 @@ class ReviewerDetailView(AdminResourceDetailView):
 # Common form fields for create and edit views
 reviewer_form_fields = {
     "name": {
-        "order": 1,
+        "order": 10,
         "text": _("Name"),
         "description": _("Full name of the reviewer."),
     },
     "actor_id": {
-        "order": 2,
+        "order": 20,
         "text": _("Actor ID"),
         "description": _("ID used in COAR notification (JSON)."),
     },
     "inbox_url": {
-        "order": 3,
+        "order": 30,
         "text": _("Inbox URL"),
         "description": _("Inbox URL for the reviewer."),
     },
+    "inbox_api_token": {
+        "order": 35,
+        "text": _("Inbox API Token"),
+        "description": _("API token for the reviewer's inbox."),
+    },
     "description": {
-        "order": 4,
+        "order": 40,
         "text": _("Description"),
         "description": _("Additional information about the reviewer."),
     },
@@ -120,6 +126,6 @@ class ReviewerEditView(AdminResourceEditView):
 
     form_fields = {
         **reviewer_form_fields,
-        "created": {"order": 5},
-        "updated": {"order": 6},
+        "created": {"order": 500},
+        "updated": {"order": 600},
     }
