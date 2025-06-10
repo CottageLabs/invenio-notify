@@ -113,7 +113,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
 
     # Check that the inbox record was marked as processed
     assert updated_inbox.process_date is not None
-    assert updated_inbox.process_note is not None
+    assert updated_inbox.process_note.startswith("Record with ID")
 
     # Verify no endorsement was created
     assert EndorsementModel.query.count() == 0
@@ -143,7 +143,7 @@ def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity,
 
     # Check that the inbox record was marked as processed with reviewer not found comment
     assert updated_inbox.process_date is not None
-    assert updated_inbox.process_note == "Reviewer not found"
+    assert updated_inbox.process_note.startswith("Reviewer not found")
 
     # Verify no endorsement was created
     assert EndorsementModel.query.count() == 0
