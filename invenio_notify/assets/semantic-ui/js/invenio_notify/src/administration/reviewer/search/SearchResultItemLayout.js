@@ -13,9 +13,14 @@ class SearchResultItemComponent extends Component {
 
   render() {
     const {
+      title,
+      resourceName,
       result,
-      listUIEndpoint,
+      displayEdit,
+      displayDelete,
+      actions,
       idKeyPath,
+      listUIEndpoint,
       ...values
     } = this.props;
 
@@ -45,9 +50,25 @@ class SearchResultItemComponent extends Component {
           {new Date(result.updated).toLocaleString()}
         </Table.Cell>
         <Table.Cell collapsing>
-          <ReviewerSearchActions 
+          <div>
+          <Button.Group size="tiny" basic widths={5} compact className="margined">
+            <Actions
+              title={title}
+              resourceName={resourceName}
+              editUrl={AdminUIRoutes.editView(listUIEndpoint, result, idKeyPath)}
+              displayEdit={displayEdit}
+              displayDelete={displayDelete}
+              actions={actions}
+              resource={result}
+              idKeyPath={idKeyPath}
+              successCallback={this.refreshAfterAction}
+              listUIEndpoint={listUIEndpoint}
+            />
+          <ReviewerSearchActions
             result={result}
           />
+          </Button.Group>
+            </div>
         </Table.Cell>
       </Table.Row>
     );
