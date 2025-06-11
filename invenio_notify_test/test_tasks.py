@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from invenio_accounts.models import User
 
 from invenio_notify import constants
@@ -74,11 +75,17 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
 
     # Verify record.endorsements is updated
     assert record.endorsements == [
-        {'endorsement_count': 0,
-         'endorsement_urls': [],
-         'review_count': 1,
-         'reviewer_id': reviewer.id,
-         'reviewer_name': reviewer.name}
+        {
+            'endorsement_count': 0,
+            'endorsement_list': [],
+            'review_count': 1,
+            'reviewer_id': reviewer.id,
+            'reviewer_name': reviewer.name,
+            'review_list': [{
+                'created': endorsement.created.isoformat(),
+                'url': endorsement.result_url,
+            }]
+        }
     ]
 
 

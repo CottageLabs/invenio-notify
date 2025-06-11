@@ -10,7 +10,7 @@ def create_current_utc_datetime():
 
 
 class NotifyInboxSchema(BaseRecordSchema):
-    raw = fields.Dict(required=True)
+    raw = fields.String(required=True)  # admin page UI does not support dict yet
     recid = fields.String(required=True)
 
     user_id = fields.Integer(required=True)
@@ -19,6 +19,12 @@ class NotifyInboxSchema(BaseRecordSchema):
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
     process_date = TZDateTime(timezone=timezone.utc, format="iso", required=False)
+
+
+class ApiNotifyInboxSchema(BaseRecordSchema):
+    raw = fields.Dict(required=True)  # raw for api must be a dict
+    recid = fields.String(required=True)
+    user_id = fields.Integer(required=True)
 
 
 class EndorsementSchema(BaseRecordSchema):
@@ -52,7 +58,7 @@ class ReviewerSchema(BaseRecordSchema):
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
-    members = fields.List(fields.Nested(UserSchema), required=False)
+    members = fields.List(fields.Nested(UserSchema), required=False, dump_only=True)
 
 
 class AddMemberSchema(BaseRecordSchema):

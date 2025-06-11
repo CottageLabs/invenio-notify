@@ -10,15 +10,15 @@ if TYPE_CHECKING:
 current_notify = LocalProxy(lambda: current_app.extensions["invenio-notify"])
 
 current_reviewer_service: 'ReviewerService' = LocalProxy(  # type:ignore[assignment]
-    lambda: current_app.extensions["invenio-notify"].reviewer_service
+    lambda: current_notify.reviewer_service
 )
 
 current_endorsement_service: 'EndorsementService' = LocalProxy( # type:ignore[assignment]
-    lambda: current_app.extensions["invenio-notify"].endorsement_service
+    lambda: current_notify.endorsement_service
 )
 
 current_inbox_service: 'NotifyInboxService' = LocalProxy( # type:ignore[assignment]
-    lambda: current_app.extensions["invenio-notify"].notify_inbox_service
+    lambda: current_notify.notify_inbox_service
 )
 
 
