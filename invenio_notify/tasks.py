@@ -1,17 +1,21 @@
 import logging
-from celery import shared_task
 from datetime import datetime
+
+from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
 from invenio_db.uow import unit_of_work
+from invenio_notifications.services.uow import NotificationOp
 from invenio_pidstore.errors import PIDDoesNotExistError
 
 from coarnotify.factory import COARNotifyFactory
 from invenio_notify import constants
 from invenio_notify.constants import REVIEW_TYPES
+from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder
 from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.records.models import RDMRecordMetadata
 
 log = logging.getLogger(__name__)
 
@@ -31,7 +35,9 @@ def mark_as_processed(inbox_record: NotifyInboxModel, comment=None, uow=None):
         inbox_record.process_note = comment
 
 
-def create_endorsement_record(identity, user_id, record_id, inbox_id, notification_raw):
+@unit_of_work()
+def create_endorsement_record(identity, user_id, record_id, inbox_id, notification_raw,
+                              uow=None):
     """
     Create a new endorsement record using the endorsement service.
 
@@ -80,8 +86,29 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
         'result_url': review_url,
     }
 
+    # Get reviewer name for notification
+    reviewer_name = reviewer.name
+
+    if reviewer_type == constants.TYPE_ENDORSEMENT:
+        try:
+            record = RDMRecordMetadata.query.filter_by(id=record_id).one()
+        except Exception as e:
+            log.warning(f"Could not resolve record for notification: {e}")
+            record = None
+
+        uow.register(
+            NotificationOp(
+                NewEndorsementNotificationBuilder.build(
+                    record=record,
+                    reviewer_name=reviewer_name,
+                    endorsement_url=review_url,
+                    user_id=user_id,
+                ),
+            )
+        )
+
     # Create the endorsement record
-    return endorsement_service.create(identity, endorsement_data)
+    return endorsement_service.create(identity, endorsement_data, uow=uow)
 
 
 def inbox_processing():
