@@ -1,16 +1,14 @@
-from invenio_notify.records.models import ReviewerModel
-from invenio_notify.services.config import ReviewerServiceConfig
-from invenio_notify.services.service import ReviewerService
-import pytest
-from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer, create_reviewer_service, reviewer_data, sample_reviewers
-from invenio_accounts.models import User
 from invenio_accounts.testutils import create_test_user
+
+from invenio_notify.records.models import ReviewerModel
+from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer, create_reviewer_service, reviewer_data, \
+    sample_reviewers
 from invenio_notify_test.fixtures.user_fixture import create_test_users
 
 
 def test_create_model(db, superuser_identity):
     assert ReviewerModel.query.count() == 0
-    data = reviewer_data()
+    data = reviewer_data(inbox_api_token='test-api-token')
 
     # Create a new reviewer entry
     reviewer = ReviewerModel.create(data)
@@ -20,9 +18,10 @@ def test_create_model(db, superuser_identity):
 
     # Retrieve the record and verify attributes
     retrieved = ReviewerModel.get(reviewer.id)
-    assert retrieved.coar_id == data['coar_id']
+    assert retrieved.actor_id == data['actor_id']
     assert retrieved.name == data['name']
     assert retrieved.inbox_url == data['inbox_url']
+    assert retrieved.inbox_api_token == data['inbox_api_token']
     assert retrieved.description == data['description']
 
 
@@ -35,9 +34,10 @@ def test_service_create(test_app, superuser_identity):
     result = reviewer_serv.create(superuser_identity, data)
 
     result_dict = result.to_dict()
-    assert result_dict['coar_id'] == data['coar_id']
+    assert result_dict['actor_id'] == data['actor_id']
     assert result_dict['name'] == data['name']
     assert result_dict['inbox_url'] == data['inbox_url']
+    assert result_dict['inbox_api_token'] == data['inbox_api_token']
     assert result_dict['description'] == data['description']
     assert 'links' in result_dict
     assert ReviewerModel.query.count() == 1
@@ -158,3 +158,43 @@ def test_service_del_member(test_app, superuser_identity, db, create_reviewer):
     assert len(member_emails) == 2
     assert "test1@example.com" in member_emails
     assert "test3@example.com" in member_emails
+
+
+def test_inbox_api_token_field(db, superuser_identity):
+    """Test that inbox_api_token field works correctly."""
+    
+    # Test creating reviewer with inbox_api_token
+    data_with_token = reviewer_data(
+        actor_id='reviewer-with-token',
+        inbox_api_token='secret-api-token-123'
+    )
+    
+    reviewer_with_token = ReviewerModel.create(data_with_token)
+    
+    # Verify token was saved correctly
+    assert reviewer_with_token.inbox_api_token == 'secret-api-token-123'
+    
+    # Test creating reviewer without inbox_api_token (should be None)
+    data_without_token = reviewer_data(
+        actor_id='reviewer-without-token',
+        inbox_api_token=None
+    )
+    
+    reviewer_without_token = ReviewerModel.create(data_without_token)
+    
+    # Verify token is None
+    assert reviewer_without_token.inbox_api_token is None
+    
+    # Test service layer with inbox_api_token
+    reviewer_serv = create_reviewer_service()
+    
+    data_service_test = reviewer_data(
+        actor_id='service-test-reviewer',
+        inbox_api_token='service-token-456'
+    )
+    
+    result = reviewer_serv.create(superuser_identity, data_service_test)
+    result_dict = result.to_dict()
+    
+    # Verify token is included in service response
+    assert result_dict['inbox_api_token'] == 'service-token-456'
