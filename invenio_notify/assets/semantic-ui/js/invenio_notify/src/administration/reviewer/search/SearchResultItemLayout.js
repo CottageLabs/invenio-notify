@@ -1,7 +1,7 @@
 import { BoolFormatter, Actions } from "@js/invenio_administration";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
-import { Table, Dropdown, Icon, Button } from "semantic-ui-react";
+import { Table, Dropdown, Icon, Button, Grid } from "semantic-ui-react";
 import { withState } from "react-searchkit";
 import { AdminUIRoutes } from "@js/invenio_administration/src/routes";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
@@ -50,25 +50,30 @@ class SearchResultItemComponent extends Component {
           {new Date(result.updated).toLocaleString()}
         </Table.Cell>
         <Table.Cell collapsing>
-          <div>
-          <Button.Group size="tiny" basic widths={5} compact className="margined">
-            <Actions
-              title={title}
-              resourceName={resourceName}
-              editUrl={AdminUIRoutes.editView(listUIEndpoint, result, idKeyPath)}
-              displayEdit={displayEdit}
-              displayDelete={displayDelete}
-              actions={actions}
-              resource={result}
-              idKeyPath={idKeyPath}
-              successCallback={this.refreshAfterAction}
-              listUIEndpoint={listUIEndpoint}
-            />
-          <ReviewerSearchActions
-            result={result}
-          />
-          </Button.Group>
-            </div>
+          <Grid>
+            <Grid.Row>
+              <Grid.Column width={2.5} verticalAlign="middle">
+                <Actions
+                  title={title}
+                  resourceName={resourceName}
+                  editUrl={AdminUIRoutes.editView(listUIEndpoint, result, idKeyPath)}
+                  displayEdit={displayEdit}
+                  displayDelete={displayDelete}
+                  actions={actions}
+                  resource={result}
+                  idKeyPath={idKeyPath}
+                  successCallback={this.refreshAfterAction}
+                  listUIEndpoint={listUIEndpoint}
+                />
+              </Grid.Column>
+              <Grid.Column width={3} verticalAlign="middle">
+                <ReviewerSearchActions
+                  result={result}
+                  className="ml-2"
+                />
+              </Grid.Column>
+            </Grid.Row>
+          </Grid>
         </Table.Cell>
       </Table.Row>
     );
