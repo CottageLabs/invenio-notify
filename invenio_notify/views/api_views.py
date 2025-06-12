@@ -19,6 +19,8 @@ def inbox():
     input data will be save as raw data in the database
     """
 
+    # TODO catch and handle exception if actor id is not url
+
     if not request.is_json:
         # return jsonify({"error": "Request must be JSON"}), 400
         return create_fail_response(constants.STATUS_BAD_REQUEST, "Request must be JSON")
