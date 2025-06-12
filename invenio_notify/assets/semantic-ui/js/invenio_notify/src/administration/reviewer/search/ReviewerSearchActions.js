@@ -9,8 +9,6 @@ export class ReviewerSearchActions extends Component {
         return (
             <>
                 <Dropdown
-                    width={5}
-                    fluid
                     text={"Actions"}
                     icon="cog"
                     floating
