@@ -228,7 +228,8 @@ class EndorsementService(BasicDbService):
                     'url': e.result_url
                 })
 
-            reviewer_name = (sub_review_list + sub_endorsement_list)[-1].reviewer_name
+            _endorsements = data['reviews'] + data['endorsements']
+            reviewer_name = _endorsements[-1].reviewer.name if _endorsements else 'Unknown'
             result.append({
                 'reviewer_id': reviewer_id,
                 'reviewer_name': reviewer_name,
