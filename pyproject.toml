@@ -57,7 +57,7 @@ invenio_notify = "invenio_notify.records.models"
 oauth_noti = "invenio_notify.scopes:inbox_scope"
 
 [project.entry-points."invenio_assets.webpack"]
-invenio_notify = "invenio_notify.webpack:theme"
+invenio_notify = "invenio_notify.webpack:notify"
 
 [project.entry-points."invenio_jobs.jobs"]
 process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
