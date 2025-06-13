@@ -10,6 +10,25 @@ from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 from invenio_notify_test.utils import BasicDbServiceTestHelper
 
 
+def create_default_endorsement_request_data(reviewer_id, record_uuid=None, latest_status="Request Endorsement"):
+    """Create default data for EndorsementRequestModel.
+    
+    Args:
+        reviewer_id: ID of the reviewer
+        record_uuid: UUID of the record (generates random if None)
+        latest_status: Status of the request
+        
+    Returns:
+        dict: Data for creating EndorsementRequestModel
+    """
+    return {
+        'record_uuid': record_uuid or str(uuid.uuid4()),
+        'reviewer_id': reviewer_id,
+        'raw': {'test': 'data'},
+        'latest_status': latest_status
+    }
+
+
 def create_endorsement_reply_service():
     """Create an EndorsementReplyService instance."""
     return EndorsementReplyService(EndorsementReplyServiceConfig)
@@ -22,12 +41,9 @@ def create_endorsement_reply(superuser_identity, create_reviewer, create_inbox):
         if endorsement_request_id is None:
             # Create an endorsement request
             reviewer = create_reviewer()
-            request = EndorsementRequestModel.create({
-                'record_uuid': str(uuid.uuid4()),
-                'reviewer_id': reviewer.id,
-                'raw': {'test': 'data'},
-                'latest_status': 'Request Endorsement'
-            })
+            request = EndorsementRequestModel.create(
+                create_default_endorsement_request_data(reviewer.id)
+            )
             endorsement_request_id = request.id
         
         inbox = create_inbox()
@@ -62,12 +78,9 @@ def test_service_create(superuser_identity, create_reviewer, create_inbox):
     
     # Create dependencies
     reviewer = create_reviewer()
-    request = EndorsementRequestModel.create({
-        'record_uuid': str(uuid.uuid4()),
-        'reviewer_id': reviewer.id,
-        'raw': {'test': 'data'},
-        'latest_status': 'Request Endorsement'
-    })
+    request = EndorsementRequestModel.create(
+        create_default_endorsement_request_data(reviewer.id)
+    )
     inbox = create_inbox()
     
     data = {
@@ -93,12 +106,9 @@ def test_service_create_without_endorsement(superuser_identity, create_reviewer,
     
     # Create dependencies
     reviewer = create_reviewer()
-    request = EndorsementRequestModel.create({
-        'record_uuid': str(uuid.uuid4()),
-        'reviewer_id': reviewer.id,
-        'raw': {'test': 'data'},
-        'latest_status': 'Request Endorsement'
-    })
+    request = EndorsementRequestModel.create(
+        create_default_endorsement_request_data(reviewer.id)
+    )
     inbox = create_inbox()
     
     data = {
