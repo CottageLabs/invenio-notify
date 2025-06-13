@@ -14,7 +14,7 @@ from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARN
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
-from invenio_notify.records.models import ReviewerMapModel, ReviewerModel, EndorsementModel, EndorsementRequestModel, EndorsementReplyModel
+from invenio_notify.records.models import ReviewerMapModel, ReviewerModel, EndorsementModel, EndorsementRequestModel
 from invenio_notify.utils import user_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -399,6 +399,9 @@ class EndorsementRequestService(BasicDbService):
     @unit_of_work()
     def update_status(self, identity, id, status, uow=None):
         """Update the latest status of an endorsement request."""
+
+        # KTODO do we need this function
+
         self.require_permission(identity, "update")
         
         record = self.record_cls.get(id)
