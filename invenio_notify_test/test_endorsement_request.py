@@ -1,13 +1,10 @@
 import uuid
 
-import pytest
-
 from invenio_notify.proxies import current_endorsement_request_service
 from invenio_notify.records.models import EndorsementRequestModel
 from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request, \
     create_endorsement_request_data
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
-from invenio_notify_test.utils import BasicDbServiceTestHelper
 
 
 def test_model_create(create_endorsement_request):
@@ -62,14 +59,3 @@ def test_service_search_by_record_uuid(superuser_identity, create_endorsement_re
     assert result_list[0]['record_uuid'] == record_uuid
 
 
-class TestEndorsementRequestService(BasicDbServiceTestHelper):
-
-    @pytest.fixture(autouse=True)
-    def setup(self, create_endorsement_request):
-        self.create_endorsement_request = create_endorsement_request
-
-    def _create_service(self):
-        return current_endorsement_request_service
-
-    def _create_record(self, identity):
-        return self.create_endorsement_request()
