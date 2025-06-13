@@ -1,11 +1,29 @@
 from invenio_notify import config, cli
 from invenio_notify.blueprints import blueprint
-from invenio_notify.resources.config import NotifyInboxResourceConfig, ReviewerResourceConfig
-from invenio_notify.resources.resource import NotifyInboxResource, ReviewerResource
-from invenio_notify.services.config import NotifyInboxServiceConfig, EndorsementServiceConfig, ReviewerMapServiceConfig, \
-    ReviewerServiceConfig, EndorsementRequestServiceConfig, EndorsementReplyServiceConfig
-from invenio_notify.services.service import NotifyInboxService, EndorsementService, ReviewerMapService, ReviewerService, \
-    EndorsementRequestService, EndorsementReplyService
+from invenio_notify.resources.config import (
+    NotifyInboxResourceConfig,
+    ReviewerResourceConfig,
+)
+from invenio_notify.resources.resource import (
+    NotifyInboxResource,
+    ReviewerResource,
+)
+from invenio_notify.services.config import (
+    EndorsementReplyServiceConfig,
+    EndorsementRequestServiceConfig,
+    EndorsementServiceConfig,
+    NotifyInboxServiceConfig,
+    ReviewerMapServiceConfig,
+    ReviewerServiceConfig,
+)
+from invenio_notify.services.service import (
+    EndorsementReplyService,
+    EndorsementRequestService,
+    EndorsementService,
+    NotifyInboxService,
+    ReviewerMapService,
+    ReviewerService,
+)
 
 
 class InvenioNotify:

@@ -1,8 +1,8 @@
-from flask import current_app, request, jsonify
-from invenio_oauth2server import require_oauth_scopes, require_api_auth
+from flask import current_app, jsonify, request
+from invenio_oauth2server import require_api_auth, require_oauth_scopes
 from invenio_pidstore.errors import PIDDoesNotExistError
 
-from coarnotify.server import COARNotifyServerError, COARNotifyReceipt
+from coarnotify.server import COARNotifyReceipt, COARNotifyServerError
 from invenio_notify import constants
 from invenio_notify.blueprints import rest_blueprint
 from invenio_notify.errors import COARProcessFail

@@ -10,11 +10,20 @@ from invenio_records_resources.services.base.utils import map_search_params
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 
 from coarnotify.core.notify import NotifyPattern
-from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
+from coarnotify.server import (
+    COARNotifyReceipt,
+    COARNotifyServer,
+    COARNotifyServiceBinding,
+)
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
-from invenio_notify.records.models import ReviewerMapModel, ReviewerModel, EndorsementModel, EndorsementRequestModel
+from invenio_notify.records.models import (
+    EndorsementModel,
+    EndorsementRequestModel,
+    ReviewerMapModel,
+    ReviewerModel,
+)
 from invenio_notify.utils import user_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service

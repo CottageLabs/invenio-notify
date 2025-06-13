@@ -2,8 +2,10 @@ import uuid
 
 from invenio_notify.proxies import current_endorsement_request_service
 from invenio_notify.records.models import EndorsementRequestModel
-from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request, \
-    create_endorsement_request_data
+from invenio_notify_test.fixtures.endorsement_request_fixture import (
+    create_endorsement_request,
+    create_endorsement_request_data,
+)
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 
 

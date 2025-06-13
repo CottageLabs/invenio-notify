@@ -1,5 +1,10 @@
 from flask import g
-from flask_resources import Resource, resource_requestctx, response_handler, route
+from flask_resources import (
+    Resource,
+    resource_requestctx,
+    response_handler,
+    route,
+)
 from invenio_records_resources.resources.records.resource import (
     request_data,
     request_headers,
