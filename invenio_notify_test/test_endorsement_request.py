@@ -25,9 +25,9 @@ def test_service_create(superuser_identity, create_reviewer):
     data = create_default_endorsement_request_data(
         reviewer.id, 
         record_uuid=str(uuid.uuid4()),
-        latest_status='Request Endorsement'
+        latest_status='Request Endorsement',
+        raw={'test': 'service_data'}
     )
-    data['raw'] = {'test': 'service_data'}  # Override with test-specific data
     
     result = service.create(superuser_identity, data)
     assert result.data['id'] is not None

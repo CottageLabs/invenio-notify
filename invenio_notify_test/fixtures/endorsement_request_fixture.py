@@ -3,13 +3,14 @@ import uuid
 from invenio_notify.records.models import EndorsementRequestModel
 
 
-def create_default_endorsement_request_data(reviewer_id, record_uuid=None, latest_status="Request Endorsement"):
+def create_default_endorsement_request_data(reviewer_id, record_uuid=None, latest_status="Request Endorsement", raw=None):
     """Create default data for EndorsementRequestModel.
     
     Args:
         reviewer_id: ID of the reviewer
         record_uuid: UUID of the record (generates random if None)
         latest_status: Status of the request
+        raw: Raw data dict (uses default if None)
         
     Returns:
         dict: Data for creating EndorsementRequestModel
@@ -17,7 +18,7 @@ def create_default_endorsement_request_data(reviewer_id, record_uuid=None, lates
     return {
         'record_uuid': record_uuid or str(uuid.uuid4()),
         'reviewer_id': reviewer_id,
-        'raw': {'test': 'data'},
+        'raw': raw or {'test': 'data'},
         'latest_status': latest_status
     }
 
