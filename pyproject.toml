@@ -62,6 +62,9 @@ invenio_notify = "invenio_notify.webpack:theme"
 [project.entry-points."invenio_jobs.jobs"]
 process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
 
+[tool.setuptools]
+include-package-data = true
+
 [tool.setuptools.packages.find]
 
 
