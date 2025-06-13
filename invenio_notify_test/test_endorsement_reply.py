@@ -6,26 +6,8 @@ from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequ
 from invenio_notify.proxies import current_endorsement_reply_service
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
+from invenio_notify_test.fixtures.endorsement_request_fixture import create_default_endorsement_request_data
 from invenio_notify_test.utils import BasicDbServiceTestHelper
-
-
-def create_default_endorsement_request_data(reviewer_id, record_uuid=None, latest_status="Request Endorsement"):
-    """Create default data for EndorsementRequestModel.
-    
-    Args:
-        reviewer_id: ID of the reviewer
-        record_uuid: UUID of the record (generates random if None)
-        latest_status: Status of the request
-        
-    Returns:
-        dict: Data for creating EndorsementRequestModel
-    """
-    return {
-        'record_uuid': record_uuid or str(uuid.uuid4()),
-        'reviewer_id': reviewer_id,
-        'raw': {'test': 'data'},
-        'latest_status': latest_status
-    }
 
 
 
