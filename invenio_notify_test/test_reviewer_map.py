@@ -1,12 +1,7 @@
 from invenio_notify.records.models import ReviewerMapModel
-from invenio_notify.services.config import ReviewerMapServiceConfig
-from invenio_notify.services.service import ReviewerMapService
+from invenio_notify.proxies import current_notify
 from invenio_notify_test.fixtures.reviewer_map_fixture import create_reviewer_map_dict
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
-
-
-def create_reviewer_map_service():
-    return ReviewerMapService(config=ReviewerMapServiceConfig)
 
 
 def test_create_model(db, superuser_identity, create_reviewer):
@@ -28,7 +23,7 @@ def test_create_model(db, superuser_identity, create_reviewer):
 
 
 def test_service_create(test_app, superuser_identity, create_reviewer):
-    reviewer_map_serv = create_reviewer_map_service()
+    reviewer_map_serv = current_notify.reviewer_map_service
 
     assert ReviewerMapModel.query.count() == 0
     reviewer = create_reviewer()
@@ -46,7 +41,7 @@ def test_service_create(test_app, superuser_identity, create_reviewer):
 
 
 def test_service_search(test_app, superuser_identity, create_reviewer):
-    reviewer_map_serv = create_reviewer_map_service()
+    reviewer_map_serv = current_notify.reviewer_map_service
 
     assert ReviewerMapModel.query.count() == 0
 

@@ -7,7 +7,7 @@ from invenio_notify.records.models import NotifyInboxModel, EndorsementModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.inbox_fixture import create_notification_data
-from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer_service
+from invenio_notify.proxies import current_reviewer_service
 from invenio_rdm_records.proxies import current_rdm_records
 
 
@@ -54,7 +54,7 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
 
     # add sender account to reviewer members
     reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
-    reviewer_service = create_reviewer_service()
+    reviewer_service = current_reviewer_service
     reviewer_service.add_member_by_emails(
         reviewer.id,
         [User.query.get(superuser_identity.id).email]

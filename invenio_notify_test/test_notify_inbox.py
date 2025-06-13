@@ -1,11 +1,6 @@
 from invenio_notify.records.models import NotifyInboxModel
-from invenio_notify.services.config import NotifyInboxServiceConfig
-from invenio_notify.services.service import NotifyInboxService
+from invenio_notify.proxies import current_inbox_service
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox, create_notification_data
-
-
-def create_notify_inbox_service():
-    return NotifyInboxService(config=NotifyInboxServiceConfig)
 
 
 def test_create_model(db, superuser_identity, create_inbox):
@@ -21,7 +16,7 @@ def test_create_model(db, superuser_identity, create_inbox):
 
 
 def test_service_create(test_app, superuser_identity):
-    notify_inbox_serv = create_notify_inbox_service()
+    notify_inbox_serv = current_inbox_service
 
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
@@ -35,7 +30,7 @@ def test_service_create(test_app, superuser_identity):
 
 
 def test_service_search(test_app, superuser_identity):
-    notify_inbox_serv = create_notify_inbox_service()
+    notify_inbox_serv = current_inbox_service
 
 
     # Create multiple inbox records
