@@ -28,9 +28,6 @@ def create_default_endorsement_request_data(reviewer_id, record_uuid=None, lates
     }
 
 
-def create_endorsement_reply_service():
-    """Create an EndorsementReplyService instance."""
-    return current_endorsement_reply_service
 
 
 @pytest.fixture
@@ -73,7 +70,7 @@ def test_model_create(create_endorsement_reply):
 
 def test_service_create(superuser_identity, create_reviewer, create_inbox):
     """Test creating an endorsement reply via service."""
-    service = create_endorsement_reply_service()
+    service = current_endorsement_reply_service
     
     # Create dependencies
     reviewer = create_reviewer()
@@ -101,7 +98,7 @@ def test_service_create(superuser_identity, create_reviewer, create_inbox):
 
 def test_service_create_without_endorsement(superuser_identity, create_reviewer, create_inbox):
     """Test creating an endorsement reply without endorsement_id."""
-    service = create_endorsement_reply_service()
+    service = current_endorsement_reply_service
     
     # Create dependencies
     reviewer = create_reviewer()
@@ -124,7 +121,7 @@ def test_service_create_without_endorsement(superuser_identity, create_reviewer,
 
 def test_service_search_by_request_id(superuser_identity, create_endorsement_reply):
     """Test searching endorsement replies by endorsement request ID."""
-    service = create_endorsement_reply_service()
+    service = current_endorsement_reply_service
     
     # Create replies for different requests
     reply1 = create_endorsement_reply()
@@ -150,7 +147,7 @@ class TestEndorsementReplyService(BasicDbServiceTestHelper):
         self.create_endorsement_reply = create_endorsement_reply
 
     def _create_service(self):
-        return create_endorsement_reply_service()
+        return current_endorsement_reply_service
 
     def _create_record(self, identity):
         return self.create_endorsement_reply()

@@ -25,9 +25,6 @@ def create_default_endorsement_request_data(reviewer_id, record_uuid=None, lates
     }
 
 
-def create_endorsement_request_service():
-    """Create an EndorsementRequestService instance."""
-    return current_endorsement_request_service
 
 
 @pytest.fixture
@@ -59,7 +56,7 @@ def test_model_create(create_endorsement_request):
 
 def test_service_create(superuser_identity, create_reviewer):
     """Test creating an endorsement request via service."""
-    service = create_endorsement_request_service()
+    service = current_endorsement_request_service
     reviewer = create_reviewer()
     
     data = {
@@ -77,7 +74,7 @@ def test_service_create(superuser_identity, create_reviewer):
 
 def test_service_update_status(superuser_identity, create_endorsement_request):
     """Test updating endorsement request status via service."""
-    service = create_endorsement_request_service()
+    service = current_endorsement_request_service
     request = create_endorsement_request()
     
     result = service.update_status(superuser_identity, request.id, 'Announce Endorsement')
@@ -89,7 +86,7 @@ def test_service_update_status(superuser_identity, create_endorsement_request):
 
 def test_service_search_by_record_uuid(superuser_identity, create_endorsement_request):
     """Test searching endorsement requests by record UUID."""
-    service = create_endorsement_request_service()
+    service = current_endorsement_request_service
     record_uuid = str(uuid.uuid4())
     
     # Create multiple requests, one with specific record_uuid
@@ -111,7 +108,7 @@ class TestEndorsementRequestService(BasicDbServiceTestHelper):
         self.create_endorsement_request = create_endorsement_request
 
     def _create_service(self):
-        return create_endorsement_request_service()
+        return current_endorsement_request_service
 
     def _create_record(self, identity):
         return self.create_endorsement_request()

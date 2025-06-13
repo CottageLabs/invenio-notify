@@ -1,7 +1,8 @@
 from invenio_accounts.testutils import create_test_user
 
 from invenio_notify.records.models import ReviewerModel
-from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer, create_reviewer_service, reviewer_data, \
+from invenio_notify.proxies import current_reviewer_service
+from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer, reviewer_data, \
     sample_reviewers
 from invenio_notify_test.fixtures.user_fixture import create_test_users
 
@@ -26,7 +27,7 @@ def test_create_model(db, superuser_identity):
 
 
 def test_service_create(test_app, superuser_identity):
-    reviewer_serv = create_reviewer_service()
+    reviewer_serv = current_reviewer_service
 
     assert ReviewerModel.query.count() == 0
     data = reviewer_data()
@@ -44,7 +45,7 @@ def test_service_create(test_app, superuser_identity):
 
 
 def test_service_search(test_app, superuser_identity):
-    reviewer_serv = create_reviewer_service()
+    reviewer_serv = current_reviewer_service
 
     assert ReviewerModel.query.count() == 0
 
@@ -76,7 +77,7 @@ def test_service_search(test_app, superuser_identity):
 
 def test_service_add_member(test_app, superuser_identity, db, create_reviewer):
     # Create reviewer service
-    reviewer_serv = create_reviewer_service()
+    reviewer_serv = current_reviewer_service
     
     # Create a reviewer
     reviewer = create_reviewer()
@@ -113,7 +114,7 @@ def test_service_add_member(test_app, superuser_identity, db, create_reviewer):
 
 def test_service_del_member(test_app, superuser_identity, db, create_reviewer):
     # Create reviewer service
-    reviewer_serv = create_reviewer_service()
+    reviewer_serv = current_reviewer_service
     
     # Create a reviewer
     reviewer = create_reviewer()
@@ -186,7 +187,7 @@ def test_inbox_api_token_field(db, superuser_identity):
     assert reviewer_without_token.inbox_api_token is None
     
     # Test service layer with inbox_api_token
-    reviewer_serv = create_reviewer_service()
+    reviewer_serv = current_reviewer_service
     
     data_service_test = reviewer_data(
         actor_id='service-test-reviewer',
