@@ -3,7 +3,7 @@ import uuid
 from invenio_notify.records.models import EndorsementRequestModel
 
 
-def create_default_endorsement_request_data(reviewer_id, record_uuid=None, latest_status="Request Endorsement", raw=None):
+def create_endorsement_request_data(reviewer_id, record_uuid=None, latest_status="Request Endorsement", raw=None):
     """Create default data for EndorsementRequestModel.
     
     Args:
@@ -35,6 +35,6 @@ def create_endorsement_request(superuser_identity, create_reviewer):
             record_uuid = str(uuid.uuid4())
             
         return EndorsementRequestModel.create(
-            create_default_endorsement_request_data(reviewer_id, record_uuid, latest_status)
+            create_endorsement_request_data(reviewer_id, record_uuid, latest_status)
         )
     return _create_endorsement_request

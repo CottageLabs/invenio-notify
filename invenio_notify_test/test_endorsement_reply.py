@@ -6,7 +6,7 @@ from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequ
 from invenio_notify.proxies import current_endorsement_reply_service
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
-from invenio_notify_test.fixtures.endorsement_request_fixture import create_default_endorsement_request_data
+from invenio_notify_test.fixtures.endorsement_request_fixture import create_create_endorsement_request_data
 from invenio_notify_test.utils import BasicDbServiceTestHelper
 
 
@@ -20,7 +20,7 @@ def create_endorsement_reply(superuser_identity, create_reviewer, create_inbox):
             # Create an endorsement request
             reviewer = create_reviewer()
             request = EndorsementRequestModel.create(
-                create_default_endorsement_request_data(reviewer.id)
+                create_endorsement_request_data(reviewer.id)
             )
             endorsement_request_id = request.id
         
@@ -57,7 +57,7 @@ def test_service_create(superuser_identity, create_reviewer, create_inbox):
     # Create dependencies
     reviewer = create_reviewer()
     request = EndorsementRequestModel.create(
-        create_default_endorsement_request_data(reviewer.id)
+        create_endorsement_request_data(reviewer.id)
     )
     inbox = create_inbox()
     
@@ -85,7 +85,7 @@ def test_service_create_without_endorsement(superuser_identity, create_reviewer,
     # Create dependencies
     reviewer = create_reviewer()
     request = EndorsementRequestModel.create(
-        create_default_endorsement_request_data(reviewer.id)
+        create_endorsement_request_data(reviewer.id)
     )
     inbox = create_inbox()
     
