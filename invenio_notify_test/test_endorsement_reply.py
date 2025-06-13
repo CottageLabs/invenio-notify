@@ -3,8 +3,7 @@ import uuid
 import pytest
 
 from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
-from invenio_notify.services.config import EndorsementReplyServiceConfig
-from invenio_notify.services.service import EndorsementReplyService
+from invenio_notify.proxies import current_endorsement_reply_service
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 from invenio_notify_test.utils import BasicDbServiceTestHelper
@@ -31,7 +30,7 @@ def create_default_endorsement_request_data(reviewer_id, record_uuid=None, lates
 
 def create_endorsement_reply_service():
     """Create an EndorsementReplyService instance."""
-    return EndorsementReplyService(EndorsementReplyServiceConfig)
+    return current_endorsement_reply_service
 
 
 @pytest.fixture
