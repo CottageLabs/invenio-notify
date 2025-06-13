@@ -3,7 +3,7 @@ import uuid
 from invenio_notify.records.models import EndorsementRequestModel
 from invenio_notify.proxies import current_endorsement_request_service
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
-from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request
+from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request, create_default_endorsement_request_data
 from invenio_notify_test.utils import BasicDbServiceTestHelper
 
 
@@ -22,12 +22,12 @@ def test_service_create(superuser_identity, create_reviewer):
     service = current_endorsement_request_service
     reviewer = create_reviewer()
     
-    data = {
-        'record_uuid': str(uuid.uuid4()),
-        'reviewer_id': reviewer.id,
-        'raw': {'test': 'service_data'},
-        'latest_status': 'Request Endorsement'
-    }
+    data = create_default_endorsement_request_data(
+        reviewer.id, 
+        record_uuid=str(uuid.uuid4()),
+        latest_status='Request Endorsement'
+    )
+    data['raw'] = {'test': 'service_data'}  # Override with test-specific data
     
     result = service.create(superuser_identity, data)
     assert result.data['id'] is not None
