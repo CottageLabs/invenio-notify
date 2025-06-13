@@ -14,7 +14,7 @@ from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARN
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
-from invenio_notify.records.models import ReviewerMapModel, ReviewerModel, EndorsementModel
+from invenio_notify.records.models import ReviewerMapModel, ReviewerModel, EndorsementModel, EndorsementRequestModel, EndorsementReplyModel
 from invenio_notify.utils import user_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -374,3 +374,70 @@ class ReviewerService(BasicDbService):
             })
 
         return member_data
+
+
+class EndorsementRequestService(BasicDbService):
+    """Service for managing endorsement requests."""
+
+    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
+        if filter_maker is None:
+            def filter_maker(query_param):
+                filters = []
+                if query_param:
+                    filters.extend([
+                        self.record_cls.record_uuid == query_param,
+                    ])
+                return filters
+
+        return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)
+
+    @unit_of_work()
+    def create(self, identity, data, raise_errors=True, uow=None):
+        data['latest_status'] = data.get('latest_status', 'Request Endorsement')
+        return super().create(identity, data, raise_errors=raise_errors, uow=uow)
+
+    @unit_of_work()
+    def update_status(self, identity, id, status, uow=None):
+        """Update the latest status of an endorsement request."""
+        self.require_permission(identity, "update")
+        
+        record = self.record_cls.get(id)
+        self.record_cls.update({'latest_status': status}, id)
+        
+        return self.result_item(
+            self,
+            identity,
+            record,
+            links_tpl=self.links_item_tpl,
+        )
+
+
+class EndorsementReplyService(BasicDbService):
+    """Service for managing endorsement replies."""
+
+    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
+        if filter_maker is None:
+            def filter_maker(query_param):
+                filters = []
+                if query_param:
+                    filters.extend([
+                        self.record_cls.endorsement_request_id == query_param,
+                    ])
+                return filters
+
+        return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)
+
+    @unit_of_work()
+    def create(self, identity, data, raise_errors=True, uow=None):
+        """Create a new endorsement reply and optionally update the parent request status."""
+        result = super().create(identity, data, raise_errors=raise_errors, uow=uow)
+        
+        # Update the parent endorsement request status if provided
+        if 'endorsement_request_id' in data and 'status' in data:
+            request_record = EndorsementRequestModel.get(data['endorsement_request_id'])
+            EndorsementRequestModel.update(
+                {'latest_status': data['status']}, 
+                data['endorsement_request_id']
+            )
+        
+        return result
