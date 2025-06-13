@@ -1,11 +1,12 @@
-import pytest
 import uuid
+
+import pytest
+
 from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
-from invenio_notify.services.service import EndorsementReplyService
 from invenio_notify.services.config import EndorsementReplyServiceConfig
-from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
+from invenio_notify.services.service import EndorsementReplyService
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
-from invenio_notify_test.fixtures.endorsement_fixture import create_endorsement
+from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 from invenio_notify_test.utils import BasicDbServiceTestHelper
 
 
@@ -127,7 +128,7 @@ def test_service_search_by_request_id(superuser_identity, create_endorsement_rep
     
     # Should find reply1 and reply3 (both have same endorsement_request_id)
     assert len(result_list) == 2
-    found_ids = {r['id'] for r in result_list}
+    found_ids = {int(r['id']) for r in result_list}
     assert reply1.id in found_ids
     assert reply3.id in found_ids
     assert reply2.id not in found_ids
