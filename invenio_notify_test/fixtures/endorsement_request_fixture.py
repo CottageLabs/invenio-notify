@@ -1,5 +1,7 @@
-import pytest
 import uuid
+
+import pytest
+
 from invenio_notify.records.models import EndorsementRequestModel
 
 
@@ -8,7 +10,7 @@ def create_endorsement_request_data(reviewer_id, record_id=None, latest_status="
     
     Args:
         reviewer_id: ID of the reviewer
-        record_id: ID of the record (generates random if None)
+        record_id: UUID of the record (generates random if None)
         latest_status: Status of the request
         raw: Raw data dict (uses default if None)
         
