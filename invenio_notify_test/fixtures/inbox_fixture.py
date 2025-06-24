@@ -135,7 +135,7 @@ def create_notification_data__endorsement_resp(record_id) -> dict:
             "type": "Service"
         },
         "context": {
-            "id": "https://research-organisation.org/repository/preprint/201203/421/"
+            "id": f"https://127.0.0.1:5000/records/{record_id}"
         },
         "id": "urn:uuid:94ecae35-dcfd-4182-8550-22c7164fe23f",
         "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
