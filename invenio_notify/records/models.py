@@ -248,7 +248,7 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
     id = db.Column(db.Integer, primary_key=True)
 
     record_id = db.Column(UUIDType, nullable=False, index=True)
-    """ record id that binded to version """
+    """ record uuid that binded to version """
 
     reviewer_id = db.Column(
         db.Integer,
