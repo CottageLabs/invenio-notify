@@ -10,7 +10,7 @@ blueprint = Blueprint(
 rest_blueprint = Blueprint(
     "notify_rest",
     __name__,
-    url_prefix="/notify-rest",
+    url_prefix="/notify",
     template_folder="templates",
 )
 
