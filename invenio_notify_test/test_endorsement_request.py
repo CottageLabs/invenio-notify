@@ -13,7 +13,7 @@ def test_model_create(create_endorsement_request):
     """Test creating an endorsement request model."""
     request = create_endorsement_request()
     assert request.id is not None
-    assert request.record_uuid is not None
+    assert request.record_id is not None
     assert request.reviewer_id is not None
     assert request.raw == {'test': 'data'}
     assert request.latest_status == "Request Endorsement"
@@ -28,7 +28,7 @@ def test_service_create(superuser_identity, create_reviewer):
 
     result = service.create(superuser_identity, data)
     assert result.data['id'] is not None
-    assert result.data['record_uuid'] == data['record_uuid']
+    assert result.data['record_id'] == data['record_id']
     assert result.data['reviewer_id'] == data['reviewer_id']
 
 
@@ -44,20 +44,20 @@ def test_service_update_status(superuser_identity, create_endorsement_request):
     assert updated_request.latest_status == 'Announce Endorsement'
 
 
-def test_service_search_by_record_uuid(superuser_identity, create_endorsement_request):
-    """Test searching endorsement requests by record UUID."""
+def test_service_search_by_record_id(superuser_identity, create_endorsement_request):
+    """Test searching endorsement requests by record ID."""
     service = current_endorsement_request_service
-    record_uuid = str(uuid.uuid4())
+    record_id = str(uuid.uuid4())
 
-    # Create multiple requests, one with specific record_uuid
+    # Create multiple requests, one with specific record_id
     create_endorsement_request()  # unrelated request
-    target_request = create_endorsement_request(record_uuid=record_uuid)
+    target_request = create_endorsement_request(record_id=record_id)
 
-    # Search by record_uuid
-    result = service.search(superuser_identity, params={'q': record_uuid})
+    # Search by record_id
+    result = service.search(superuser_identity, params={'q': record_id})
     result_list = result.to_dict()['hits']['hits']
 
     assert len(result_list) == 1
-    assert result_list[0]['record_uuid'] == record_uuid
+    assert result_list[0]['record_id'] == record_id
 
 
