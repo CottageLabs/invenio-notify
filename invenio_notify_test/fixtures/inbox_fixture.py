@@ -22,7 +22,7 @@ def create_inbox(db, superuser_identity):
         """
         user_id = resolve_user_id(user_id, identity, superuser_identity)
         if raw is None:
-            raw = create_notification_data__review('record-not-exists')
+            raw = create_inbox_payload__review('record-not-exists')
 
         inbox = NotifyInboxModel.create({
             'raw': raw,
@@ -34,7 +34,7 @@ def create_inbox(db, superuser_identity):
     return _create_inbox
 
 
-def create_notification_data__review(record_id) -> dict:
+def create_inbox_payload__review(record_id) -> dict:
     """Create notification data with a real record ID."""
 
     return {
@@ -77,7 +77,7 @@ def create_notification_data__review(record_id) -> dict:
     }
 
 
-def create_notification_data__endorsement_request(record_id) -> dict:
+def create_inbox_payload__endorsement_request(record_id) -> dict:
     # KTODO how to define value of object.ietf:item.id?
     # KTODO remember to update value of origin.id, origin.inbox when generating request
     return {
@@ -125,7 +125,7 @@ def create_notification_data__endorsement_request(record_id) -> dict:
     }
 
 
-def create_notification_data__endorsement_resp(record_id) -> dict:
+def create_inbox_payload__endorsement_resp(record_id) -> dict:
     return {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
@@ -166,7 +166,7 @@ def create_notification_data__endorsement_resp(record_id) -> dict:
     }
 
 
-def create_notification_data__tentative_accept(record_id) -> dict:
+def create_inbox_payload__tentative_accept(record_id) -> dict:
     return {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
@@ -229,7 +229,7 @@ def create_notification_data__tentative_accept(record_id) -> dict:
     }
 
 
-def create_notification_data__reject(record_id) -> dict:
+def create_inbox_payload__reject(record_id) -> dict:
     return {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
@@ -292,7 +292,7 @@ def create_notification_data__reject(record_id) -> dict:
     }
 
 
-def create_notification_data__tentative_reject(record_id) -> dict:
+def create_inbox_payload__tentative_reject(record_id) -> dict:
     return {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
