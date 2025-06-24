@@ -395,7 +395,7 @@ class EndorsementRequestService(BasicDbService):
                 filters = []
                 if query_param:
                     filters.extend([
-                        self.record_cls.record_uuid == query_param,
+                        self.record_cls.record_id == query_param,
                     ])
                 return filters
 
