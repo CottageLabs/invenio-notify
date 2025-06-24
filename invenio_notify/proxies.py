@@ -1,12 +1,18 @@
 """Helper proxies to the state object."""
 
-from flask import current_app
 from typing import TYPE_CHECKING
+
+from flask import current_app
 from werkzeug.local import LocalProxy
 
 if TYPE_CHECKING:
-    from invenio_notify.services.service import NotifyInboxService, ReviewerService, EndorsementService, \
-        EndorsementRequestService, EndorsementReplyService
+    from invenio_notify.services.service import (
+        NotifyInboxService,
+        ReviewerService,
+        EndorsementService,
+        EndorsementRequestService,
+        EndorsementReplyService,
+    )
 
 current_notify = LocalProxy(lambda: current_app.extensions["invenio-notify"])
 
