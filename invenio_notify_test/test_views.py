@@ -1,3 +1,4 @@
+import pytest
 from invenio_oauth2server.models import Token
 
 from invenio_notify.records.models import ReviewerMapModel
@@ -34,12 +35,25 @@ def create_notify_user(db, superuser_identity):
     return token, user
 
 
-def setup_user_reviewer_with_actor_id(db, superuser_identity, actor_id, create_reviewer):
-    """Setup user, token, and reviewer with specified actor_id."""
-    token, user = create_notify_user(db, superuser_identity)
-    reviewer = create_reviewer(actor_id=actor_id)
-    create_reviewer_map(db, user.id, reviewer.id)
-    return token, user, reviewer
+@pytest.fixture
+def user_reviewer_setup(db, superuser_identity, create_reviewer):
+    """Fixture to setup user, token, and reviewer with specified actor_id."""
+    
+    def _setup(actor_id):
+        """Setup user, token, and reviewer with specified actor_id.
+        
+        Args:
+            actor_id: Actor ID for the reviewer
+            
+        Returns:
+            tuple: (token, user, reviewer)
+        """
+        token, user = create_notify_user(db, superuser_identity)
+        reviewer = create_reviewer(actor_id=actor_id)
+        create_reviewer_map(db, user.id, reviewer.id)
+        return token, user, reviewer
+    
+    return _setup
 
 
 def test_inbox_401(client):
@@ -48,7 +62,7 @@ def test_inbox_401(client):
     assert response.status_code == 401
 
 
-def test_inbox__success(client, db, superuser_identity, rdm_record, create_reviewer):
+def test_inbox__success(client, db, superuser_identity, rdm_record, create_reviewer, user_reviewer_setup):
     # logging.basicConfig(
     #     level=logging.DEBUG,  # Capture all log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
     #     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -56,22 +70,18 @@ def test_inbox__success(client, db, superuser_identity, rdm_record, create_revie
     # logging.getLogger("invenio_notify").setLevel(logging.DEBUG)
 
     notify_review_data = inbox_fixture.create_notification_data(rdm_record.id)
-    token, user, reviewer = setup_user_reviewer_with_actor_id(
-        db, superuser_identity, notify_review_data['actor']['id'], create_reviewer
-    )
+    token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'])
 
     response = send_inbox(client, token, notify_review_data)
     assert response.status_code == 202
     assert response.json['message'] == 'Accepted'
 
 
-def test_inbox__actor_id_mismatch(client, db, superuser_identity, rdm_record, create_reviewer):
+def test_inbox__actor_id_mismatch(client, db, superuser_identity, rdm_record, create_reviewer, user_reviewer_setup):
     notify_review_data = inbox_fixture.create_notification_data(rdm_record.id)
     
     # Create a reviewer with a different ID to cause a mismatch
-    token, user, reviewer = setup_user_reviewer_with_actor_id(
-        db, superuser_identity, notify_review_data['actor']['id'] + 'wrong', create_reviewer
-    )
+    token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'] + 'wrong')
 
     response = send_inbox(client, token, notify_review_data)
     assert response.status_code == 403
