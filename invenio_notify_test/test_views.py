@@ -62,13 +62,7 @@ def test_inbox_401(client):
     assert response.status_code == 401
 
 
-def test_inbox__success(client, db, superuser_identity, rdm_record, create_reviewer, user_reviewer_setup):
-    # logging.basicConfig(
-    #     level=logging.DEBUG,  # Capture all log levels (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    #     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    # )
-    # logging.getLogger("invenio_notify").setLevel(logging.DEBUG)
-
+def test_inbox__success(client, rdm_record, user_reviewer_setup):
     notify_review_data = inbox_fixture.create_notification_data(rdm_record.id)
     token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'])
 
@@ -77,10 +71,8 @@ def test_inbox__success(client, db, superuser_identity, rdm_record, create_revie
     assert response.json['message'] == 'Accepted'
 
 
-def test_inbox__actor_id_mismatch(client, db, superuser_identity, rdm_record, create_reviewer, user_reviewer_setup):
+def test_inbox__actor_id_mismatch(client, rdm_record, user_reviewer_setup):
     notify_review_data = inbox_fixture.create_notification_data(rdm_record.id)
-    
-    # Create a reviewer with a different ID to cause a mismatch
     token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'] + 'wrong')
 
     response = send_inbox(client, token, notify_review_data)
