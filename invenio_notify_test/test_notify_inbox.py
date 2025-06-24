@@ -2,7 +2,7 @@ from invenio_notify.proxies import current_inbox_service
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify_test.fixtures.inbox_fixture import (
     create_inbox,
-    create_notification_data,
+    create_notification_data__review,
 )
 
 
@@ -24,7 +24,7 @@ def test_service_create(test_app, superuser_identity):
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
     result = notify_inbox_serv.create(superuser_identity, {
-        'raw': create_notification_data(record_id), 'recid': record_id
+        'raw': create_notification_data__review(record_id), 'recid': record_id
     })
     result_dict = result.to_dict()
     assert result_dict['recid'] == record_id
@@ -43,13 +43,13 @@ def test_service_search(test_app, superuser_identity):
 
     # Create test records
     notify_inbox_serv.create(superuser_identity, {
-        'raw': create_notification_data(record_id_1), 'recid': record_id_1,
+        'raw': create_notification_data__review(record_id_1), 'recid': record_id_1,
     })
     notify_inbox_serv.create(superuser_identity, {
-        'raw': create_notification_data(record_id_2), 'recid': record_id_2,
+        'raw': create_notification_data__review(record_id_2), 'recid': record_id_2,
     })
     notify_inbox_serv.create(superuser_identity, {
-        'raw': create_notification_data(record_id_3), 'recid': record_id_3,
+        'raw': create_notification_data__review(record_id_3), 'recid': record_id_3,
     })
 
     assert NotifyInboxModel.query.count() == 3

@@ -3,11 +3,11 @@ from datetime import datetime
 from invenio_accounts.models import User
 
 from invenio_notify import constants
+from invenio_notify.proxies import current_reviewer_service
 from invenio_notify.records.models import NotifyInboxModel, EndorsementModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
-from invenio_notify_test.fixtures.inbox_fixture import create_notification_data
-from invenio_notify.proxies import current_reviewer_service
+from invenio_notify_test.fixtures.inbox_fixture import create_notification_data__review
 from invenio_rdm_records.proxies import current_rdm_records
 
 
@@ -50,7 +50,7 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     """Test successful inbox processing that creates an endorsement."""
     recid = rdm_record.id
 
-    notification_data = create_notification_data(recid)
+    notification_data = create_notification_data__review(recid)
 
     # add sender account to reviewer members
     reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
@@ -113,7 +113,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
 
     recid = 'r1'
 
-    notification_data = create_notification_data(recid)
+    notification_data = create_notification_data__review(recid)
 
     # Create inbox record with notification pointing to non-existent record
     inbox = create_inbox(
@@ -128,7 +128,7 @@ def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity,
     """Test inbox processing when the reviewer is not found."""
     recid = rdm_record.id
 
-    notification_data = create_notification_data(recid)
+    notification_data = create_notification_data__review(recid)
     # Do not create reviewer, so actor_id won't match any reviewer
 
     # Create inbox record
