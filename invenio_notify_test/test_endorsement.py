@@ -16,11 +16,11 @@ def test_model_create(db, superuser_identity, minimal_record, create_reviewer):
     record = prepare_test_rdm_record(db, minimal_record)
 
     assert EndorsementModel.query.count() == 0
-    record_uuid = record.id
+    record_id_uuid = record.id
 
     reviewer = create_reviewer()
     data = dict(
-        record_id=record_uuid,
+        record_id=record_id_uuid,
         reviewer_id=reviewer.id,
         review_type='endorsement',
         user_id=superuser_identity.id,
