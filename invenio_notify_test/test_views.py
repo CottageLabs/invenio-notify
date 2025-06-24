@@ -34,6 +34,14 @@ def create_notify_user(db, superuser_identity):
     return token, user
 
 
+def setup_user_reviewer_with_actor_id(db, superuser_identity, actor_id, create_reviewer):
+    """Setup user, token, and reviewer with specified actor_id."""
+    token, user = create_notify_user(db, superuser_identity)
+    reviewer = create_reviewer(actor_id=actor_id)
+    create_reviewer_map(db, user.id, reviewer.id)
+    return token, user, reviewer
+
+
 def test_inbox_401(client):
     notify_review_data = inbox_fixture.create_notification_data('test-record-id')
     response = client.post("/api/notify/inbox", json=notify_review_data)
@@ -47,15 +55,10 @@ def test_inbox__success(client, db, superuser_identity, rdm_record, create_revie
     # )
     # logging.getLogger("invenio_notify").setLevel(logging.DEBUG)
 
-    token, user = create_notify_user(db, superuser_identity)
-
     notify_review_data = inbox_fixture.create_notification_data(rdm_record.id)
-    
-    # Create a reviewer with the specific ID from the notification data
-    reviewer = create_reviewer(actor_id=notify_review_data['actor']['id'])
-    
-    # Use the reviewer object's ID to create the mapping
-    create_reviewer_map(db, user.id, reviewer.id)
+    token, user, reviewer = setup_user_reviewer_with_actor_id(
+        db, superuser_identity, notify_review_data['actor']['id'], create_reviewer
+    )
 
     response = send_inbox(client, token, notify_review_data)
     assert response.status_code == 202
@@ -63,15 +66,12 @@ def test_inbox__success(client, db, superuser_identity, rdm_record, create_revie
 
 
 def test_inbox__actor_id_mismatch(client, db, superuser_identity, rdm_record, create_reviewer):
-    token, user = create_notify_user(db, superuser_identity)
-
     notify_review_data = inbox_fixture.create_notification_data(rdm_record.id)
     
     # Create a reviewer with a different ID to cause a mismatch
-    reviewer = create_reviewer(actor_id=notify_review_data['actor']['id'] + 'wrong')
-    
-    # Use the reviewer object's ID in the map
-    create_reviewer_map(db, user.id, reviewer.id)
+    token, user, reviewer = setup_user_reviewer_with_actor_id(
+        db, superuser_identity, notify_review_data['actor']['id'] + 'wrong', create_reviewer
+    )
 
     response = send_inbox(client, token, notify_review_data)
     assert response.status_code == 403
