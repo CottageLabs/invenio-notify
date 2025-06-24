@@ -78,6 +78,8 @@ def create_notification_data__review(record_id) -> dict:
 
 
 def create_notification_data__endorsement_request(record_id) -> dict:
+    # KTODO how to define value of object.ietf:item.id?
+    # KTODO remember to update value of origin.id, origin.inbox when generating request
     return {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
@@ -91,7 +93,7 @@ def create_notification_data__endorsement_request(record_id) -> dict:
         "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
         "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
         "object": {
-            "id": "https://research-organisation.org/repository/preprint/201203/421/",
+            "id":  f"https://127.0.0.1:5000/records/{record_id}",
             "ietf:cite-as": "https://doi.org/10.5555/12345680",
             "ietf:item": {
                 "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
@@ -185,7 +187,7 @@ def create_notification_data__tentative_accept(record_id) -> dict:
             },
             "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
             "object": {
-                "id": "https://research-organisation.org/repository/preprint/201203/421/",
+                "id": f"https://127.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
                 "ietf:item": {
                     "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
@@ -248,7 +250,7 @@ def create_notification_data__reject(record_id) -> dict:
             },
             "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
             "object": {
-                "id": "https://research-organisation.org/repository/preprint/201203/421/",
+                "id": f"https://127.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
                 "ietf:item": {
                     "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
@@ -311,7 +313,7 @@ def create_notification_data__tentative_reject(record_id) -> dict:
             },
             "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
             "object": {
-                "id": "https://research-organisation.org/repository/preprint/201203/421/",
+                "id": f"https://127.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
                 "ietf:item": {
                     "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
