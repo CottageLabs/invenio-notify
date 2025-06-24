@@ -388,6 +388,7 @@ class ReviewerService(BasicDbService):
 class EndorsementRequestService(BasicDbService):
     """Service for managing endorsement requests."""
 
+    # KTODO consider extracting common search logic to a base class
     def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
         if filter_maker is None:
             def filter_maker(query_param):
