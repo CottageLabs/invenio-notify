@@ -84,10 +84,10 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
         nullable=False,
         index=True,
     )
-
     user = db.relationship(
         "User", backref=db.backref("inbox_messages", cascade="all, delete-orphan")
     )
+    """ user id of the sender """
 
 
 class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
@@ -223,6 +223,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     review_type = db.Column(db.Text, nullable=True)
     """ review or endorsement """
 
+    # KTODO to be remove should use inbox.user_id instead
     user_id = db.Column(
         db.Integer(),
         db.ForeignKey(User.id, ondelete="NO ACTION"),
