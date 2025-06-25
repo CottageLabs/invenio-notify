@@ -4,7 +4,7 @@ from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequ
 from invenio_notify.proxies import current_endorsement_reply_service
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
-from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request_data
+from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request
 from invenio_notify_test.fixtures.endorsement_reply_fixture import create_endorsement_reply
 
 
@@ -18,15 +18,13 @@ def test_model_create(create_endorsement_reply):
     assert reply.status == "Request Endorsement"
 
 
-def test_service_create(superuser_identity, create_reviewer, create_inbox):
+def test_service_create(superuser_identity, create_reviewer, create_inbox, create_endorsement_request):
     """Test creating an endorsement reply via service."""
     service = current_endorsement_reply_service
     
     # Create dependencies
     reviewer = create_reviewer()
-    request = EndorsementRequestModel.create(
-        create_endorsement_request_data(reviewer.id)
-    )
+    request = create_endorsement_request(reviewer_id=reviewer.id)
     inbox = create_inbox()
     
     data = {
@@ -46,15 +44,13 @@ def test_service_create(superuser_identity, create_reviewer, create_inbox):
     assert updated_request.latest_status == 'Announce Endorsement'
 
 
-def test_service_create_without_endorsement(superuser_identity, create_reviewer, create_inbox):
+def test_service_create_without_endorsement(superuser_identity, create_reviewer, create_inbox, create_endorsement_request):
     """Test creating an endorsement reply without endorsement_id."""
     service = current_endorsement_reply_service
     
     # Create dependencies
     reviewer = create_reviewer()
-    request = EndorsementRequestModel.create(
-        create_endorsement_request_data(reviewer.id)
-    )
+    request = create_endorsement_request(reviewer_id=reviewer.id)
     inbox = create_inbox()
     
     data = {
