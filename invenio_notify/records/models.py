@@ -295,6 +295,12 @@ class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
         index=True,
     )
     endorsement = db.relationship("EndorsementModel")
+    """ value will be set if this reply is an endorsement or review """
 
     status = db.Column(db.Text, nullable=False)
     """ status e.g 'Request Endorsement', 'Reject', 'Announce Endorsement' """
+
+    message = db.Column(db.Text, nullable=True)
+    """ message of the reply, can be empty if no message """
+
+
