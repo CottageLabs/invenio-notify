@@ -159,6 +159,7 @@ def minimal_record():
 
 
 def prepare_test_rdm_record(db, record_data):
+    # KTODO try to extract the creation to session fixture, to improve performance
     parent = RDMParent.create({})
     record = RDMRecord.create(record_data, parent=parent)
     db.session.commit()
