@@ -407,6 +407,9 @@ class EndorsementRequestService(BasicDbService):
         data['latest_status'] = data.get('latest_status', 'Request Endorsement')
         if data.get('user_id') is None:
             data['user_id'] = identity.id
+        # Convert UUID to string if needed for schema validation
+        if 'record_id' in data and hasattr(data['record_id'], '__str__'):
+            data['record_id'] = str(data['record_id'])
         return super().create(identity, data, raise_errors=raise_errors, uow=uow)
 
     @unit_of_work()

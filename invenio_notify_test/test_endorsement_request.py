@@ -20,12 +20,12 @@ def test_model_create(create_endorsement_request, superuser_identity):
     assert request.latest_status == "Request Endorsement"
 
 
-def test_service_create(superuser_identity, create_reviewer):
+def test_service_create(superuser_identity, create_reviewer, db, minimal_record):
     """Test creating an endorsement request via service."""
     service = current_endorsement_request_service
     reviewer = create_reviewer()
 
-    data = create_endorsement_request_data(reviewer.id)
+    data = create_endorsement_request_data(reviewer.id, db=db, minimal_record=minimal_record)
 
     result = service.create(superuser_identity, data)
     assert result.data['id'] is not None
@@ -46,44 +46,48 @@ def test_service_update_status(superuser_identity, create_endorsement_request):
     assert updated_request.latest_status == 'Announce Endorsement'
 
 
-def test_service_search_by_record_id(superuser_identity, create_endorsement_request):
+def test_service_search_by_record_id(superuser_identity, create_endorsement_request, db, minimal_record):
     """Test searching endorsement requests by record ID."""
     service = current_endorsement_request_service
-    record_id = str(uuid.uuid4())
+    
+    # Create a test record and use its ID
+    from invenio_notify_test.conftest import prepare_test_rdm_record
+    test_record = prepare_test_rdm_record(db, minimal_record)
+    record_id = test_record.id
 
     # Create multiple requests, one with specific record_id
     create_endorsement_request()  # unrelated request
     target_request = create_endorsement_request(record_id=record_id)
 
     # Search by record_id
-    result = service.search(superuser_identity, params={'q': record_id})
+    result = service.search(superuser_identity, params={'q': str(record_id)})
     result_list = result.to_dict()['hits']['hits']
 
     assert len(result_list) == 1
-    assert result_list[0]['record_id'] == record_id
+    assert result_list[0]['record_id'] == str(record_id)
 
 
-def test_service_create_auto_set_user_id(superuser_identity, create_reviewer):
+def test_service_create_auto_set_user_id(superuser_identity, create_reviewer, db, minimal_record):
     """Test that service auto-sets user_id when not provided."""
     service = current_endorsement_request_service
     reviewer = create_reviewer()
 
-    # Create data without user_id, with record_id=None to avoid FK constraint
-    data = create_endorsement_request_data(reviewer.id, record_id=None)
+    # Create data without user_id, but with valid record_id
+    data = create_endorsement_request_data(reviewer.id, record_id=None, db=db, minimal_record=minimal_record)
     assert 'user_id' not in data
 
     result = service.create(superuser_identity, data)
     assert result.data['user_id'] == superuser_identity.id
 
 
-def test_service_create_preserve_explicit_user_id(superuser_identity, create_reviewer):
+def test_service_create_preserve_explicit_user_id(superuser_identity, create_reviewer, db, minimal_record):
     """Test that service preserves explicitly provided user_id."""
     service = current_endorsement_request_service
     reviewer = create_reviewer()
 
-    # Create data with explicit user_id, with record_id=None to avoid FK constraint
-    explicit_user_id = 999
-    data = create_endorsement_request_data(reviewer.id, record_id=None, user_id=explicit_user_id)
+    # Create data with explicit user_id (use superuser_identity.id as a valid user_id)
+    explicit_user_id = superuser_identity.id
+    data = create_endorsement_request_data(reviewer.id, record_id=None, user_id=explicit_user_id, db=db, minimal_record=minimal_record)
     assert data['user_id'] == explicit_user_id
 
     result = service.create(superuser_identity, data)
