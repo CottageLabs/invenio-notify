@@ -1,34 +1,22 @@
-import uuid
-
 import pytest
 
 from invenio_notify.records.models import EndorsementRequestModel
 from invenio_notify_test.conftest import prepare_test_rdm_record
 
 
-def create_endorsement_request_data(reviewer_id, record_id=None, latest_status="Request Endorsement", raw=None, user_id=None, db=None, minimal_record=None):
+def create_endorsement_request_data(reviewer_id, record_id, latest_status="Request Endorsement", raw=None, user_id=None):
     """Create default data for EndorsementRequestModel.
     
     Args:
         reviewer_id: ID of the reviewer
-        record_id: UUID of the record (creates test record if None and db/minimal_record provided)
+        record_id: UUID of the record (required)
         latest_status: Status of the request
         raw: Raw data dict (uses default if None)
         user_id: ID of the user (optional, will be auto-set by service if None)
-        db: Database session (needed if record_id is None)
-        minimal_record: Minimal record data (needed if record_id is None)
         
     Returns:
         dict: Data for creating EndorsementRequestModel
     """
-    if record_id is None:
-        # KTODO if else does not needed
-        if db is not None and minimal_record is not None:
-            record = prepare_test_rdm_record(db, minimal_record)
-            record_id = record.id
-        else:
-            record_id = str(uuid.uuid4())
-    
     data = {
         'record_id': record_id,
         'reviewer_id': reviewer_id,
