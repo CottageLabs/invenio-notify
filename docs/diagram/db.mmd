@@ -11,6 +11,7 @@ erDiagram
     ReviewerModel ||--o{ EndorsementRequestModel : receives
     
     RDMRecordMetadata ||--o{ EndorsementModel : has
+    RDMRecordMetadata ||--o{ EndorsementRequestModel : has
     
     NotifyInboxModel ||--o{ EndorsementModel : references
     NotifyInboxModel ||--o{ EndorsementReplyModel : references
@@ -22,21 +23,27 @@ erDiagram
         int id PK
         string email
         string name
+        timestamp created
+        timestamp updated
     }
     
     NotifyInboxModel {
         int id PK
         json raw
-        string recid
+        text recid
         datetime process_date
         text process_note
         int user_id FK
+        timestamp created
+        timestamp updated
     }
     
     ReviewerMapModel {
         int id PK
         int user_id FK
         int reviewer_id FK
+        timestamp created
+        timestamp updated
     }
     
     ReviewerModel {
@@ -46,6 +53,8 @@ erDiagram
         text inbox_url
         text inbox_api_token
         text description
+        timestamp created
+        timestamp updated
     }
     
     EndorsementModel {
@@ -57,15 +66,19 @@ erDiagram
         int inbox_id FK
         text result_url
         text reviewer_name
+        timestamp created
+        timestamp updated
     }
     
     EndorsementRequestModel {
         int id PK
-        uuid record_id
+        uuid record_id FK
         int user_id FK
         int reviewer_id FK
         json raw
         text latest_status
+        timestamp created
+        timestamp updated
     }
     
     EndorsementReplyModel {
@@ -75,6 +88,8 @@ erDiagram
         int endorsement_id FK
         text status
         text message
+        timestamp created
+        timestamp updated
     }
     
     RDMRecordMetadata {

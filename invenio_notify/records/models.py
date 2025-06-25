@@ -235,7 +235,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     inbox_id = db.Column(db.Integer, db.ForeignKey(
         NotifyInboxModel.id, ondelete="NO ACTION"
     ), nullable=True)
-    inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id])
+    inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id], uselist=False)
 
     result_url = db.Column(db.Text, nullable=False)
     """ url of review results """
