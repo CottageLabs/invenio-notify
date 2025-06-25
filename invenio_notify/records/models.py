@@ -230,6 +230,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     )
     """ user id of the sender """
 
+    # KTODO replace with EndorsementReplyModel
     inbox_id = db.Column(db.Integer, db.ForeignKey(
         NotifyInboxModel.id, ondelete="NO ACTION"
     ), nullable=True)
