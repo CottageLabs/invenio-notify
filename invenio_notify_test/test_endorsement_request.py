@@ -9,12 +9,13 @@ from invenio_notify_test.fixtures.endorsement_request_fixture import (
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 
 
-def test_model_create(create_endorsement_request):
+def test_model_create(create_endorsement_request, superuser_identity):
     """Test creating an endorsement request model."""
     request = create_endorsement_request()
     assert request.id is not None
     assert request.record_id is not None
     assert request.reviewer_id is not None
+    assert request.user_id == superuser_identity.id
     assert request.raw == {'test': 'data'}
     assert request.latest_status == "Request Endorsement"
 
@@ -30,6 +31,7 @@ def test_service_create(superuser_identity, create_reviewer):
     assert result.data['id'] is not None
     assert result.data['record_id'] == data['record_id']
     assert result.data['reviewer_id'] == data['reviewer_id']
+    assert result.data['user_id'] == superuser_identity.id
 
 
 def test_service_update_status(superuser_identity, create_endorsement_request):
@@ -59,5 +61,32 @@ def test_service_search_by_record_id(superuser_identity, create_endorsement_requ
 
     assert len(result_list) == 1
     assert result_list[0]['record_id'] == record_id
+
+
+def test_service_create_auto_set_user_id(superuser_identity, create_reviewer):
+    """Test that service auto-sets user_id when not provided."""
+    service = current_endorsement_request_service
+    reviewer = create_reviewer()
+
+    # Create data without user_id, with record_id=None to avoid FK constraint
+    data = create_endorsement_request_data(reviewer.id, record_id=None)
+    assert 'user_id' not in data
+
+    result = service.create(superuser_identity, data)
+    assert result.data['user_id'] == superuser_identity.id
+
+
+def test_service_create_preserve_explicit_user_id(superuser_identity, create_reviewer):
+    """Test that service preserves explicitly provided user_id."""
+    service = current_endorsement_request_service
+    reviewer = create_reviewer()
+
+    # Create data with explicit user_id, with record_id=None to avoid FK constraint
+    explicit_user_id = 999
+    data = create_endorsement_request_data(reviewer.id, record_id=None, user_id=explicit_user_id)
+    assert data['user_id'] == explicit_user_id
+
+    result = service.create(superuser_identity, data)
+    assert result.data['user_id'] == explicit_user_id
 
 

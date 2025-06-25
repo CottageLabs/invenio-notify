@@ -403,7 +403,10 @@ class EndorsementRequestService(BasicDbService):
 
     @unit_of_work()
     def create(self, identity, data, raise_errors=True, uow=None):
+        # KTODO default value should be status type of coar_notify constants
         data['latest_status'] = data.get('latest_status', 'Request Endorsement')
+        if data.get('user_id') is None:
+            data['user_id'] = identity.id
         return super().create(identity, data, raise_errors=raise_errors, uow=uow)
 
     @unit_of_work()
