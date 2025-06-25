@@ -15,6 +15,7 @@ JSON = (
     .with_variant(JSONType(), "mysql")
 )
 
+
 class DbOperationMixin:
     @classmethod
     def commit(cls):
@@ -230,7 +231,6 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     )
     """ user id of the sender """
 
-    # KTODO replace with EndorsementReplyModel
     inbox_id = db.Column(db.Integer, db.ForeignKey(
         NotifyInboxModel.id, ondelete="NO ACTION"
     ), nullable=True)
@@ -248,8 +248,18 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    record_id = db.Column(UUIDType, nullable=False, index=True)
+    record_id = db.Column(UUIDType, db.ForeignKey(
+        RDMRecordMetadata.id, ondelete="NO ACTION",
+    ), index=True, nullable=False)
     """ record uuid that binded to version """
+
+    user_id = db.Column(
+        db.Integer(),
+        db.ForeignKey(User.id, ondelete="NO ACTION"),
+        nullable=False,
+        index=True,
+    )
+    """ user id of the sender """
 
     reviewer_id = db.Column(
         db.Integer,
@@ -287,7 +297,7 @@ class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
         nullable=False,
         index=True,
     )
-    inbox = db.relationship(NotifyInboxModel)
+    inbox = db.relationship(NotifyInboxModel, uselist=False)
 
     endorsement_id = db.Column(
         db.Integer,
@@ -303,5 +313,3 @@ class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
 
     message = db.Column(db.Text, nullable=True)
     """ message of the reply, can be empty if no message """
-
-

@@ -1,0 +1,83 @@
+%% sources of file: invenio_notify/records/models.py
+
+erDiagram
+    User ||--o{ NotifyInboxModel : has
+    User ||--o{ ReviewerMapModel : has
+    User ||--o{ EndorsementModel : creates
+    User ||--o{ EndorsementRequestModel : creates
+    
+    ReviewerModel ||--o{ ReviewerMapModel : has
+    ReviewerModel ||--o{ EndorsementModel : receives
+    ReviewerModel ||--o{ EndorsementRequestModel : receives
+    
+    RDMRecordMetadata ||--o{ EndorsementModel : has
+    
+    NotifyInboxModel ||--o{ EndorsementModel : references
+    NotifyInboxModel ||--o{ EndorsementReplyModel : references
+    
+    EndorsementRequestModel ||--o{ EndorsementReplyModel : has
+    EndorsementModel ||--o{ EndorsementReplyModel : references
+    
+    User {
+        int id PK
+        string email
+        string name
+    }
+    
+    NotifyInboxModel {
+        int id PK
+        json raw
+        string recid
+        datetime process_date
+        text process_note
+        int user_id FK
+    }
+    
+    ReviewerMapModel {
+        int id PK
+        int user_id FK
+        int reviewer_id FK
+    }
+    
+    ReviewerModel {
+        int id PK
+        text name
+        text actor_id UK
+        text inbox_url
+        text inbox_api_token
+        text description
+    }
+    
+    EndorsementModel {
+        int id PK
+        uuid record_id FK
+        int reviewer_id FK
+        text review_type
+        int user_id FK
+        int inbox_id FK
+        text result_url
+        text reviewer_name
+    }
+    
+    EndorsementRequestModel {
+        int id PK
+        uuid record_id
+        int user_id FK
+        int reviewer_id FK
+        json raw
+        text latest_status
+    }
+    
+    EndorsementReplyModel {
+        int id PK
+        int endorsement_request_id FK
+        int inbox_id FK
+        int endorsement_id FK
+        text status
+        text message
+    }
+    
+    RDMRecordMetadata {
+        uuid id PK
+        text title
+    }
