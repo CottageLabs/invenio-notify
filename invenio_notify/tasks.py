@@ -10,7 +10,7 @@ from invenio_pidstore.errors import PIDDoesNotExistError
 
 from coarnotify.factory import COARNotifyFactory
 from invenio_notify import constants
-from invenio_notify.constants import REVIEW_TYPES
+from invenio_notify.constants import SUPPORTED_TYPES
 from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder
 from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
@@ -73,7 +73,7 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     log.info(f"Found reviewer ID {reviewer_id} for actor_id '{actor_id}'")
 
     reviewer_type = 'unknown'
-    for t in constants.REVIEW_TYPES:
+    for t in constants.SUPPORTED_TYPES:
         if t in notification_raw.get('type', []):
             reviewer_type = t
             break
@@ -129,7 +129,7 @@ def inbox_processing():
         notification_raw: dict = notification.to_jsonld()
 
         # Check if the notification type is supported
-        if all(t not in REVIEW_TYPES for t in notification_raw.get('type', [])):
+        if all(t not in SUPPORTED_TYPES for t in notification_raw.get('type', [])):
             log.error(f'Unknown type: [{inbox_record.id=}]{notification_raw.get("type")}')
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
