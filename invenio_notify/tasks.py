@@ -111,7 +111,7 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
                     record=record,
                     reviewer_name=reviewer_name,
                     endorsement_url=review_url,
-                    user_id=user_id,
+                    user_id=user_id,   # KTODO user_id should user_id of record's owner instead of inbox sender
                 ),
             )
         )
