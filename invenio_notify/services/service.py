@@ -161,7 +161,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
         # Check if the notification type is supported
-        if all(t not in constants.REVIEW_TYPES for t in raw.get('type', [])):
+        if all(t not in constants.SUPPORTED_TYPES for t in raw.get('type', [])):
             current_app.logger.info(f'Unknown type: [{recid=}]{raw.get("type")}')
             raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
 

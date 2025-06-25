@@ -3,7 +3,8 @@
 # Notification types
 TYPE_REVIEW = 'coar-notify:ReviewAction'
 TYPE_ENDORSEMENT = 'coar-notify:EndorsementAction'
-REVIEW_TYPES = [TYPE_REVIEW, TYPE_ENDORSEMENT]
+SUPPORTED_TYPES = [TYPE_REVIEW, TYPE_ENDORSEMENT]
+""" List of supported notification types that can be processed by the notify  """
 
 
 
