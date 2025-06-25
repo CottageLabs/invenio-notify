@@ -2,6 +2,7 @@ import uuid
 
 from invenio_notify.proxies import current_endorsement_request_service
 from invenio_notify.records.models import EndorsementRequestModel
+from invenio_notify_test.conftest import prepare_test_rdm_record
 from invenio_notify_test.fixtures.endorsement_request_fixture import (
     create_endorsement_request,
     create_endorsement_request_data,
@@ -25,7 +26,8 @@ def test_service_create(superuser_identity, create_reviewer, db, minimal_record)
     service = current_endorsement_request_service
     reviewer = create_reviewer()
 
-    data = create_endorsement_request_data(reviewer.id, db=db, minimal_record=minimal_record)
+    test_record = prepare_test_rdm_record(db, minimal_record)
+    data = create_endorsement_request_data(reviewer.id, test_record.id)
 
     result = service.create(superuser_identity, data)
     assert result.data['id'] is not None
@@ -51,7 +53,6 @@ def test_service_search_by_record_id(superuser_identity, create_endorsement_requ
     service = current_endorsement_request_service
     
     # Create a test record and use its ID
-    from invenio_notify_test.conftest import prepare_test_rdm_record
     test_record = prepare_test_rdm_record(db, minimal_record)
     record_id = test_record.id
 
@@ -73,7 +74,8 @@ def test_service_create_auto_set_user_id(superuser_identity, create_reviewer, db
     reviewer = create_reviewer()
 
     # Create data without user_id, but with valid record_id
-    data = create_endorsement_request_data(reviewer.id, record_id=None, db=db, minimal_record=minimal_record)
+    test_record = prepare_test_rdm_record(db, minimal_record)
+    data = create_endorsement_request_data(reviewer.id, test_record.id)
     assert 'user_id' not in data
 
     result = service.create(superuser_identity, data)
@@ -86,8 +88,9 @@ def test_service_create_preserve_explicit_user_id(superuser_identity, create_rev
     reviewer = create_reviewer()
 
     # Create data with explicit user_id (use superuser_identity.id as a valid user_id)
+    test_record = prepare_test_rdm_record(db, minimal_record)
     explicit_user_id = superuser_identity.id
-    data = create_endorsement_request_data(reviewer.id, record_id=None, user_id=explicit_user_id, db=db, minimal_record=minimal_record)
+    data = create_endorsement_request_data(reviewer.id, test_record.id, user_id=explicit_user_id)
     assert data['user_id'] == explicit_user_id
 
     result = service.create(superuser_identity, data)
