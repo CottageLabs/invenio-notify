@@ -77,6 +77,7 @@ class EndorsementRequestSchema(BaseRecordSchema):
     reviewer_id = fields.Integer(required=True)
     raw = fields.Dict(required=True)
     latest_status = fields.String(required=True)
+    user_id = fields.Integer(required=False)
 
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
