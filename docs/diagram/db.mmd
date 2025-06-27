@@ -3,7 +3,6 @@
 erDiagram
     User ||--o{ NotifyInboxModel : has
     User ||--o{ ReviewerMapModel : has
-    User ||--o{ EndorsementModel : creates
     User ||--o{ EndorsementRequestModel : creates
     
     ReviewerModel ||--o{ ReviewerMapModel : has
@@ -13,7 +12,7 @@ erDiagram
     RDMRecordMetadata ||--o{ EndorsementModel : has
     RDMRecordMetadata ||--o{ EndorsementRequestModel : has
     
-    NotifyInboxModel ||--o{ EndorsementModel : references
+    NotifyInboxModel ||--|| EndorsementModel : references
     NotifyInboxModel ||--o{ EndorsementReplyModel : references
     
     EndorsementRequestModel ||--o{ EndorsementReplyModel : has
@@ -49,7 +48,7 @@ erDiagram
     ReviewerModel {
         int id PK
         text name
-        text actor_id UK
+        text actor_id
         text inbox_url
         text inbox_api_token
         text description
@@ -62,7 +61,6 @@ erDiagram
         uuid record_id FK
         int reviewer_id FK
         text review_type
-        int user_id FK
         int inbox_id FK
         text result_url
         text reviewer_name
