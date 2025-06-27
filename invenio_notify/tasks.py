@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Optional
 
 from celery import shared_task
 from flask import current_app
@@ -15,9 +16,43 @@ from invenio_notify.notifications.builders import NewEndorsementNotificationBuil
 from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
-from invenio_rdm_records.records.models import RDMRecordMetadata
+from invenio_rdm_records.records.models import RDMRecordMetadata, RDMParentMetadata
 
 log = logging.getLogger(__name__)
+
+
+def get_user_id_by_record(record) -> Optional[int]:
+    """
+    Get the user_id of the record owner by record object.
+    
+    Args:
+        record: The RDMRecordMetadata object
+        
+    Returns:
+        Optional[int]: The user_id of the record owner, or None if not found
+    """
+    if not record:
+        log.warning("Record object is None")
+        return None
+
+    parent_id = record.parent_id
+
+    # Get the parent record to find the owner
+    parent = RDMParentMetadata.query.filter_by(id=parent_id).first()
+    if not parent:
+        log.warning(f"Parent record with id {parent_id} not found")
+        return None
+
+    # Extract user_id from parent JSON: access.owned_by.user
+    access_data = parent.json.get('access', {})
+    owned_by = access_data.get('owned_by', {})
+    user_id = owned_by.get('user')
+
+    if user_id is None:
+        log.warning(f"Owner user_id not found in parent {parent_id} for record {record.id}")
+        return None
+
+    return int(user_id)
 
 
 @unit_of_work()
@@ -41,7 +76,7 @@ class ReviewerNotFoundError(Exception):
 
 
 @unit_of_work()
-def create_endorsement_record(identity, user_id, record_id, inbox_id, notification_raw,
+def create_endorsement_record(identity, record_owner_user_id, record_id, inbox_id, notification_raw,
                               uow=None):
     """
     Create a new endorsement record using the endorsement service.
@@ -60,13 +95,11 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     # Extract actor ID from notification
     actor_id = notification_raw.get('actor', {}).get('id', None)
     if not actor_id:
-        log.warning(f"Could not extract actor_id from notification {inbox_id}")
         raise ReviewerNotFoundError(f"Actor ID not found in notification {inbox_id}")
 
     # Find ReviewerModel with matching actor_id
     reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
     if not reviewer:
-        log.warning(f"Could not find reviewer with actor_id '{actor_id}'. Using None for reviewer_id.")
         raise ReviewerNotFoundError(f"Reviewer with actor_id '{actor_id}' not found")
 
     reviewer_id = reviewer.id
@@ -89,7 +122,6 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
         'record_id': record_id,
         'reviewer_id': reviewer_id,
         'review_type': reviewer_type,
-        'user_id': user_id,
         'inbox_id': inbox_id,
         'result_url': review_url,
         'reviewer_name': reviewer.name,
@@ -99,11 +131,14 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     reviewer_name = reviewer.name
 
     if reviewer_type == constants.TYPE_ENDORSEMENT:
-        try:
-            record = RDMRecordMetadata.query.filter_by(id=record_id).one()
-        except Exception as e:
-            log.warning(f"Could not resolve record for notification: {e}")
-            record = None
+        # Get the record to find its parent_id
+        record = RDMRecordMetadata.query.filter_by(id=record_id).first()
+        if not record:
+            raise ReviewerNotFoundError(f"Record with ID {record_id} not found")
+
+        record_owner_user_id = get_user_id_by_record(record)
+        if record_owner_user_id is None:
+            raise ReviewerNotFoundError(f"User ID not found for record {record_id}")
 
         uow.register(
             NotificationOp(
@@ -111,7 +146,7 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
                     record=record,
                     reviewer_name=reviewer_name,
                     endorsement_url=review_url,
-                    user_id=user_id,   # KTODO user_id should user_id of record's owner instead of inbox sender
+                    user_id=record_owner_user_id,
                 ),
             )
         )
