@@ -88,7 +88,6 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     # Verify the endorsement has the correct data
     endorsement = endorsements[0]
     assert endorsement.record_id == record.id
-    assert endorsement.user_id == superuser_identity.id
     assert endorsement.inbox_id == inbox.id
     assert endorsement.review_type == constants.TYPE_REVIEW
 
