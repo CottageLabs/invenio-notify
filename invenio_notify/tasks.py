@@ -70,8 +70,8 @@ def mark_as_processed(inbox_record: NotifyInboxModel, comment=None, uow=None):
         inbox_record.process_note = comment
 
 
-class ReviewerNotFoundError(Exception):
-    """Custom exception for when a reviewer is not found."""
+class DataNotFound(Exception):
+    """Custom exception for when notification processing fails due to missing or invalid data."""
     pass
 
 
@@ -97,12 +97,12 @@ def create_endorsement_record(identity, record_id, inbox_id, notification_raw, u
     # Extract actor ID from notification
     actor_id = notification_raw.get('actor', {}).get('id', None)
     if not actor_id:
-        raise ReviewerNotFoundError(f"Actor ID not found in notification {inbox_id}")
+        raise DataNotFound(f"Actor ID not found in notification {inbox_id}")
 
     # Find ReviewerModel with matching actor_id
     reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
     if not reviewer:
-        raise ReviewerNotFoundError(f"Reviewer with actor_id '{actor_id}' not found")
+        raise DataNotFound(f"Reviewer with actor_id '{actor_id}' not found")
 
     reviewer_id = reviewer.id
     log.info(f"Found reviewer ID {reviewer_id} for actor_id '{actor_id}'")
@@ -136,11 +136,11 @@ def create_endorsement_record(identity, record_id, inbox_id, notification_raw, u
         # Get the record to find its parent_id
         record = RDMRecordMetadata.query.filter_by(id=record_id).first()
         if not record:
-            raise ReviewerNotFoundError(f"Record with ID {record_id} not found")
+            raise DataNotFound(f"Record with ID {record_id} not found")
 
         record_owner_user_id = get_user_id_by_record(record)
         if record_owner_user_id is None:
-            raise ReviewerNotFoundError(f"User ID not found for record {record_id}")
+            raise DataNotFound(f"User ID not found for record {record_id}")
 
         uow.register(
             NotificationOp(
@@ -199,7 +199,7 @@ def inbox_processing():
                 inbox_record.id,
                 notification_raw
             )
-        except ReviewerNotFoundError as e:
+        except DataNotFound as e:
             log.warning(f"Failed to create endorsement record: {e}")
             mark_as_processed(inbox_record, comment="Reviewer not found")
             continue
