@@ -85,7 +85,6 @@ class EndorsementRequestSchema(BaseRecordSchema):
 class EndorsementReplySchema(BaseRecordSchema):
     endorsement_request_id = fields.Integer(required=True)
     inbox_id = fields.Integer(required=True)
-    endorsement_id = fields.Integer(required=False, allow_none=True)
     status = fields.String(required=True)
 
     created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
