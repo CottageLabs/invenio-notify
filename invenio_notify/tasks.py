@@ -80,6 +80,9 @@ def create_endorsement_record(identity, record_id, inbox_id, notification_raw, u
     """
     Create a new endorsement record using the endorsement service.
 
+    - email (sys notification) will be sent to the record owner
+       if the endorsement type is 'endorsement' and saved successfully.
+
     Args:
         identity: The identity to use for record creation
         record_id: The ID of the record being endorsed
