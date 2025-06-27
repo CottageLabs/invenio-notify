@@ -1,3 +1,5 @@
+from typing import List, Dict
+
 import regex
 from flask import current_app
 from flask import g
@@ -179,8 +181,10 @@ class EndorsementService(BasicDbService):
     """Service for managing endorsements."""
 
     @staticmethod
-    def get_endorsement_info(record_id):
+    def get_endorsement_info(record_id) -> List[Dict]:
         """Get the endorsement information for a record by its ID.
+
+        designed for system field data for rdm-records
         
         Args:
             record_id: The UUID of the record
