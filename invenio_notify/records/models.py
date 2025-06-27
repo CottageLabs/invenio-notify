@@ -225,7 +225,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
 
     inbox_id = db.Column(db.Integer, db.ForeignKey(
         NotifyInboxModel.id, ondelete="NO ACTION"
-    ), nullable=True)
+    ), nullable=True, unique=True)
     inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id], uselist=False)
 
     result_url = db.Column(db.Text, nullable=False)
@@ -288,17 +288,9 @@ class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
         db.ForeignKey(NotifyInboxModel.id, ondelete="NO ACTION"),
         nullable=False,
         index=True,
+        unique=True,
     )
     inbox = db.relationship(NotifyInboxModel, uselist=False)
-
-    endorsement_id = db.Column(
-        db.Integer,
-        db.ForeignKey("endorsement.id", ondelete="NO ACTION"),
-        nullable=True,
-        index=True,
-    )
-    endorsement = db.relationship("EndorsementModel")
-    """ value will be set if this reply is an endorsement or review """
 
     status = db.Column(db.Text, nullable=False)
     """ status e.g 'Request Endorsement', 'Reject', 'Announce Endorsement' """
