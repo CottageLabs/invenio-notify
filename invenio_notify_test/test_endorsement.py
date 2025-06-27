@@ -106,40 +106,43 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     record = prepare_test_rdm_record(db, minimal_record)
     not_related_record = prepare_test_rdm_record(db, minimal_record)
     service = proxies.current_endorsement_service
-    inbox = create_inbox(recid='r1')
 
     record_id = str(record.id)
     reviewer1 = create_reviewer(name="Reviewer One")
     reviewer2 = create_reviewer(name="Reviewer Two")
 
-    # Create endorsements using the fixture
+    # Create endorsements using the fixture - each needs unique inbox due to unique constraint
+    inbox1 = create_inbox(recid='r1')
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer1.id,
-        inbox_id=inbox.id,
+        inbox_id=inbox1.id,
         review_type=constants.TYPE_ENDORSEMENT,
         result_url='https://example.com/endorsement1'
     )
 
+    inbox2 = create_inbox(recid='r2')
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer1.id,
-        inbox_id=inbox.id,
+        inbox_id=inbox2.id,
         review_type=constants.TYPE_REVIEW,
         result_url='https://example.com/review1'
     )
 
     # Create an endorsement for a different record
+    inbox3 = create_inbox(recid='r3')
     create_endorsement(
         record_id=str(not_related_record.id),
         reviewer_id=reviewer1.id,
-        inbox_id=inbox.id
+        inbox_id=inbox3.id
     )
 
+    inbox4 = create_inbox(recid='r4')
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer2.id,
-        inbox_id=inbox.id,
+        inbox_id=inbox4.id,
         result_url='https://example.com/endorsement2'
     )
 
