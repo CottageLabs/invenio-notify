@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 
 from celery import shared_task
 from flask import current_app
@@ -16,6 +16,7 @@ from invenio_notify.notifications.builders import NewEndorsementNotificationBuil
 from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.records import RDMRecord
 from invenio_rdm_records.records.models import RDMRecordMetadata, RDMParentMetadata
 
 log = logging.getLogger(__name__)
@@ -76,7 +77,7 @@ class DataNotFound(Exception):
 
 
 @unit_of_work()
-def create_endorsement_record(identity, record_id, inbox_id, notification_raw, uow=None):
+def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadata], inbox_id, notification_raw, uow=None):
     """
     Create a new endorsement record using the endorsement service.
 
@@ -85,7 +86,7 @@ def create_endorsement_record(identity, record_id, inbox_id, notification_raw, u
 
     Args:
         identity: The identity to use for record creation
-        record_id: The ID of the record being endorsed
+        record_item: The record ID (string) or RDMRecordMetadata object
         inbox_id: The ID of the notification inbox record
         notification_raw: The raw notification data
 
@@ -113,7 +114,14 @@ def create_endorsement_record(identity, record_id, inbox_id, notification_raw, u
             reviewer_type = t
             break
 
-    record_id = str(record_id)
+    # Handle both string record_id and RDMRecordMetadata object
+    if isinstance(record_item, str):
+        record_id = record_item
+        record = None  # Will be queried only if needed for endorsement type
+    else:
+        # record_item is RDMRecordMetadata object
+        record = record_item
+        record_id = str(record.id)
 
     review_url = notification_raw['object'].get(constants.KEY_INBOX_REVIEW_URL)
     if not review_url:
@@ -133,10 +141,11 @@ def create_endorsement_record(identity, record_id, inbox_id, notification_raw, u
     reviewer_name = reviewer.name
 
     if reviewer_type == constants.TYPE_ENDORSEMENT:
-        # Get the record to find its parent_id
-        record = RDMRecordMetadata.query.filter_by(id=record_id).first()
-        if not record:
-            raise DataNotFound(f"Record with ID {record_id} not found")
+        # Get the record if we don't have it yet
+        if record is None:
+            record = RDMRecordMetadata.query.filter_by(id=record_id).first()
+            if not record:
+                raise DataNotFound(f"Record with ID {record_id} not found")
 
         record_owner_user_id = get_user_id_by_record(record)
         if record_owner_user_id is None:
@@ -183,7 +192,7 @@ def inbox_processing():
         # Get the record using the PID resolver
         try:
             # TODO study register_only=False, should we use registered_only=False
-            record = current_rdm_records_service.record_cls.pid.resolve(record_id, registered_only=False)
+            record: RDMRecord = current_rdm_records_service.record_cls.pid.resolve(record_id, registered_only=False)
             log.info(f"Successfully retrieved record with ID: {record_id}")
 
         except PIDDoesNotExistError:
@@ -195,7 +204,7 @@ def inbox_processing():
         try:
             endorsement = create_endorsement_record(
                 system_identity,
-                record.id,
+                record.model,
                 inbox_record.id,
                 notification_raw
             )
