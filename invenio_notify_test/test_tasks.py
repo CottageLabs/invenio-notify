@@ -120,7 +120,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
         raw=notification_data
     )
 
-    assert_inbox_processing_failed(inbox, "Record with ID")
+    assert_inbox_processing_failed(inbox, "Failed to resolve record from notification")
 
 
 def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity, create_inbox):
