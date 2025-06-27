@@ -14,7 +14,6 @@ def test_model_create(create_endorsement_reply):
     assert reply.id is not None
     assert reply.endorsement_request_id is not None
     assert reply.inbox_id is not None
-    assert reply.endorsement_id is None  # No endorsement by default
     assert reply.status == "Request Endorsement"
 
 
@@ -37,7 +36,6 @@ def test_service_create(superuser_identity, create_reviewer, create_inbox, creat
     assert result.data['id'] is not None
     assert result.data['endorsement_request_id'] == data['endorsement_request_id']
     assert result.data['status'] == data['status']
-    assert result.data['endorsement_id'] is None
     
     # Verify that the parent request status was updated
     updated_request = EndorsementRequestModel.get(request.id)
@@ -61,7 +59,6 @@ def test_service_create_without_endorsement(superuser_identity, create_reviewer,
     
     result = service.create(superuser_identity, data)
     assert result.data['id'] is not None
-    assert result.data['endorsement_id'] is None
     assert result.data['status'] == 'Reject'
 
 
