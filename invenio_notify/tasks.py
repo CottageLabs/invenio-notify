@@ -166,6 +166,35 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     return endorsement_service.create(identity, endorsement_data, uow=uow)
 
 
+def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
+    """
+    Extract record ID from notification URL and resolve to RDMRecord.
+    
+    Args:
+        record_url: The record URL from notification context
+        
+    Returns:
+        RDMRecord if successfully resolved, None if extraction or resolution fails
+    """
+    # Extract record_id from URL
+    record_id = get_recid_by_record_url(record_url)
+    if not record_id:
+        log.error(f"Could not extract record_id from notification")
+        return None
+    
+    log.info(f"Extracted record_id: {record_id}")
+    
+    # Resolve record using PID
+    try:
+        # TODO study register_only=False, should we use registered_only=False
+        record: RDMRecord = current_rdm_records_service.record_cls.pid.resolve(record_id, registered_only=False)
+        log.info(f"Successfully retrieved record with ID: {record_id}")
+        return record
+    except PIDDoesNotExistError:
+        log.error(f"Record with ID {record_id} not found in the system")
+        return None
+
+
 def inbox_processing():
     tobe_update_records = []
     for inbox_record in NotifyInboxModel.search(None, [
@@ -180,24 +209,12 @@ def inbox_processing():
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
 
-        # Check if the notification context contains a record ID
-        record_id = get_recid_by_record_url(notification_raw['context']['id'])
-        if not record_id:
-            log.error(f"Could not extract record_id from notification {inbox_record.id}")
-            mark_as_processed(inbox_record, "Could not extract record_id from notification")
-            continue
+        record_url = notification_raw['context']['id']
 
-        log.info(f"Extracted record_id: {record_id} from notification {inbox_record.id}")
-
-        # Get the record using the PID resolver
-        try:
-            # TODO study register_only=False, should we use registered_only=False
-            record: RDMRecord = current_rdm_records_service.record_cls.pid.resolve(record_id, registered_only=False)
-            log.info(f"Successfully retrieved record with ID: {record_id}")
-
-        except PIDDoesNotExistError:
-            log.error(f"Record with ID {record_id} not found in the system")
-            mark_as_processed(inbox_record, f"Record with ID {record_id} not found")
+        # Resolve record from notification
+        record = resolve_record_from_notification(record_url)
+        if record is None:
+            mark_as_processed(inbox_record, "Failed to resolve record from notification")
             continue
 
         # Create endorsement record
