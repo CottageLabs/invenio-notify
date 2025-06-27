@@ -114,9 +114,10 @@ class NewEndorsementNotificationBuilder(NotificationBuilder):
         if hasattr(endorsement, 'reviewer') and endorsement.reviewer:
             reviewer_name = endorsement.reviewer.name
 
-        # KTODO should be user_id of record's owner instead of inbox sender
-        # Get user ID (to be used if receiver_email is not available)
-        user_id = endorsement.user_id if hasattr(endorsement, 'user_id') else None
+        # Get user ID from the inbox (sender) if available
+        user_id = None
+        if hasattr(endorsement, 'inbox') and endorsement.inbox:
+            user_id = endorsement.inbox.user_id
 
         # Build endorsement URL
         endorsement_url = endorsement.result_url if hasattr(endorsement, 'result_url') and endorsement.result_url else f"https://example.com/endorsement/{endorsement.id}"
