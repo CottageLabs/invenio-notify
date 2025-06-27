@@ -16,7 +16,6 @@ erDiagram
     NotifyInboxModel ||--|| EndorsementReplyModel : references
     
     EndorsementRequestModel ||--o{ EndorsementReplyModel : has
-    EndorsementModel ||--o{ EndorsementReplyModel : references
     
     User {
         int id PK
@@ -83,7 +82,6 @@ erDiagram
         int id PK
         int endorsement_request_id FK
         int inbox_id FK
-        int endorsement_id FK
         text status
         text message
         timestamp created
