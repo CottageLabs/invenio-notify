@@ -223,15 +223,6 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     review_type = db.Column(db.Text, nullable=True)
     """ review or endorsement """
 
-    # KTODO to be remove should use inbox.user_id instead
-    user_id = db.Column(
-        db.Integer(),
-        db.ForeignKey(User.id, ondelete="NO ACTION"),
-        nullable=True,
-        index=True,
-    )
-    """ user id of the sender """
-
     inbox_id = db.Column(db.Integer, db.ForeignKey(
         NotifyInboxModel.id, ondelete="NO ACTION"
     ), nullable=True)
