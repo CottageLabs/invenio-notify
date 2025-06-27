@@ -13,7 +13,6 @@ def create_endorsement(db):
     Args:
         record_id: ID of the record being endorsed
         reviewer_id: ID of the reviewer entity
-        user_id: ID of the user creating the endorsement
         inbox_id: ID of the notification inbox
         review_type: Type of review (default: endorsement)
         result_url: URL of the review result
@@ -25,7 +24,6 @@ def create_endorsement(db):
     def _create_endorsement(
             record_id,
             reviewer_id,
-            user_id,
             inbox_id=None,
             review_type=constants.TYPE_ENDORSEMENT,
             result_url="https://example.com/result",
@@ -36,7 +34,6 @@ def create_endorsement(db):
             'record_id': record_id,
             'reviewer_id': reviewer_id,
             'review_type': review_type,
-            'user_id': user_id,
             'inbox_id': inbox_id,
             'result_url': result_url,
         }

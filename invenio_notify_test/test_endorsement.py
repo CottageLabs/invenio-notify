@@ -21,7 +21,6 @@ def test_model_create(db, superuser_identity, minimal_record, create_reviewer):
         record_id=(record.id),
         reviewer_id=reviewer.id,
         review_type='endorsement',
-        user_id=superuser_identity.id,
         result_url='https://fake.url',
         reviewer_name=reviewer.name,
     )
@@ -48,7 +47,6 @@ def test_service_create(db, superuser_identity, minimal_record, test_app, create
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer_id,
-        user_id=superuser_identity.id,
         inbox_id=inbox.id
     )
 
@@ -76,7 +74,6 @@ def test_service_update(db, superuser_identity, minimal_record, test_app, create
     endorsement_data = {
         'record_id': str(record.id),
         'reviewer_id': reviewer.id,
-        'user_id': superuser_identity.id,
         'inbox_id': inbox.id,
         'review_type': constants.TYPE_ENDORSEMENT,
         'result_url': 'https://example.com/endorsement1',
@@ -119,7 +116,6 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer1.id,
-        user_id=superuser_identity.id,
         inbox_id=inbox.id,
         review_type=constants.TYPE_ENDORSEMENT,
         result_url='https://example.com/endorsement1'
@@ -128,7 +124,6 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer1.id,
-        user_id=superuser_identity.id,
         inbox_id=inbox.id,
         review_type=constants.TYPE_REVIEW,
         result_url='https://example.com/review1'
@@ -138,14 +133,12 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     create_endorsement(
         record_id=str(not_related_record.id),
         reviewer_id=reviewer1.id,
-        user_id=superuser_identity.id,
         inbox_id=inbox.id
     )
 
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer2.id,
-        user_id=superuser_identity.id,
         inbox_id=inbox.id,
         result_url='https://example.com/endorsement2'
     )
