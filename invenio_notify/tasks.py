@@ -209,9 +209,9 @@ def inbox_processing():
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
 
-        record_url = notification_raw['context']['id']
 
         # Resolve record from notification
+        record_url = notification_raw['context']['id']
         record = resolve_record_from_notification(record_url)
         if record is None:
             mark_as_processed(inbox_record, "Failed to resolve record from notification")
