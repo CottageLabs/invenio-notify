@@ -73,7 +73,6 @@ def upgrade():
     sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
     sa.Column('reviewer_id', sa.Integer(), nullable=True),
     sa.Column('review_type', sa.Text(), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('inbox_id', sa.Integer(), nullable=True),
     sa.Column('result_url', sa.Text(), nullable=False),
     sa.Column('reviewer_name', sa.Text(), nullable=False),
