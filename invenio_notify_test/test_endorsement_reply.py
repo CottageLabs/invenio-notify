@@ -43,7 +43,7 @@ def test_service_create(superuser_identity, create_reviewer, create_inbox, creat
 
 
 def test_service_create_without_endorsement(superuser_identity, create_reviewer, create_inbox, create_endorsement_request):
-    """Test creating an endorsement reply without endorsement_id."""
+    """Test creating an endorsement reply with Reject status."""
     service = current_endorsement_reply_service
     
     # Create dependencies
