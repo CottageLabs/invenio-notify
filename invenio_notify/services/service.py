@@ -414,6 +414,8 @@ class EndorsementRequestService(BasicDbService):
         # Convert UUID to string if needed for schema validation
         if 'record_id' in data and hasattr(data['record_id'], '__str__'):
             data['record_id'] = str(data['record_id'])
+        if 'noti_id' in data and hasattr(data['noti_id'], '__str__'):
+            data['noti_id'] = str(data['noti_id'])
         return super().create(identity, data, raise_errors=raise_errors, uow=uow)
 
     @unit_of_work()

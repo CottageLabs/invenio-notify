@@ -72,6 +72,7 @@ class DelMemberSchema(BaseRecordSchema):
 
 
 class EndorsementRequestSchema(BaseRecordSchema):
+    noti_id = fields.String(required=True)
     record_id = fields.String(required=True)
     reviewer_id = fields.Integer(required=True)
     raw = fields.Dict(required=True)
