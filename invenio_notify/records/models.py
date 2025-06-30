@@ -245,6 +245,9 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    noti_id = db.Column(UUIDType, nullable=False, unique=True)
+    """ notification id from COAR notification """
+
     record_id = db.Column(UUIDType, db.ForeignKey(
         RDMRecordMetadata.id, ondelete="NO ACTION",
     ), index=True, nullable=False)

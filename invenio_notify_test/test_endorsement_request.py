@@ -19,6 +19,8 @@ def test_model_create(create_endorsement_request, superuser_identity):
     assert request.user_id == superuser_identity.id
     assert request.raw == {'test': 'data'}
     assert request.latest_status == "Request Endorsement"
+    assert request.noti_id is not None
+    assert isinstance(request.noti_id, (str, type(request.noti_id)))
 
 
 def test_service_create(superuser_identity, create_reviewer, db, minimal_record):
@@ -91,3 +93,37 @@ def test_service_create_preserve_explicit_user_id(superuser_identity, create_rev
     assert result.data['user_id'] == explicit_user_id
 
 
+def test_model_create_with_noti_id(create_endorsement_request, superuser_identity):
+    """Test creating an endorsement request model with noti_id."""
+    test_noti_id = uuid.uuid4()
+    request = create_endorsement_request(noti_id=test_noti_id)
+    assert request.id is not None
+    assert request.noti_id == test_noti_id
+
+
+def test_service_create_with_noti_id(superuser_identity, create_reviewer, db, minimal_record):
+    """Test creating an endorsement request via service with noti_id."""
+    reviewer = create_reviewer()
+
+    test_record = prepare_test_rdm_record(db, minimal_record)
+    test_noti_id = uuid.uuid4()
+    data = create_endorsement_request_data(reviewer.id, test_record.id, noti_id=test_noti_id)
+
+    result = current_endorsement_request_service.create(superuser_identity, data)
+    assert str(result.data['noti_id']) == str(test_noti_id)
+
+
+def test_noti_id_uniqueness(create_endorsement_request):
+    """Test that noti_id must be unique."""
+    import pytest
+    from sqlalchemy.exc import IntegrityError
+
+    test_noti_id = uuid.uuid4()
+
+    # Create first request with specific noti_id
+    create_endorsement_request(noti_id=test_noti_id)
+
+    # Try to create second request with same noti_id - should fail
+    with pytest.raises(IntegrityError):
+        create_endorsement_request(noti_id=test_noti_id)
+        EndorsementRequestModel.commit()
