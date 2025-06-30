@@ -89,6 +89,11 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     )
     """ user id of the sender """
 
+    @classmethod
+    def unprocessed_records(cls):
+        """Get all unprocessed inbox records (where process_date is None)."""
+        return cls.search(None, [cls.process_date.is_(None)])
+
 
 class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
     """

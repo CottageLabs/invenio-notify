@@ -197,9 +197,7 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
 
 def inbox_processing():
     tobe_update_records = []
-    for inbox_record in NotifyInboxModel.search(None, [
-        NotifyInboxModel.process_date.is_(None),
-    ]):
+    for inbox_record in NotifyInboxModel.unprocessed_records():
         notification = COARNotifyFactory.get_by_object(inbox_record.raw)
         notification_raw: dict = notification.to_jsonld()
 
