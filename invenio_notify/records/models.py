@@ -67,6 +67,9 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    noti_id = db.Column(UUIDType, nullable=False, unique=True)
+    """ notification id from COAR notification """
+
     raw = db.Column(JSON, nullable=False)
     """ Coar notification data as json string """
 

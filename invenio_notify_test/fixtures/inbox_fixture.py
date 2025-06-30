@@ -8,7 +8,7 @@ from invenio_notify_test.utils import resolve_user_id
 def create_inbox(db, superuser_identity):
     """Fixture to create a NotifyInboxModel instance."""
 
-    def _create_inbox(recid='r1', raw=None, user_id=None, identity=None):
+    def _create_inbox(recid='r1', raw=None, user_id=None, identity=None, noti_id=None):
         """Create a NotifyInboxModel instance.
         
         Args:
@@ -16,6 +16,7 @@ def create_inbox(db, superuser_identity):
             raw: Raw data content (default: 'test')
             user_id: User ID to associate with the inbox (overrides identity)
             identity: Identity object to get user_id from (defaults to superuser_identity)
+            noti_id: Notification ID (defaults to the ID from raw data or auto-generated)
             
         Returns:
             NotifyInboxModel instance
@@ -23,8 +24,13 @@ def create_inbox(db, superuser_identity):
         user_id = resolve_user_id(user_id, identity, superuser_identity)
         if raw is None:
             raw = create_inbox_payload__review('record-not-exists')
+        
+        # Extract noti_id from raw data if not provided
+        if noti_id is None:
+            noti_id = raw.get('id', f'urn:uuid:test-{recid}')
 
         inbox = NotifyInboxModel.create({
+            'noti_id': noti_id,
             'raw': raw,
             'recid': recid,
             'user_id': user_id
