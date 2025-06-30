@@ -57,7 +57,7 @@ def create_inbox_payload__review(record_id) -> dict:
         "context": {
             "id": f"https://127.0.0.1:5000/records/{record_id}"
         },
-        "id": "urn:uuid:94ecae35-dcfd-4182-8550-22c7164fe23f",
+        "id": f"urn:uuid:{uuid.uuid4()}",
         "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
         "object": {
             "id": "https://evolbiol.peercommunityin.org/articles/rec?articleId=794#review-3136",
@@ -97,8 +97,8 @@ def create_inbox_payload__endorsement_request(record_id) -> dict:
             "name": "Josiah Carberry",
             "type": "Person"
         },
-        "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
-        "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
+        "id": f"urn:uuid:{uuid.uuid4()}",
+        "inReplyTo": f"urn:uuid:{uuid.uuid4()}",
         "object": {
             "id":  f"https://127.0.0.1:5000/records/{record_id}",
             "ietf:cite-as": "https://doi.org/10.5555/12345680",
@@ -146,8 +146,8 @@ def create_inbox_payload__endorsement_resp(record_id) -> dict:
         "context": {
             "id": f"https://127.0.0.1:5000/records/{record_id}"
         },
-        "id": "urn:uuid:94ecae35-dcfd-4182-8550-22c7164fe23f",
-        "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
+        "id": f"urn:uuid:{uuid.uuid4()}",
+        "inReplyTo": f"urn:uuid:{uuid.uuid4()}",
         "object": {
             "id": "https://evolbiol.peercommunityin.org/articles/rec?articleId=794",
             "ietf:cite-as": "https://doi.org/10.24072/pci.evolbiol.100794",
@@ -184,15 +184,15 @@ def create_inbox_payload__tentative_accept(record_id) -> dict:
             "name": "Peer Community in Evolutionary Biology",
             "type": "Service"
         },
-        "id": "urn:uuid:4fb3af44-d4f8-4226-9475-2d09c2d8d9e0",
-        "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
+        "id": f"urn:uuid:{uuid.uuid4()}",
+        "inReplyTo": f"urn:uuid:{uuid.uuid4()}",
         "object": {
             "actor": {
                 "id": "https://orcid.org/0000-0002-1825-0097",
                 "name": "Josiah Carberry",
                 "type": "Person"
             },
-            "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
+            "id": f"urn:uuid:{uuid.uuid4()}",
             "object": {
                 "id": f"https://127.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
@@ -247,15 +247,15 @@ def create_inbox_payload__reject(record_id) -> dict:
             "name": "Peer Community in Evolutionary Biology",
             "type": "Service"
         },
-        "id": "urn:uuid:668f26e0-2c8d-4117-a0d2-ee713523bcb1",
-        "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
+        "id": f"urn:uuid:{uuid.uuid4()}",
+        "inReplyTo": f"urn:uuid:{uuid.uuid4()}",
         "object": {
             "actor": {
                 "id": "https://orcid.org/0000-0002-1825-0097",
                 "name": "Josiah Carberry",
                 "type": "Person"
             },
-            "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
+            "id": f"urn:uuid:{uuid.uuid4()}",
             "object": {
                 "id": f"https://127.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
@@ -310,15 +310,15 @@ def create_inbox_payload__tentative_reject(record_id) -> dict:
             "name": "Peer Community in Evolutionary Biology",
             "type": "Service"
         },
-        "id": "urn:uuid:b6c7c187-4df2-45c6-8b03-b516b134224b",
-        "inReplyTo": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
+        "id": f"urn:uuid:{uuid.uuid4()}",
+        "inReplyTo": f"urn:uuid:{uuid.uuid4()}",
         "object": {
             "actor": {
                 "id": "https://orcid.org/0000-0002-1825-0097",
                 "name": "Josiah Carberry",
                 "type": "Person"
             },
-            "id": "urn:uuid:0370c0fb-bb78-4a9b-87f5-bed307a509dd",
+            "id": f"urn:uuid:{uuid.uuid4()}",
             "object": {
                 "id": f"https://127.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
