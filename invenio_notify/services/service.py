@@ -155,6 +155,12 @@ class InboxCOARBinding(COARNotifyServiceBinding):
 
         raw = notification.to_jsonld()
         recid = get_recid_by_record_url(raw['context']['id'])
+        
+        # Extract notification ID from the raw notification
+        noti_id = raw.get('id')
+        if not noti_id:
+            current_app.logger.error('Missing notification ID in COAR notification')
+            raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'Missing notification ID')
 
         # Check actor_id match with user
         actor_id = raw['actor']['id']
@@ -172,7 +178,11 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         records_service.record_cls.pid.resolve(recid)  # raises PIDDoesNotExistError if not found
 
         current_app.logger.debug(f'client input raw: {raw}')
-        current_inbox_service.create(g.identity, {"raw": raw, 'recid': recid})
+        try:
+            current_inbox_service.create(g.identity, {"noti_id": noti_id, "raw": raw, 'recid': recid})
+        except Exception as e:
+            current_app.logger.error(f'Failed to create inbox record: {e}')
+            raise COARProcessFail(constants.STATUS_BAD_REQUEST, f'Failed to create inbox record')
 
         return COARNotifyReceipt(COARNotifyReceipt.ACCEPTED)
 
