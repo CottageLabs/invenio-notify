@@ -73,7 +73,10 @@ def mark_as_processed(inbox_record: NotifyInboxModel, comment=None, uow=None):
 
 class DataNotFound(Exception):
     """Custom exception for when notification processing fails due to missing or invalid data."""
-    pass
+
+    def __init__(self, message, **kwargs):
+        super().__init__(message, **kwargs)
+        self.message = message
 
 
 def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
@@ -92,13 +95,13 @@ def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
     # Extract actor ID from notification
     actor_id = notification_raw.get('actor', {}).get('id', None)
     if not actor_id:
-        raise DataNotFound("Actor ID not found in notification")
+        raise DataNotFound(f"Actor ID not found in notification, actor[{actor_id}]")
 
     # Find ReviewerModel with matching actor_id
     reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
     if not reviewer:
-        raise DataNotFound(f"Reviewer with actor_id '{actor_id}' not found")
-        
+        raise DataNotFound(f"Reviewer not found, actor_id[{actor_id}]")
+
     return reviewer
 
 
@@ -268,19 +271,18 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
         bool: True if processing was successful, False otherwise
     """
     from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
-    
-    
+
     # Find the endorsement request for this reviewer
     endorsement_request = EndorsementRequestModel.query.filter_by(reviewer_id=reviewer.id).first()
     if not endorsement_request:
         log.warning(f"Endorsement request for reviewer {reviewer.id} not found")
         mark_as_processed(inbox_record, "Endorsement request not found")
         return False
-    
+
     # Extract status from notification type
     status = 'unknown'
     noti_types = notification_raw.get('type', [])
-    
+
     # Map notification types to reply status
     if constants.TYPE_ENDORSEMENT in noti_types:
         status = 'Announce Endorsement'
@@ -288,10 +290,10 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
         status = 'Request Endorsement'
     elif 'Reject' in noti_types:
         status = 'Reject'
-    
+
     # Extract message from notification if available
     message = notification_raw.get('object', {}).get('summary', None)
-    
+
     # Create the endorsement reply record
     reply_data = {
         'endorsement_request_id': endorsement_request.id,
@@ -299,15 +301,15 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
         'status': status,
         'message': message
     }
-    
+
     try:
         reply = EndorsementReplyModel.create(reply_data)
         log.info(f"Created endorsement reply record: {reply.id}")
-        
+
         # Mark inbox as processed after successful reply creation
         mark_as_processed(inbox_record)
         return True
-        
+
     except Exception as e:
         log.error(f"Failed to create endorsement reply: {e}")
         mark_as_processed(inbox_record, f"Failed to create reply: {str(e)}")
@@ -338,7 +340,7 @@ def inbox_processing():
             reviewer = get_reviewer_by_actor_id(notification_raw)
         except DataNotFound as e:
             log.warning(f"Failed to get reviewer: {e}")
-            mark_as_processed(inbox_record, "Reviewer not found")
+            mark_as_processed(inbox_record, e.message)
             continue
 
         if any(t in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT} for t in noti_type):
