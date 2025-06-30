@@ -77,7 +77,8 @@ class DataNotFound(Exception):
 
 
 @unit_of_work()
-def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadata], inbox_id, notification_raw, uow=None):
+def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadata], inbox_id, notification_raw,
+                              uow=None):
     """
     Create a new endorsement record using the endorsement service.
 
@@ -181,9 +182,9 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
     if not record_id:
         log.error(f"Could not extract record_id from notification")
         return None
-    
+
     log.info(f"Extracted record_id: {record_id}")
-    
+
     # Resolve record using PID
     try:
         # TODO study register_only=False, should we use registered_only=False
@@ -196,7 +197,6 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
 
 
 def inbox_processing():
-    tobe_update_records = []
     for inbox_record in NotifyInboxModel.unprocessed_records():
         notification = COARNotifyFactory.get_by_object(inbox_record.raw)
         notification_raw: dict = notification.to_jsonld()
@@ -206,7 +206,6 @@ def inbox_processing():
             log.error(f'Unknown type: [{inbox_record.id=}]{notification_raw.get("type")}')
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
-
 
         # Resolve record from notification
         record_url = notification_raw['context']['id']
@@ -233,19 +232,8 @@ def inbox_processing():
         # Mark inbox as processed after successful endorsement creation
         mark_as_processed(inbox_record)
 
-        tobe_update_records.append(record)
-
-    refresh_endorsements_field(tobe_update_records)
-
-
-@unit_of_work()
-def refresh_endorsements_field(records, uow=None):
-    # re-commit rdm-record to refresh record.endorsements field
-    existing_ids = set()
-    for r in records:
-        if r.id in existing_ids:
-            continue
-        r.commit()
+        # re-commit rdm-record to refresh record.endorsements field
+        record.commit()
 
 
 @shared_task
