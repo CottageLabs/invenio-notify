@@ -196,44 +196,75 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
         return None
 
 
+def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw: dict) -> bool:
+    """
+    Process endorsement review for a single inbox record.
+    
+    Args:
+        inbox_record: The inbox record to process
+        notification_raw: The raw notification data
+        
+    Returns:
+        bool: True if processing was successful, False otherwise
+    """
+    # Resolve record from notification
+    record_url = notification_raw['context']['id']
+    record = resolve_record_from_notification(record_url)
+    if record is None:
+        mark_as_processed(inbox_record, "Failed to resolve record from notification")
+        return False
+
+    # Create endorsement record
+    try:
+        endorsement = create_endorsement_record(
+            system_identity,
+            record.model,
+            inbox_record.id,
+            notification_raw
+        )
+    except DataNotFound as e:
+        log.warning(f"Failed to create endorsement record: {e}")
+        mark_as_processed(inbox_record, comment="Reviewer not found")
+        return False
+
+    log.info(f"Created endorsement record: {endorsement._record.id}")
+
+    # Mark inbox as processed after successful endorsement creation
+    mark_as_processed(inbox_record)
+
+    # re-commit rdm-record to refresh record.endorsements field
+    record.commit()
+
+    return True
+
+
+def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict):
+    raise NotImplementedError("Processing endorsement replies is not implemented yet.")
+
+
 def inbox_processing():
     for inbox_record in NotifyInboxModel.unprocessed_records():
-        notification = COARNotifyFactory.get_by_object(inbox_record.raw)
-        notification_raw: dict = notification.to_jsonld()
+        try:
+            notification = COARNotifyFactory.get_by_object(inbox_record.raw)
+            notification_raw: dict = notification.to_jsonld()
+        except Exception as e:
+            msg = f"Failed to decode inbox json {inbox_record.id}: {e}"
+            log.error(msg)
+            mark_as_processed(inbox_record, msg)
+            continue
+
+        noti_type = notification_raw.get('type', [])
 
         # Check if the notification type is supported
-        if all(t not in SUPPORTED_TYPES for t in notification_raw.get('type', [])):
+        if all(t not in SUPPORTED_TYPES for t in noti_type):
             log.error(f'Unknown type: [{inbox_record.id=}]{notification_raw.get("type")}')
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
 
-        # Resolve record from notification
-        record_url = notification_raw['context']['id']
-        record = resolve_record_from_notification(record_url)
-        if record is None:
-            mark_as_processed(inbox_record, "Failed to resolve record from notification")
-            continue
-
-        # Create endorsement record
-        try:
-            endorsement = create_endorsement_record(
-                system_identity,
-                record.model,
-                inbox_record.id,
-                notification_raw
-            )
-        except DataNotFound as e:
-            log.warning(f"Failed to create endorsement record: {e}")
-            mark_as_processed(inbox_record, comment="Reviewer not found")
-            continue
-
-        log.info(f"Created endorsement record: {endorsement._record.id}")
-
-        # Mark inbox as processed after successful endorsement creation
-        mark_as_processed(inbox_record)
-
-        # re-commit rdm-record to refresh record.endorsements field
-        record.commit()
+        if any(t in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT} for t in noti_type):
+            process_endorsement_review(inbox_record, notification_raw)
+        else:
+            process_endorsement_reply(inbox_record, notification_raw)
 
 
 @shared_task
