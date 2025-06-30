@@ -139,6 +139,17 @@ class NotifyInboxService(BasicDbService):
     @unit_of_work()
     def create(self, identity, data, raise_errors=True, uow=None):
         data['user_id'] = identity.id
+        
+        # Extract noti_id from raw data if not already provided
+        if 'noti_id' not in data and 'raw' in data:
+            raw = data['raw']
+            noti_id = raw.get('id')
+            if noti_id:
+                data['noti_id'] = noti_id
+            else:
+                current_app.logger.error('Missing notification ID in raw data')
+                raise ValueError('Missing notification ID in raw data')
+        
         return super().create(
             identity,
             data,
