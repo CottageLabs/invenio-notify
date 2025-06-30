@@ -106,12 +106,15 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     ]
 
 
-def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox):
+def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox, create_reviewer):
     """Test inbox processing when the record is not found."""
 
     recid = 'r1'
 
     notification_data = create_inbox_payload__review(recid)
+
+    # Create reviewer so we pass the reviewer check and reach the record resolution failure
+    create_reviewer(actor_id=notification_data['actor']['id'])
 
     # Create inbox record with notification pointing to non-existent record
     inbox = create_inbox(
