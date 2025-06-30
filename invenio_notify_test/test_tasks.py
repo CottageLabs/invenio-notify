@@ -46,7 +46,7 @@ def test_mark_as_processed(db, superuser_identity, create_inbox):
     assert isinstance(inbox.process_date, datetime)
 
 
-def test_inbox_processing_success(db, rdm_record, superuser_identity, create_reviewer):
+def test_inbox_processing_success(db, rdm_record, superuser_identity, create_reviewer, create_inbox):
     """Test successful inbox processing that creates an endorsement."""
     recid = rdm_record.id
 
@@ -61,11 +61,10 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     )
 
     # Create inbox record with real notification data
-    inbox = NotifyInboxModel.create({
-        'raw': notification_data,
-        'recid': recid,
-        'user_id': superuser_identity.id,
-    })
+    inbox = create_inbox(
+        recid=recid,
+        raw=notification_data
+    )
 
     # Verify no endorsements exist before processing
     assert EndorsementModel.query.count() == 0
