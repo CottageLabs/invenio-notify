@@ -104,7 +104,7 @@ def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
 
 @unit_of_work()
 def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadata], inbox_id, notification_raw,
-                              uow=None):
+                              reviewer: ReviewerModel, uow=None):
     """
     Create a new endorsement record using the endorsement service.
 
@@ -121,9 +121,6 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
         The created endorsement record
     """
     endorsement_service = current_app.extensions["invenio-notify"].endorsement_service
-
-    # Get reviewer using the utility function
-    reviewer = get_reviewer_by_actor_id(notification_raw)
 
     reviewer_id = reviewer.id
     log.info(f"Found reviewer ID {reviewer_id} for actor_id '{reviewer.actor_id}'")
@@ -215,7 +212,7 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
         return None
 
 
-def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw: dict) -> bool:
+def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw: dict, reviewer: ReviewerModel) -> bool:
     """
     Process endorsement review for a single inbox record.
     
@@ -239,7 +236,8 @@ def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw:
             system_identity,
             record.model,
             inbox_record.id,
-            notification_raw
+            notification_raw,
+            reviewer
         )
     except DataNotFound as e:
         log.warning(f"Failed to create endorsement record: {e}")
@@ -257,7 +255,7 @@ def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw:
     return True
 
 
-def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict) -> bool:
+def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict, reviewer: ReviewerModel) -> bool:
     """
     Process endorsement reply for a single inbox record.
     Creates a new EndorsementReplyModel record.
@@ -271,13 +269,6 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
     """
     from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
     
-    # Get reviewer using the utility function
-    try:
-        reviewer = get_reviewer_by_actor_id(notification_raw)
-    except DataNotFound as e:
-        log.warning(f"Failed to get reviewer: {e}")
-        mark_as_processed(inbox_record, str(e))
-        return False
     
     # Find the endorsement request for this reviewer
     endorsement_request = EndorsementRequestModel.query.filter_by(reviewer_id=reviewer.id).first()
@@ -342,10 +333,18 @@ def inbox_processing():
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
 
+        # Get reviewer using the utility function
+        try:
+            reviewer = get_reviewer_by_actor_id(notification_raw)
+        except DataNotFound as e:
+            log.warning(f"Failed to get reviewer: {e}")
+            mark_as_processed(inbox_record, "Reviewer not found")
+            continue
+
         if any(t in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT} for t in noti_type):
-            process_endorsement_review(inbox_record, notification_raw)
+            process_endorsement_review(inbox_record, notification_raw, reviewer)
         else:
-            process_endorsement_reply(inbox_record, notification_raw)
+            process_endorsement_reply(inbox_record, notification_raw, reviewer)
 
 
 @shared_task
