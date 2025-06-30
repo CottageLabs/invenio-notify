@@ -76,6 +76,36 @@ class DataNotFound(Exception):
     pass
 
 
+def get_reviewer_by_actor_id(notification_raw: dict, inbox_record: NotifyInboxModel = None) -> Optional[ReviewerModel]:
+    """
+    Extract reviewer data from notification by actor ID.
+    
+    Args:
+        notification_raw: The raw notification data
+        inbox_record: Optional inbox record for error logging
+        
+    Returns:
+        ReviewerModel if found, None otherwise
+    """
+    # Extract actor ID from notification
+    actor_id = notification_raw.get('actor', {}).get('id', None)
+    if not actor_id:
+        log.warning(f"Actor ID not found in notification {inbox_record.id if inbox_record else 'unknown'}")
+        if inbox_record:
+            mark_as_processed(inbox_record, "Actor ID not found")
+        return None
+
+    # Find ReviewerModel with matching actor_id
+    reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
+    if not reviewer:
+        log.warning(f"Reviewer with actor_id '{actor_id}' not found")
+        if inbox_record:
+            mark_as_processed(inbox_record, "Reviewer not found")
+        return None
+        
+    return reviewer
+
+
 @unit_of_work()
 def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadata], inbox_id, notification_raw,
                               uow=None):
@@ -96,18 +126,14 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     """
     endorsement_service = current_app.extensions["invenio-notify"].endorsement_service
 
-    # Extract actor ID from notification
-    actor_id = notification_raw.get('actor', {}).get('id', None)
-    if not actor_id:
-        raise DataNotFound(f"Actor ID not found in notification {inbox_id}")
-
-    # Find ReviewerModel with matching actor_id
-    reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
+    # Get reviewer using the utility function
+    reviewer = get_reviewer_by_actor_id(notification_raw)
     if not reviewer:
+        actor_id = notification_raw.get('actor', {}).get('id', 'unknown')
         raise DataNotFound(f"Reviewer with actor_id '{actor_id}' not found")
 
     reviewer_id = reviewer.id
-    log.info(f"Found reviewer ID {reviewer_id} for actor_id '{actor_id}'")
+    log.info(f"Found reviewer ID {reviewer_id} for actor_id '{reviewer.actor_id}'")
 
     reviewer_type = 'unknown'
     for t in constants.SUPPORTED_TYPES:
@@ -252,18 +278,9 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
     """
     from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
     
-    # Extract actor ID from notification
-    actor_id = notification_raw.get('actor', {}).get('id', None)
-    if not actor_id:
-        log.warning(f"Actor ID not found in notification {inbox_record.id}")
-        mark_as_processed(inbox_record, "Actor ID not found")
-        return False
-    
-    # Find the original endorsement request by actor_id
-    reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
+    # Get reviewer using the utility function
+    reviewer = get_reviewer_by_actor_id(notification_raw, inbox_record)
     if not reviewer:
-        log.warning(f"Reviewer with actor_id '{actor_id}' not found")
-        mark_as_processed(inbox_record, "Reviewer not found")
         return False
     
     # Find the endorsement request for this reviewer
