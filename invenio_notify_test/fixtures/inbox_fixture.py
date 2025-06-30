@@ -1,4 +1,5 @@
 import pytest
+import uuid
 
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify_test.utils import resolve_user_id
@@ -27,7 +28,7 @@ def create_inbox(db, superuser_identity):
         
         # Extract noti_id from raw data if not provided
         if noti_id is None:
-            noti_id = raw.get('id', f'urn:uuid:test-{recid}')
+            noti_id = raw.get('id', f'urn:uuid:{uuid.uuid4()}')
 
         inbox = NotifyInboxModel.create({
             'noti_id': noti_id,
