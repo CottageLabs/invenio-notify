@@ -238,8 +238,76 @@ def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw:
     return True
 
 
-def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict):
-    raise NotImplementedError("Processing endorsement replies is not implemented yet.")
+def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict) -> bool:
+    """
+    Process endorsement reply for a single inbox record.
+    Creates a new EndorsementReplyModel record.
+    
+    Args:
+        inbox_record: The inbox record to process
+        notification_raw: The raw notification data
+        
+    Returns:
+        bool: True if processing was successful, False otherwise
+    """
+    from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
+    
+    # Extract actor ID from notification
+    actor_id = notification_raw.get('actor', {}).get('id', None)
+    if not actor_id:
+        log.warning(f"Actor ID not found in notification {inbox_record.id}")
+        mark_as_processed(inbox_record, "Actor ID not found")
+        return False
+    
+    # Find the original endorsement request by actor_id
+    reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
+    if not reviewer:
+        log.warning(f"Reviewer with actor_id '{actor_id}' not found")
+        mark_as_processed(inbox_record, "Reviewer not found")
+        return False
+    
+    # Find the endorsement request for this reviewer
+    endorsement_request = EndorsementRequestModel.query.filter_by(reviewer_id=reviewer.id).first()
+    if not endorsement_request:
+        log.warning(f"Endorsement request for reviewer {reviewer.id} not found")
+        mark_as_processed(inbox_record, "Endorsement request not found")
+        return False
+    
+    # Extract status from notification type
+    status = 'unknown'
+    noti_types = notification_raw.get('type', [])
+    
+    # Map notification types to reply status
+    if constants.TYPE_ENDORSEMENT in noti_types:
+        status = 'Announce Endorsement'
+    elif constants.TYPE_REVIEW in noti_types:
+        status = 'Request Endorsement'
+    elif 'Reject' in noti_types:
+        status = 'Reject'
+    
+    # Extract message from notification if available
+    message = notification_raw.get('object', {}).get('summary', None)
+    
+    # Create the endorsement reply record
+    reply_data = {
+        'endorsement_request_id': endorsement_request.id,
+        'inbox_id': inbox_record.id,
+        'status': status,
+        'message': message
+    }
+    
+    try:
+        reply = EndorsementReplyModel.create(reply_data)
+        log.info(f"Created endorsement reply record: {reply.id}")
+        
+        # Mark inbox as processed after successful reply creation
+        mark_as_processed(inbox_record)
+        return True
+        
+    except Exception as e:
+        log.error(f"Failed to create endorsement reply: {e}")
+        mark_as_processed(inbox_record, f"Failed to create reply: {str(e)}")
+        return False
 
 
 def inbox_processing():
