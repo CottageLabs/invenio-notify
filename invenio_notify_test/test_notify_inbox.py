@@ -23,13 +23,15 @@ def test_service_create(test_app, superuser_identity):
 
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
-    noti_id = 'urn:uuid:test-service-create'
+    raw_payload = create_inbox_payload__review(record_id)
     result = notify_inbox_serv.create(superuser_identity, {
-        'noti_id': noti_id, 'raw': create_inbox_payload__review(record_id), 'recid': record_id
+        'raw': raw_payload, 'recid': record_id
     })
     result_dict = result.to_dict()
     assert result_dict['recid'] == record_id
-    assert result_dict['noti_id'] == noti_id
+    # Extract UUID from raw_payload['id'] which has format 'urn:uuid:actual-uuid'
+    expected_uuid = raw_payload['id'].replace('urn:uuid:', '')
+    assert result_dict['noti_id'] == expected_uuid
     assert 'links' in result_dict
     assert NotifyInboxModel.query.count() == 1
 
@@ -45,13 +47,13 @@ def test_service_search(test_app, superuser_identity):
 
     # Create test records
     notify_inbox_serv.create(superuser_identity, {
-        'noti_id': f'urn:uuid:test-search-{record_id_1}', 'raw': create_inbox_payload__review(record_id_1), 'recid': record_id_1,
+        'raw': create_inbox_payload__review(record_id_1), 'recid': record_id_1,
     })
     notify_inbox_serv.create(superuser_identity, {
-        'noti_id': f'urn:uuid:test-search-{record_id_2}', 'raw': create_inbox_payload__review(record_id_2), 'recid': record_id_2,
+        'raw': create_inbox_payload__review(record_id_2), 'recid': record_id_2,
     })
     notify_inbox_serv.create(superuser_identity, {
-        'noti_id': f'urn:uuid:test-search-{record_id_3}', 'raw': create_inbox_payload__review(record_id_3), 'recid': record_id_3,
+        'raw': create_inbox_payload__review(record_id_3), 'recid': record_id_3,
     })
 
     assert NotifyInboxModel.query.count() == 3
