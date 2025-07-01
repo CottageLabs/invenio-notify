@@ -79,6 +79,23 @@ class DataNotFound(Exception):
         self.message = message
 
 
+def get_notification_type(notification_raw: dict) -> str | None:
+    """
+    Extract notification type from raw notification data.
+    
+    Args:
+        notification_raw: The raw notification data
+        
+    Returns:
+        str | None: The first supported type found, or None if no supported type exists
+    """
+    noti_types = notification_raw.get('type', [])
+    for t in SUPPORTED_TYPES:
+        if t in noti_types:
+            return t
+    return None
+
+
 def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
     """
     Extract reviewer data from notification by actor ID.
@@ -128,11 +145,9 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     reviewer_id = reviewer.id
     log.info(f"Found reviewer ID {reviewer_id} for actor_id '{reviewer.actor_id}'")
 
-    reviewer_type = 'unknown'
-    for t in constants.SUPPORTED_TYPES:
-        if t in notification_raw.get('type', []):
-            reviewer_type = t
-            break
+    reviewer_type = get_notification_type(notification_raw)
+    if not reviewer_type:
+        raise DataNotFound(f"Notification type not found in notification {inbox_id}")
 
     # Handle both string record_id and RDMRecordMetadata object
     if isinstance(record_item, str):
@@ -281,14 +296,15 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
 
     # Extract status from notification type
     status = 'unknown'
-    noti_types = notification_raw.get('type', [])
+    noti_type = get_notification_type(notification_raw)
 
     # Map notification types to reply status
-    if constants.TYPE_ENDORSEMENT in noti_types:
+    # KTODO use noti_type for status
+    if noti_type == constants.TYPE_ENDORSEMENT:
         status = 'Announce Endorsement'
-    elif constants.TYPE_REVIEW in noti_types:
+    elif noti_type == constants.TYPE_REVIEW:
         status = 'Request Endorsement'
-    elif 'Reject' in noti_types:
+    elif 'Reject' in notification_raw.get('type', []):
         status = 'Reject'
 
     # Extract message from notification if available
@@ -327,10 +343,10 @@ def inbox_processing():
             mark_as_processed(inbox_record, msg)
             continue
 
-        noti_type = notification_raw.get('type', [])
+        noti_type = get_notification_type(notification_raw)
 
         # Check if the notification type is supported
-        if all(t not in SUPPORTED_TYPES for t in noti_type):
+        if not noti_type:
             log.error(f'Unknown type: [{inbox_record.id=}]{notification_raw.get("type")}')
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
@@ -343,7 +359,7 @@ def inbox_processing():
             mark_as_processed(inbox_record, e.message)
             continue
 
-        if any(t in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT} for t in noti_type):
+        if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
             process_endorsement_review(inbox_record, notification_raw, reviewer)
         else:
             process_endorsement_reply(inbox_record, notification_raw, reviewer)
