@@ -244,6 +244,10 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
 
 
 class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
+    """
+    This model stores records created by record owners who want to send endorsement requests to reviewers.
+    It serves as an outbox of our repository system for COAR endorsement notifications.
+    """
     __tablename__ = "endorsement_request"
 
     id = db.Column(db.Integer, primary_key=True)
