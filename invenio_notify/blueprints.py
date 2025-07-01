@@ -29,3 +29,10 @@ def create_notify_inbox_resource_api_bp(app):
 
 def create_reviewer_resource_api_bp(app):
     return app.extensions["invenio-notify"].reviewer_resource.as_blueprint()
+
+
+def create_rest_blueprint(app):
+    """Create rest blueprint with routes properly registered."""
+    # Import here to ensure routes are registered after blueprint creation
+    from invenio_notify.views import api_views  # noqa
+    return rest_blueprint
