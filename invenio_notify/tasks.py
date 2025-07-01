@@ -13,6 +13,7 @@ from coarnotify.factory import COARNotifyFactory
 from invenio_notify import constants
 from invenio_notify.constants import SUPPORTED_TYPES
 from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder
+from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
 from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -230,7 +231,7 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
         return None
 
 
-def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw: dict, reviewer: ReviewerModel) -> bool:
+def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw: dict, reviewer: ReviewerModel):
     """
     Process endorsement review for a single inbox record.
     
@@ -245,35 +246,25 @@ def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw:
     record_url = notification_raw['context']['id']
     record = resolve_record_from_notification(record_url)
     if record is None:
-        mark_as_processed(inbox_record, "Failed to resolve record from notification")
-        return False
+        raise DataNotFound(f"Failed to resolve record from notification")
 
     # Create endorsement record
-    try:
-        endorsement = create_endorsement_record(
-            system_identity,
-            record.model,
-            inbox_record.id,
-            notification_raw,
-            reviewer
-        )
-    except DataNotFound as e:
-        log.warning(f"Failed to create endorsement record: {e}")
-        mark_as_processed(inbox_record, comment="Reviewer not found")
-        return False
+    endorsement = create_endorsement_record(
+        system_identity,
+        record.model,
+        inbox_record.id,
+        notification_raw,
+        reviewer
+    )
 
     log.info(f"Created endorsement record: {endorsement._record.id}")
-
-    # Mark inbox as processed after successful endorsement creation
-    mark_as_processed(inbox_record)
 
     # re-commit rdm-record to refresh record.endorsements field
     record.commit()
 
-    return True
 
-
-def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict) -> bool:
+def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict) -> Optional[
+    EndorsementReplyModel]:
     """
     Process endorsement reply for a single inbox record.
     Creates a new EndorsementReplyModel record.
@@ -285,19 +276,18 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
     Returns:
         bool: True if processing was successful, False otherwise
     """
-    from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
 
     # Extract noti_id from inReplyTo field
     noti_id = notification_raw.get('inReplyTo', '').replace('urn:uuid:', '')
     if not noti_id:
         log.debug(f"Notification {inbox_record.id} does not have inReplyTo field")
-        return False
+        return
 
     # Find the endorsement request using noti_id instead of reviewer_id
     endorsement_request = EndorsementRequestModel.query.filter_by(noti_id=noti_id).first()
     if not endorsement_request:
         log.debug(f"Endorsement request with noti_id {noti_id} not found")
-        return False
+        return
 
     # Extract status from notification type
     noti_type = get_notification_type(notification_raw)
@@ -314,18 +304,10 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
         'message': message
     }
 
-    try:
-        reply = EndorsementReplyModel.create(reply_data)
-        log.info(f"Created endorsement reply record: {reply.id}")
+    reply = EndorsementReplyModel.create(reply_data)
+    log.info(f"Created endorsement reply record: {reply.id}")
 
-        # Mark inbox as processed after successful reply creation
-        mark_as_processed(inbox_record)
-        return True
-
-    except Exception as e:
-        log.error(f"Failed to create endorsement reply: {e}")
-        mark_as_processed(inbox_record, f"Failed to create reply: {str(e)}")
-        return False
+    return reply
 
 
 def inbox_processing():
@@ -359,6 +341,9 @@ def inbox_processing():
             process_endorsement_reply(inbox_record, notification_raw)
             if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
                 process_endorsement_review(inbox_record, notification_raw, reviewer)
+
+            # Mark inbox as processed after successful reply creation
+            mark_as_processed(inbox_record)
         except DataNotFound as e:
             log.warning(f"Failed to process inbox record {inbox_record.id}: {e}")
             mark_as_processed(inbox_record, e.message)
