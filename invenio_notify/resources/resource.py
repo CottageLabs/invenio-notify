@@ -164,7 +164,7 @@ class InboxApiResource(ErrorHandlersMixin, Resource):
     def create_url_rules(self):
         """Create the URL rules for the inbox resource."""
         return [
-            route("POST", "/inbox", self.receive_notification),
+            route("POST", "/notify/inbox", self.receive_notification),
         ]
 
     @request_data
