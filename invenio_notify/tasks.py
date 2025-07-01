@@ -295,17 +295,10 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
         return False
 
     # Extract status from notification type
-    status = 'unknown'
     noti_type = get_notification_type(notification_raw)
-
-    # Map notification types to reply status
-    # KTODO use noti_type for status
-    if noti_type == constants.TYPE_ENDORSEMENT:
-        status = 'Announce Endorsement'
-    elif noti_type == constants.TYPE_REVIEW:
-        status = 'Request Endorsement'
-    elif 'Reject' in notification_raw.get('type', []):
-        status = 'Reject'
+    if not noti_type:
+        raise DataNotFound(f"Notification type not found in notification {inbox_record.id}")
+    status = noti_type
 
     # Extract message from notification if available
     message = notification_raw.get('object', {}).get('summary', None)
