@@ -3,7 +3,10 @@
 # Notification types
 TYPE_REVIEW = 'coar-notify:ReviewAction'
 TYPE_ENDORSEMENT = 'coar-notify:EndorsementAction'
-SUPPORTED_TYPES = [TYPE_REVIEW, TYPE_ENDORSEMENT]
+TYPE_TENTATIVE_ACCEPT = 'TentativeAccept'
+TYPE_REJECT = 'Reject'
+TYPE_TENTATIVE_REJECT = 'TentativeReject'
+SUPPORTED_TYPES = [TYPE_REVIEW, TYPE_ENDORSEMENT, TYPE_TENTATIVE_ACCEPT, TYPE_REJECT, TYPE_TENTATIVE_REJECT]
 """ List of supported notification types that can be processed by the notify  """
 
 
