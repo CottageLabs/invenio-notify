@@ -46,7 +46,7 @@ def test_mark_as_processed(db, superuser_identity, create_inbox):
     assert isinstance(inbox.process_date, datetime)
 
 
-def test_inbox_processing_success(db, rdm_record, superuser_identity, create_reviewer, create_inbox):
+def test_inbox_processing_success__endorsement(db, rdm_record, superuser_identity, create_reviewer, create_inbox):
     """Test successful inbox processing that creates an endorsement."""
     recid = rdm_record.id
 
