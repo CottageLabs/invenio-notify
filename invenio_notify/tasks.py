@@ -273,7 +273,7 @@ def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw:
     return True
 
 
-def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict, reviewer: ReviewerModel) -> bool:
+def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict) -> bool:
     """
     Process endorsement reply for a single inbox record.
     Creates a new EndorsementReplyModel record.
@@ -356,10 +356,9 @@ def inbox_processing():
             continue
 
         try:
+            process_endorsement_reply(inbox_record, notification_raw)
             if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
                 process_endorsement_review(inbox_record, notification_raw, reviewer)
-            else:
-                process_endorsement_reply(inbox_record, notification_raw, reviewer)
         except DataNotFound as e:
             log.warning(f"Failed to process inbox record {inbox_record.id}: {e}")
             mark_as_processed(inbox_record, e.message)
