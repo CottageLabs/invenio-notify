@@ -8,7 +8,7 @@ from invenio_notify.records.models import NotifyInboxModel, EndorsementModel, En
     EndorsementReplyModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__review
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__review, create_inbox_payload__reject
 from invenio_rdm_records.proxies import current_rdm_records
 
 
@@ -151,10 +151,8 @@ def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superu
     
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
     import uuid
-    request_uuid = str(uuid.uuid4())
-    notification_data = create_inbox_payload__review(recid)
-    notification_data['type'] = ['Reject']  # This will cause COAR parsing to fail, which is expected
-    notification_data['inReplyTo'] = f"urn:uuid:{request_uuid}"
+    request_uuid = uuid.uuid4()
+    notification_data = create_inbox_payload__reject(recid, in_reply_to=request_uuid)
     
     # Create reviewer matching the actor in notification
     reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
