@@ -287,7 +287,10 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
     """
     from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
 
+    # KTODO tobe review
+
     # Find the endorsement request for this reviewer
+    # KTODO review this logic endorsement_request can be None
     endorsement_request = EndorsementRequestModel.query.filter_by(reviewer_id=reviewer.id).first()
     if not endorsement_request:
         log.warning(f"Endorsement request for reviewer {reviewer.id} not found")
@@ -298,8 +301,6 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
     noti_type = get_notification_type(notification_raw)
     if not noti_type:
         raise DataNotFound(f"Notification type not found in notification {inbox_record.id}")
-    status = noti_type
-
     # Extract message from notification if available
     message = notification_raw.get('object', {}).get('summary', None)
 
@@ -307,7 +308,7 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
     reply_data = {
         'endorsement_request_id': endorsement_request.id,
         'inbox_id': inbox_record.id,
-        'status': status,
+        'status': noti_type,
         'message': message
     }
 
@@ -352,10 +353,14 @@ def inbox_processing():
             mark_as_processed(inbox_record, e.message)
             continue
 
-        if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
-            process_endorsement_review(inbox_record, notification_raw, reviewer)
-        else:
-            process_endorsement_reply(inbox_record, notification_raw, reviewer)
+        try:
+            if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
+                process_endorsement_review(inbox_record, notification_raw, reviewer)
+            else:
+                process_endorsement_reply(inbox_record, notification_raw, reviewer)
+        except DataNotFound as e:
+            log.warning(f"Failed to process inbox record {inbox_record.id}: {e}")
+            mark_as_processed(inbox_record, e.message)
 
 
 @shared_task
