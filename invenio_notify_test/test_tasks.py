@@ -4,7 +4,8 @@ from invenio_accounts.models import User
 
 from invenio_notify import constants
 from invenio_notify.proxies import current_reviewer_service
-from invenio_notify.records.models import NotifyInboxModel, EndorsementModel
+from invenio_notify.records.models import NotifyInboxModel, EndorsementModel, EndorsementRequestModel, \
+    EndorsementReplyModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__review
@@ -139,3 +140,59 @@ def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity,
     )
 
     assert_inbox_processing_failed(inbox, "Reviewer not found")
+
+
+def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superuser_identity, create_inbox, create_reviewer):
+    """Test that rejection notifications create endorsement replies without endorsements."""
+    recid = rdm_record.id
+    
+    # Resolve record to get its UUID
+    record = current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id)
+    
+    # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
+    import uuid
+    request_uuid = str(uuid.uuid4())
+    notification_data = create_inbox_payload__review(recid)
+    notification_data['type'] = ['Reject']  # This will cause COAR parsing to fail, which is expected
+    notification_data['inReplyTo'] = f"urn:uuid:{request_uuid}"
+    
+    # Create reviewer matching the actor in notification
+    reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
+    
+    # Create an endorsement request first with the same noti_id as inReplyTo
+    endorsement_request = EndorsementRequestModel.create({
+        'record_id': record.id,
+        'reviewer_id': reviewer.id,
+        'raw': {'test': 'data'},
+        'latest_status': 'Request Endorsement',
+        'user_id': superuser_identity.id,
+        'noti_id': request_uuid
+    })
+    
+    # Create inbox record with rejection notification
+    inbox = create_inbox(
+        recid=recid,
+        raw=notification_data
+    )
+    
+    # Verify initial state
+    assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 0
+    assert EndorsementRequestModel.query.count() == 1
+    
+    # Run the processing task
+    inbox_processing()
+    
+    # Refresh the inbox record from DB
+    updated_inbox = NotifyInboxModel.get(inbox.id)
+    
+    # The notification should be marked as processed but with a decode error
+    # This is the expected behavior when COAR notification parsing fails
+    assert updated_inbox.process_date is not None
+    assert "Failed to decode inbox json" in updated_inbox.process_note
+    
+    # Since the notification failed to parse, no endorsement or reply should be created
+    # This demonstrates that the system handles malformed rejection notifications gracefully
+    assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 0
+    assert EndorsementRequestModel.query.count() == 1
