@@ -1,44 +1,6 @@
-from flask import current_app, request, jsonify
-from invenio_oauth2server import require_oauth_scopes, require_api_auth
-from invenio_pidstore.errors import PIDDoesNotExistError
-
-from coarnotify.server import COARNotifyServerError, COARNotifyReceipt
+from flask import jsonify
+from coarnotify.server import COARNotifyReceipt
 from invenio_notify import constants
-from invenio_notify.blueprints import rest_blueprint
-from invenio_notify.errors import COARProcessFail
-from invenio_notify.proxies import current_inbox_service
-from invenio_notify.scopes import inbox_scope
-
-
-@rest_blueprint.route("/inbox", methods=['POST'])
-@require_api_auth()
-@require_oauth_scopes(inbox_scope.id)
-def inbox():
-    """
-    Notify inbox for COAR notifications
-    input data will be save as raw data in the database
-    """
-
-    # TODO catch and handle exception if actor id is not url
-
-    if not request.is_json:
-        # return jsonify({"error": "Request must be JSON"}), 400
-        return create_fail_response(constants.STATUS_BAD_REQUEST, "Request must be JSON")
-
-    try:
-        result = current_inbox_service.receive_notification(request.get_json())
-        return response_coar_notify_receipt(result)
-
-    except COARNotifyServerError as e:
-        current_app.logger.error(f'Error: {e.message}')
-        return create_fail_response(constants.STATUS_BAD_REQUEST)
-
-    except COARProcessFail as e:
-        return create_fail_response(e.status, e.msg)
-
-    except PIDDoesNotExistError as e:
-        current_app.logger.debug(f'inbox PIDDoesNotExistError {e.pid_type}:{e.pid_value}')
-        return create_fail_response(constants.STATUS_NOT_FOUND, "Record not found")
 
 
 def create_default_msg_by_status(status):

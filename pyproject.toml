@@ -42,7 +42,7 @@ invenio_notify = "invenio_notify.ext:InvenioNotify"
 [project.entry-points."invenio_base.api_blueprints"]
 notify_inbox_resource = "invenio_notify.blueprints:create_notify_inbox_resource_api_bp"
 reviewer_resource = "invenio_notify.blueprints:create_reviewer_resource_api_bp"
-invenio_notify_rest = "invenio_notify.blueprints:rest_blueprint"
+inbox_api_resource = "invenio_notify.blueprints:create_inbox_api_resource_bp"
 
 [project.entry-points."invenio_base.apps"]
 invenio_notify = "invenio_notify.ext:InvenioNotify"
