@@ -287,13 +287,24 @@ def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: 
     """
     from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
 
-    # KTODO tobe review
+    # Extract noti_id from inReplyTo field
+    in_reply_to = notification_raw.get('inReplyTo')
+    if not in_reply_to:
+        log.warning(f"inReplyTo field not found in notification {inbox_record.id}")
+        mark_as_processed(inbox_record, "inReplyTo field not found")
+        return False
+    
+    # Remove 'urn:uuid:' prefix to get the notification ID
+    noti_id = in_reply_to.replace('urn:uuid:', '')
+    if not noti_id:
+        log.warning(f"Could not extract notification ID from inReplyTo: {in_reply_to}")
+        mark_as_processed(inbox_record, "Could not extract notification ID")
+        return False
 
-    # Find the endorsement request for this reviewer
-    # KTODO review this logic endorsement_request can be None
-    endorsement_request = EndorsementRequestModel.query.filter_by(reviewer_id=reviewer.id).first()
+    # Find the endorsement request using noti_id instead of reviewer_id
+    endorsement_request = EndorsementRequestModel.query.filter_by(noti_id=noti_id).first()
     if not endorsement_request:
-        log.warning(f"Endorsement request for reviewer {reviewer.id} not found")
+        log.warning(f"Endorsement request with noti_id {noti_id} not found")
         mark_as_processed(inbox_record, "Endorsement request not found")
         return False
 
