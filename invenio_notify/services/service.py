@@ -20,6 +20,7 @@ from coarnotify.server import (
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
+from invenio_notify.tasks import get_notification_type
 from invenio_notify.records.models import (
     EndorsementModel,
     EndorsementRequestModel,
@@ -180,7 +181,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
         # Check if the notification type is supported
-        if all(t not in constants.SUPPORTED_TYPES for t in raw.get('type', [])):
+        if not get_notification_type(raw):
             current_app.logger.info(f'Unknown type: [{recid=}]{raw.get("type")}')
             raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
 
