@@ -231,7 +231,7 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
         return None
 
 
-def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw: dict, reviewer: ReviewerModel):
+def handle_endorsement_and_review(inbox_record: NotifyInboxModel, notification_raw: dict, reviewer: ReviewerModel):
     """
     Process endorsement review for a single inbox record.
     
@@ -263,7 +263,7 @@ def process_endorsement_review(inbox_record: NotifyInboxModel, notification_raw:
     record.commit()
 
 
-def process_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict) -> Optional[
+def handle_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict) -> Optional[
     EndorsementReplyModel]:
     """
     Process endorsement reply for a single inbox record.
@@ -338,9 +338,9 @@ def inbox_processing():
             continue
 
         try:
-            process_endorsement_reply(inbox_record, notification_raw)
+            handle_endorsement_reply(inbox_record, notification_raw)
             if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
-                process_endorsement_review(inbox_record, notification_raw, reviewer)
+                handle_endorsement_and_review(inbox_record, notification_raw, reviewer)
 
             # Mark inbox as processed after successful reply creation
             mark_as_processed(inbox_record)
