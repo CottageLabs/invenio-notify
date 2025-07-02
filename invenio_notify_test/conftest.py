@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+import pytest
 from invenio_access.models import ActionRoles, Role
 from invenio_access.permissions import superuser_access
 from invenio_access.permissions import system_identity
@@ -10,6 +11,7 @@ from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
 
 from invenio_notify_test.fixtures.reviewer_fixture import *  # noqa
+from invenio_notify_test.fixtures.endorsement_request_fixture import *  # noqa
 from invenio_rdm_records.proxies import current_rdm_records
 from invenio_rdm_records.records import RDMParent, RDMRecord
 
