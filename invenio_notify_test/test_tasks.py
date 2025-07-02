@@ -47,7 +47,7 @@ def test_mark_as_processed(db, superuser_identity, create_inbox):
     assert isinstance(inbox.process_date, datetime)
 
 
-def test_inbox_processing_success__endorsement(db, rdm_record, superuser_identity, create_reviewer, create_inbox):
+def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identity, create_reviewer, create_inbox):
     """
     Test successful inbox processing that creates an endorsement.
 
@@ -112,7 +112,7 @@ def test_inbox_processing_success__endorsement(db, rdm_record, superuser_identit
     ]
 
 
-def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox, create_reviewer):
+def test_inbox_processing__fail__record_not_found(db, superuser_identity, create_inbox, create_reviewer):
     """Test inbox processing when the record is not found."""
 
     recid = 'r1'
@@ -132,7 +132,7 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox,
     assert_inbox_processing_failed(inbox, "Failed to resolve record from notification")
 
 
-def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity, create_inbox):
+def test_inbox_processing__fail__reviewer_not_found(db, rdm_record, superuser_identity, create_inbox):
     """Test inbox processing when the reviewer is not found."""
     recid = rdm_record.id
 
@@ -167,7 +167,7 @@ def test_inbox_processing__fail__not_a_member(
     assert_inbox_processing_failed(inbox, "User is not a member of reviewer")
 
 
-def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superuser_identity, create_inbox,
+def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record, superuser_identity, create_inbox,
                                                           create_reviewer, create_endorsement_request):
     """Test that rejection notifications create endorsement replies without endorsements."""
     # KTODO review this test logic
