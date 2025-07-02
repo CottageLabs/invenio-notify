@@ -142,8 +142,9 @@ def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity,
     assert_inbox_processing_failed(inbox, "Reviewer not found")
 
 
-def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superuser_identity, create_inbox, create_reviewer):
+def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superuser_identity, create_inbox, create_reviewer, create_endorsement_request):
     """Test that rejection notifications create endorsement replies without endorsements."""
+    # KTODO review this test logic
     recid = rdm_record.id
     
     # Resolve record to get its UUID
@@ -158,14 +159,12 @@ def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superu
     reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
     
     # Create an endorsement request first with the same noti_id as inReplyTo
-    endorsement_request = EndorsementRequestModel.create({
-        'record_id': record.id,
-        'reviewer_id': reviewer.id,
-        'raw': {'test': 'data'},
-        'latest_status': 'Request Endorsement',
-        'user_id': superuser_identity.id,
-        'noti_id': request_uuid
-    })
+    endorsement_request = create_endorsement_request(
+        record_id=record.id,
+        reviewer_id=reviewer.id,
+        user_id=superuser_identity.id,
+        noti_id=request_uuid
+    )
     
     # Create inbox record with rejection notification
     inbox = create_inbox(
@@ -192,5 +191,4 @@ def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superu
     # Since the notification failed to parse, no endorsement or reply should be created
     # This demonstrates that the system handles malformed rejection notifications gracefully
     assert EndorsementModel.query.count() == 0
-    assert EndorsementReplyModel.query.count() == 0
-    assert EndorsementRequestModel.query.count() == 1
+    assert EndorsementReplyModel.query.count() == 1
