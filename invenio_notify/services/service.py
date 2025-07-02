@@ -27,7 +27,7 @@ from invenio_notify.records.models import (
     ReviewerMapModel,
     ReviewerModel,
 )
-from invenio_notify.utils import user_utils
+from invenio_notify.utils import user_utils, reviewer_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services import RDMRecordService
@@ -340,17 +340,11 @@ class ReviewerService(BasicDbService):
             current_app.logger.info('No new emails to add')
             raise ValueError('Duplicate emails found')
 
-        added_members = []
         for email in new_emails:
             user = user_utils.find_user_by_email(email)
             if user:
                 current_app.logger.info(f'Adding user [{user.email}] to reviewer [{reviewer.actor_id}]')
-                ReviewerMapModel.create({
-                    'user_id': user.id,
-                    'reviewer_id': reviewer.id
-                })
-                user_utils.add_coarnotify_action(db, user.id)
-                added_members.append(user)
+                reviewer_utils.add_member_to_reviewer(reviewer_id, user.id, uow=uow)
             else:
                 current_app.logger.warning(f'User with email {email} not found')
 
