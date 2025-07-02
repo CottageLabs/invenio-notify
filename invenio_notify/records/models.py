@@ -1,3 +1,4 @@
+from blib2to3.pgen2.driver import Iterable
 from invenio_accounts.models import User
 from invenio_db import db
 from sqlalchemy import or_
@@ -93,7 +94,7 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     """ user id of the sender """
 
     @classmethod
-    def unprocessed_records(cls):
+    def unprocessed_records(cls) -> Iterable["NotifyInboxModel"]:
         """Get all unprocessed inbox records (where process_date is None)."""
         return cls.search(None, [cls.process_date.is_(None)])
 
