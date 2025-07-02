@@ -66,6 +66,8 @@ process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
 include-package-data = true
 
 [tool.setuptools.packages.find]
+where = ["."]
+exclude = ["build*", "dist*", "*.egg-info*"]
 
 
 
