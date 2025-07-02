@@ -52,17 +52,17 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     """
     endorsement_service = current_app.extensions["invenio-notify"].endorsement_service
 
-    # Extract actor ID (coar_id) from notification
+    # Extract actor ID from notification
     actor_id = notification_raw.get('actor', {}).get('id', 'unknown-reviewer')
 
-    # Find ReviewerModel with matching coar_id
-    reviewer = ReviewerModel.query.filter_by(coar_id=actor_id).first()
+    # Find ReviewerModel with matching actor_id
+    reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
     if not reviewer:
-        log.warning(f"Could not find reviewer with coar_id '{actor_id}'. Using None for reviewer_id.")
-        raise ValueError(f"Reviewer with coar_id '{actor_id}' not found")
+        log.warning(f"Could not find reviewer with actor_id '{actor_id}'. Using None for reviewer_id.")
+        raise ValueError(f"Reviewer with actor_id '{actor_id}' not found")
 
     reviewer_id = reviewer.id
-    log.info(f"Found reviewer ID {reviewer_id} for coar_id '{actor_id}'")
+    log.info(f"Found reviewer ID {reviewer_id} for actor_id '{actor_id}'")
 
     reviewer_type = 'unknown'
     for t in constants.REVIEW_TYPES:

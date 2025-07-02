@@ -34,7 +34,7 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     notification_data = create_notification_data(recid)
 
     # add sender account to reviewer members
-    reviewer = create_reviewer(coar_id=notification_data['actor']['id'])
+    reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
     reviewer_service = create_reviewer_service()
     reviewer_service.add_member_by_emails(
         reviewer.id,

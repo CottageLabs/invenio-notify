@@ -52,7 +52,7 @@ def test_inbox__success(client, db, superuser_identity, rdm_record, create_revie
     notify_review_data = inbox_fixture.create_notification_data(rdm_record.id)
     
     # Create a reviewer with the specific ID from the notification data
-    reviewer = create_reviewer(coar_id=notify_review_data['actor']['id'])
+    reviewer = create_reviewer(actor_id=notify_review_data['actor']['id'])
     
     # Use the reviewer object's ID to create the mapping
     create_reviewer_map(db, user.id, reviewer.id)
@@ -68,7 +68,7 @@ def test_inbox__actor_id_mismatch(client, db, superuser_identity, rdm_record, cr
     notify_review_data = inbox_fixture.create_notification_data(rdm_record.id)
     
     # Create a reviewer with a different ID to cause a mismatch
-    reviewer = create_reviewer(coar_id=notify_review_data['actor']['id'] + 'wrong')
+    reviewer = create_reviewer(actor_id=notify_review_data['actor']['id'] + 'wrong')
     
     # Use the reviewer object's ID in the map
     create_reviewer_map(db, user.id, reviewer.id)
