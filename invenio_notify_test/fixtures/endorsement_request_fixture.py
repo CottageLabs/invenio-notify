@@ -33,12 +33,17 @@ def create_endorsement_request_data(reviewer_id, record_id, latest_status="Reque
 
 
 @pytest.fixture
-def create_endorsement_request(superuser_identity, create_reviewer):
+def create_endorsement_request(superuser_identity, create_reviewer, db, minimal_record):
     """Fixture to create an endorsement request."""
-    def _create_endorsement_request(record_id, reviewer_id=None, latest_status="Request Endorsement", user_id=None, noti_id=None):
+    def _create_endorsement_request(record_id=None, reviewer_id=None, latest_status="Request Endorsement", user_id=None, noti_id=None):
+        from invenio_notify_test.conftest import prepare_test_rdm_record
         if reviewer_id is None:
             reviewer = create_reviewer()
             reviewer_id = reviewer.id
+        
+        if record_id is None:
+            record = prepare_test_rdm_record(db, minimal_record)
+            record_id = record.id
         
         if user_id is None:
             user_id = superuser_identity.id
