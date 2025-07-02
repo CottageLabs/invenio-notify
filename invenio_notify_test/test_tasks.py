@@ -1,9 +1,6 @@
 from datetime import datetime
 
-from invenio_accounts.models import User
-
 from invenio_notify import constants
-from invenio_notify.proxies import current_reviewer_service
 from invenio_notify.records.models import NotifyInboxModel, EndorsementModel, EndorsementRequestModel, \
     EndorsementReplyModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
@@ -17,6 +14,7 @@ def assert_inbox_processing_failed(inbox, expected_note_prefix):
     """Assert that inbox processing failed with expected behavior."""
     # Verify no endorsements exist before processing
     assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 0
 
     # Run the processing task
     inbox_processing()
@@ -30,6 +28,7 @@ def assert_inbox_processing_failed(inbox, expected_note_prefix):
 
     # Verify no endorsement was created
     assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 0
 
 
 def test_mark_as_processed(db, superuser_identity, create_inbox):
@@ -62,7 +61,7 @@ def test_inbox_processing_success__endorsement(db, rdm_record, superuser_identit
 
     # add sender account to reviewer members
     reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
-    reviewer_utils.add_member_to_reviewer( reviewer.id, superuser_identity.id, )
+    reviewer_utils.add_member_to_reviewer(reviewer.id, superuser_identity.id, )
 
     # Create inbox record with real notification data
     inbox = create_inbox(
@@ -121,8 +120,8 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox,
     notification_data = create_inbox_payload__review(recid)
 
     # Create reviewer so we pass the reviewer check and reach the record resolution failure
-    reviewer=create_reviewer(actor_id=notification_data['actor']['id'])
-    reviewer_utils.add_member_to_reviewer( reviewer.id, superuser_identity.id, )
+    reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
+    reviewer_utils.add_member_to_reviewer(reviewer.id, superuser_identity.id, )
 
     # Create inbox record with notification pointing to non-existent record
     inbox = create_inbox(
@@ -140,13 +139,32 @@ def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity,
     notification_data = create_inbox_payload__review(recid)
     # Do not create reviewer, so actor_id won't match any reviewer
 
-    # Create inbox record
     inbox = create_inbox(
         recid=recid,
         raw=notification_data
     )
 
     assert_inbox_processing_failed(inbox, "Reviewer not found")
+
+
+def test_inbox_processing__fail__not_a_member(
+        db, rdm_record, superuser_identity,
+        create_inbox,
+        create_reviewer,
+):
+    """ Test inbox processing failure when user is not a member of the reviewer."""
+    recid = rdm_record.id
+    notification_data = create_inbox_payload__review(recid)
+
+    reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
+    # Do not add superuser_identity as a member of the reviewer
+
+    inbox = create_inbox(
+        recid=recid,
+        raw=notification_data
+    )
+
+    assert_inbox_processing_failed(inbox, "User is not a member of reviewer")
 
 
 def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superuser_identity, create_inbox,
@@ -165,7 +183,7 @@ def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superu
 
     # Create reviewer matching the actor in notification
     reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
-    reviewer_utils.add_member_to_reviewer( reviewer.id, superuser_identity.id, )
+    reviewer_utils.add_member_to_reviewer(reviewer.id, superuser_identity.id, )
 
     # Create an endorsement request first with the same noti_id as inReplyTo
     endorsement_request = create_endorsement_request(
