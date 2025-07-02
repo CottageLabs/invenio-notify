@@ -337,6 +337,12 @@ def inbox_processing():
             mark_as_processed(inbox_record, e.message)
             continue
 
+        # Check if noti sender is a member of the reviewer
+        if not ReviewerModel.has_member(inbox_record.user_id, reviewer.actor_id):
+            log.warning(f"User {inbox_record.user_id} is not a member of reviewer {reviewer.actor_id}")
+            mark_as_processed(inbox_record, "User is not a member of reviewer")
+            continue
+
         try:
             handle_endorsement_reply(inbox_record, notification_raw)
             if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
