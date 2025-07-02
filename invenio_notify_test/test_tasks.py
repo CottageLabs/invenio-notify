@@ -10,6 +10,13 @@ from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__rev
 from invenio_rdm_records.proxies import current_rdm_records
 
 
+def assert_init_count(n_request=0):
+    """Assert initial count of models."""
+    assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 0
+    assert EndorsementRequestModel.query.count() == n_request
+
+
 def assert_inbox_processed(inbox, process_note_startswith=None):
     """Assert that inbox was processed with expected process_note."""
     updated_inbox = NotifyInboxModel.get(inbox.id)
@@ -25,8 +32,7 @@ def assert_inbox_processed(inbox, process_note_startswith=None):
 def assert_inbox_processing_failed(inbox, process_note_startswith):
     """Assert that inbox processing failed with expected behavior."""
     # Verify no endorsements exist before processing
-    assert EndorsementModel.query.count() == 0
-    assert EndorsementReplyModel.query.count() == 0
+    assert_init_count()
 
     # Run the processing task
     inbox_processing()
@@ -75,9 +81,7 @@ def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identi
     )
 
     # Verify no endorsements exist before processing
-    assert EndorsementModel.query.count() == 0
-    assert EndorsementReplyModel.query.count() == 0
-    assert EndorsementRequestModel.query.count() == 0
+    assert_init_count()
 
     # Run the processing task
     inbox_processing()
@@ -146,9 +150,7 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
     )
 
     # Verify initial state
-    assert EndorsementModel.query.count() == 0
-    assert EndorsementReplyModel.query.count() == 0
-    assert EndorsementRequestModel.query.count() == 1
+    assert_init_count(n_request=1)
 
     # Run the processing task
     inbox_processing()
