@@ -7,6 +7,7 @@ from invenio_notify.proxies import current_reviewer_service
 from invenio_notify.records.models import NotifyInboxModel, EndorsementModel, EndorsementRequestModel, \
     EndorsementReplyModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
+from invenio_notify.utils import reviewer_utils
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__review, create_inbox_payload__reject
 from invenio_rdm_records.proxies import current_rdm_records
@@ -48,18 +49,20 @@ def test_mark_as_processed(db, superuser_identity, create_inbox):
 
 
 def test_inbox_processing_success__endorsement(db, rdm_record, superuser_identity, create_reviewer, create_inbox):
-    """Test successful inbox processing that creates an endorsement."""
+    """
+    Test successful inbox processing that creates an endorsement.
+
+    Case setting:
+    - No Endorsement request
+    - type: review
+    """
     recid = rdm_record.id
 
     notification_data = create_inbox_payload__review(recid)
 
     # add sender account to reviewer members
     reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
-    reviewer_service = current_reviewer_service
-    reviewer_service.add_member_by_emails(
-        reviewer.id,
-        [User.query.get(superuser_identity.id).email]
-    )
+    reviewer_utils.add_member_to_reviewer( reviewer.id, superuser_identity.id, )
 
     # Create inbox record with real notification data
     inbox = create_inbox(
@@ -69,9 +72,12 @@ def test_inbox_processing_success__endorsement(db, rdm_record, superuser_identit
 
     # Verify no endorsements exist before processing
     assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 0
 
     # Run the processing task
     inbox_processing()
+
+    assert EndorsementReplyModel.query.count() == 0
 
     # Refresh the inbox record from DB
     updated_inbox = NotifyInboxModel.get(inbox.id)
@@ -115,7 +121,8 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox,
     notification_data = create_inbox_payload__review(recid)
 
     # Create reviewer so we pass the reviewer check and reach the record resolution failure
-    create_reviewer(actor_id=notification_data['actor']['id'])
+    reviewer=create_reviewer(actor_id=notification_data['actor']['id'])
+    reviewer_utils.add_member_to_reviewer( reviewer.id, superuser_identity.id, )
 
     # Create inbox record with notification pointing to non-existent record
     inbox = create_inbox(
@@ -158,6 +165,7 @@ def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superu
 
     # Create reviewer matching the actor in notification
     reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
+    reviewer_utils.add_member_to_reviewer( reviewer.id, superuser_identity.id, )
 
     # Create an endorsement request first with the same noti_id as inReplyTo
     endorsement_request = create_endorsement_request(
@@ -184,12 +192,8 @@ def test_inbox_processing_reject_with_endorsement_request(db, rdm_record, superu
     # Refresh the inbox record from DB
     updated_inbox = NotifyInboxModel.get(inbox.id)
 
-    # The notification should be marked as processed but with a decode error
-    # This is the expected behavior when COAR notification parsing fails
     assert updated_inbox.process_date is not None
     assert updated_inbox.process_note is None
 
-    # Since the notification failed to parse, no endorsement or reply should be created
-    # This demonstrates that the system handles malformed rejection notifications gracefully
     assert EndorsementModel.query.count() == 0
     assert EndorsementReplyModel.query.count() == 1
