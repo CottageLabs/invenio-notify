@@ -24,7 +24,7 @@ def create_reviewer_map(db, user_id, reviewer_id):
 def send_inbox(client, token, notify_review_data):
     """Make an authenticated request to the inbox endpoint."""
     headers = {'Authorization': f'Bearer {token.access_token}'}
-    return client.post("/api/notify-rest/inbox", json=notify_review_data, headers=headers)
+    return client.post("/api/notify/inbox", json=notify_review_data, headers=headers)
 
 
 def create_notify_user(db, superuser_identity):
@@ -36,7 +36,7 @@ def create_notify_user(db, superuser_identity):
 
 def test_inbox_401(client):
     notify_review_data = inbox_fixture.create_notification_data('test-record-id')
-    response = client.post("/api/notify-rest/inbox", json=notify_review_data)
+    response = client.post("/api/notify/inbox", json=notify_review_data)
     assert response.status_code == 401
 
 

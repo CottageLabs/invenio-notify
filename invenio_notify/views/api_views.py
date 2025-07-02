@@ -1,4 +1,3 @@
-from flask import jsonify
 from coarnotify.server import COARNotifyReceipt
 from invenio_notify import constants
 
@@ -23,7 +22,7 @@ def create_default_msg_by_status(status):
 
 def create_fail_response(status, msg=None):
     msg = msg or create_default_msg_by_status(status)
-    return jsonify({"status": status, "message": msg}), status
+    return {"status": status, "message": msg}, status
 
 
 def response_coar_notify_receipt(receipt: COARNotifyReceipt, msg=None):
@@ -34,4 +33,4 @@ def response_coar_notify_receipt(receipt: COARNotifyReceipt, msg=None):
         data["location"] = receipt.location
 
     data["message"] = msg or create_default_msg_by_status(receipt.status)
-    return jsonify(data), receipt.status
+    return data, receipt.status
