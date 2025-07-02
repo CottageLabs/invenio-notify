@@ -1,6 +1,5 @@
 from collections import namedtuple
 
-import pytest
 from invenio_access.models import ActionRoles, Role
 from invenio_access.permissions import superuser_access
 from invenio_access.permissions import system_identity
@@ -10,8 +9,8 @@ from invenio_files_rest.models import Location
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
 
-from invenio_notify_test.fixtures.reviewer_fixture import *  # noqa
 from invenio_notify_test.fixtures.endorsement_request_fixture import *  # noqa
+from invenio_notify_test.fixtures.reviewer_fixture import *  # noqa
 from invenio_rdm_records.proxies import current_rdm_records
 from invenio_rdm_records.records import RDMParent, RDMRecord
 
@@ -162,6 +161,7 @@ def minimal_record():
 
 def prepare_test_rdm_record(db, record_data):
     # KTODO try to extract the creation to session fixture, to improve performance
+    # KTODO move it outside of conftest.py
     parent = RDMParent.create({})
     record = RDMRecord.create(record_data, parent=parent)
     db.session.commit()
