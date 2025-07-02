@@ -10,6 +10,18 @@ from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__rev
 from invenio_rdm_records.proxies import current_rdm_records
 
 
+def assert_inbox_processed(inbox, process_note=None, process_note_startswith=None):
+    """Assert that inbox was processed with expected process_note."""
+    updated_inbox = NotifyInboxModel.get(inbox.id)
+    assert updated_inbox.process_date is not None
+    assert isinstance(updated_inbox.process_date, datetime)
+    
+    if process_note_startswith is None:
+        assert updated_inbox.process_note is None
+    else:
+        assert updated_inbox.process_note.startswith(process_note_startswith)
+
+
 def assert_inbox_processing_failed(inbox, expected_note_prefix):
     """Assert that inbox processing failed with expected behavior."""
     # Verify no endorsements exist before processing
@@ -19,12 +31,7 @@ def assert_inbox_processing_failed(inbox, expected_note_prefix):
     # Run the processing task
     inbox_processing()
 
-    # Refresh the inbox record from DB
-    updated_inbox = NotifyInboxModel.get(inbox.id)
-
-    # Check that the inbox record was marked as processed with expected comment
-    assert updated_inbox.process_date is not None
-    assert updated_inbox.process_note.startswith(expected_note_prefix)
+    assert_inbox_processed(inbox, process_note_startswith=expected_note_prefix)
 
     # Verify no endorsement was created
     assert EndorsementModel.query.count() == 0
@@ -42,9 +49,7 @@ def test_mark_as_processed(db, superuser_identity, create_inbox):
     # Mark as processed
     mark_as_processed(inbox, "Test comment")
 
-    inbox = NotifyInboxModel.query.get(inbox.id)
-    assert inbox.process_date is not None
-    assert isinstance(inbox.process_date, datetime)
+    assert_inbox_processed(inbox, "Test comment")
 
 
 def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identity, create_reviewer, create_inbox):
@@ -77,10 +82,7 @@ def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identi
     # Run the processing task
     inbox_processing()
 
-    # Refresh the inbox record from DB
-    updated_inbox = NotifyInboxModel.get(inbox.id)
-    assert updated_inbox.process_date is not None
-    assert updated_inbox.process_note is None
+    assert_inbox_processed(inbox)
 
     # Verify an endorsement was created
     endorsements = EndorsementModel.query.all()
@@ -151,10 +153,7 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
     # Run the processing task
     inbox_processing()
 
-    # Refresh the inbox record from DB
-    updated_inbox = NotifyInboxModel.get(inbox.id)
-    assert updated_inbox.process_date is not None
-    assert updated_inbox.process_note is None
+    assert_inbox_processed(inbox)
 
     assert EndorsementModel.query.count() == 0
     assert EndorsementReplyModel.query.count() == 1
