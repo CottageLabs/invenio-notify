@@ -1,5 +1,6 @@
-import pytest
 import uuid
+
+import pytest
 
 from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify_test.utils import resolve_user_id
@@ -203,9 +204,9 @@ def create_inbox_payload__tentative_accept(record_id, in_reply_to=None) -> dict:
                 "name": "Josiah Carberry",
                 "type": "Person"
             },
-            "id": f"urn:uuid:{uuid.uuid4()}",
+            "id": f"urn:uuid:{in_reply_to}",
             "object": {
-                "id": f"https://127.0.1:5000/records/{record_id}",
+                "id": f"https://127.0.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
                 "ietf:item": {
                     "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
@@ -269,9 +270,9 @@ def create_inbox_payload__reject(record_id, in_reply_to=None) -> dict:
                 "name": "Josiah Carberry",
                 "type": "Person"
             },
-            "id": f"urn:uuid:{uuid.uuid4()}",
+            "id": f"urn:uuid:{in_reply_to}",
             "object": {
-                "id": f"https://127.0.1:5000/records/{record_id}",
+                "id": f"https://127.0.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
                 "ietf:item": {
                     "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
@@ -335,9 +336,9 @@ def create_inbox_payload__tentative_reject(record_id, in_reply_to=None) -> dict:
                 "name": "Josiah Carberry",
                 "type": "Person"
             },
-            "id": f"urn:uuid:{uuid.uuid4()}",
+            "id": f"urn:uuid:{in_reply_to}",
             "object": {
-                "id": f"https://127.0.1:5000/records/{record_id}",
+                "id": f"https://127.0.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
                 "ietf:item": {
                     "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
