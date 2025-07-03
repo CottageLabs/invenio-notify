@@ -19,14 +19,16 @@ from .errors import ErrorHandlersMixin
 
 def require_inbox_oauth():
     """Decorator that requires OAuth authentication with inbox scope."""
+
     def decorator(f):
         from invenio_oauth2server import require_oauth_scopes, require_api_auth
         from invenio_notify.scopes import inbox_scope
-        
+
         # Apply decorators in correct order
         f = require_oauth_scopes(inbox_scope.id)(f)
         f = require_api_auth()(f)
         return f
+
     return decorator
 
 
@@ -190,11 +192,11 @@ class InboxApiResource(ErrorHandlersMixin, Resource):
     @require_inbox_oauth()
     def receive_notification(self):
         """Receive COAR notification via POST to /inbox."""
+        # TODO catch and handle exception if actor id is not url
         data = resource_requestctx.data
 
         if not data:
             return create_fail_response(constants.STATUS_BAD_REQUEST, "Request must be JSON")
-
 
         try:
             result = self.service.receive_notification(notification_raw=data)
