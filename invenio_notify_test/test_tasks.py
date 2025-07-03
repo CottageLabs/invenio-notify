@@ -59,7 +59,7 @@ def test_mark_as_processed(db, superuser_identity, create_inbox):
     assert_inbox_processed(inbox, comment)
 
 
-def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identity, create_reviewer, create_inbox):
+def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_builder):
     """
     Test successful inbox processing that creates an endorsement.
 
@@ -68,18 +68,13 @@ def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identi
     - type: review
     """
     recid = rdm_record.id
-
     notification_data = create_inbox_payload__review(recid)
 
-    # add sender account to reviewer members
-    reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
-    reviewer_utils.add_member_to_reviewer(reviewer.id, superuser_identity.id, )
-
-    # Create inbox record with real notification data
-    inbox = create_inbox(
-        recid=recid,
-        raw=notification_data
-    )
+    # Use builder to create test data
+    test_data = (inbox_test_data_builder(recid, notification_data)
+                 .create_reviewer()
+                 .add_member_to_reviewer()
+                 .create_inbox())
 
     # Verify no endorsements exist before processing
     assert_init_count()
@@ -87,7 +82,7 @@ def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identi
     # Run the processing task
     inbox_processing()
 
-    assert_inbox_processed(inbox)
+    assert_inbox_processed(test_data.inbox)
 
     # Verify an endorsement was created
     endorsements = EndorsementModel.query.all()
@@ -99,7 +94,7 @@ def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identi
     # Verify the endorsement has the correct data
     endorsement = endorsements[0]
     assert endorsement.record_id == record.id
-    assert endorsement.inbox_id == inbox.id
+    assert endorsement.inbox_id == test_data.inbox.id
     assert endorsement.review_type == constants.TYPE_REVIEW
 
     # Verify record.endorsements is updated
@@ -108,8 +103,8 @@ def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identi
             'endorsement_count': 0,
             'endorsement_list': [],
             'review_count': 1,
-            'reviewer_id': reviewer.id,
-            'reviewer_name': reviewer.name,
+            'reviewer_id': test_data.reviewer.id,
+            'reviewer_name': test_data.reviewer.name,
             'review_list': [{
                 'created': endorsement.created.isoformat(),
                 'url': endorsement.result_url,
