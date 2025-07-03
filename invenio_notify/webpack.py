@@ -2,7 +2,7 @@
 
 from invenio_assets.webpack import WebpackThemeBundle
 
-theme = WebpackThemeBundle(
+notify = WebpackThemeBundle(
     __name__,
     "assets",
     default="semantic-ui",

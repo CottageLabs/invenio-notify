@@ -121,7 +121,6 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
 
 
 def inbox_processing():
-    tobe_update_records = []
     for inbox_record in NotifyInboxModel.search(None, [
         NotifyInboxModel.process_date.is_(None),
     ]):
@@ -170,22 +169,11 @@ def inbox_processing():
 
         log.info(f"Created endorsement record: {endorsement._record.id}")
 
+        # Indexing the record will add the endorsement data via EndorsementsDumperExt
+        records_service.indexer.index(record)
+
         # Mark inbox as processed after successful endorsement creation
         mark_as_processed(inbox_record)
-
-        tobe_update_records.append(record)
-
-    refresh_endorsements_field(tobe_update_records)
-
-
-@unit_of_work()
-def refresh_endorsements_field(records, uow=None):
-    # re-commit rdm-record to refresh record.endorsements field
-    existing_ids = set()
-    for r in records:
-        if r.id in existing_ids:
-            continue
-        r.commit()
 
 
 @shared_task
