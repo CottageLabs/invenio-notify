@@ -166,7 +166,7 @@ def test_inbox_processing__success__reject_without_endorsement_request(db, rdm_r
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
     notification_data = create_inbox_payload__reject(recid)
 
-    # Use builder to create test data
+    # Even endorsement request is created, but noti_id does not match with new notification data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
                  .create_reviewer()
                  .add_member_to_reviewer()
@@ -200,36 +200,26 @@ def test_inbox_processing__fail__record_not_found(db, superuser_identity, create
     assert_inbox_processing_failed(test_data.inbox, "Failed to resolve record from notification")
 
 
-def test_inbox_processing__fail__reviewer_not_found(db, rdm_record, superuser_identity, create_inbox):
+def test_inbox_processing__fail__reviewer_not_found(db, rdm_record, inbox_test_data_builder):
     """Test inbox processing when the reviewer is not found."""
     recid = rdm_record.id
-
     notification_data = create_inbox_payload__review(recid)
+
     # Do not create reviewer, so actor_id won't match any reviewer
+    test_data = (inbox_test_data_builder(recid, notification_data)
+                 .create_inbox())
 
-    inbox = create_inbox(
-        recid=recid,
-        raw=notification_data
-    )
-
-    assert_inbox_processing_failed(inbox, "Reviewer not found")
+    assert_inbox_processing_failed(test_data.inbox, "Reviewer not found")
 
 
-def test_inbox_processing__fail__not_a_member(
-        db, rdm_record, superuser_identity,
-        create_inbox,
-        create_reviewer,
-):
+def test_inbox_processing__fail__not_a_member(db, rdm_record, inbox_test_data_builder):
     """ Test inbox processing failure when user is not a member of the reviewer."""
     recid = rdm_record.id
     notification_data = create_inbox_payload__review(recid)
 
-    reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
-    # Do not add superuser_identity as a member of the reviewer
+    # Create reviewer but do not add user as member
+    test_data = (inbox_test_data_builder(recid, notification_data)
+                 .create_reviewer()
+                 .create_inbox())
 
-    inbox = create_inbox(
-        recid=recid,
-        raw=notification_data
-    )
-
-    assert_inbox_processing_failed(inbox, "User is not a member of reviewer")
+    assert_inbox_processing_failed(test_data.inbox, "User is not a member of reviewer")
