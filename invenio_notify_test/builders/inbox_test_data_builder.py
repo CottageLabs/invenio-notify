@@ -15,16 +15,16 @@ def inbox_test_data_builder(
     class _InboxTestDataBuilder:
         """Builder class for creating inbox test data with a fluent interface."""
 
-        def __init__(self, rdm_record_item, user_identity, notification_data):
+        def __init__(self, rdm_record_item, notification_data, user_identity=None):
             """Initialize the builder with core dependencies and fixtures.
 
             Args:
                 rdm_record_item: RDM record object
-                user_identity: Superuser identity object
+                user_identity: User identity object (defaults to superuser_identity if None)
                 notification_data: Notification data dictionary
             """
             self.rdm_record = rdm_record_item
-            self.user_identity = user_identity
+            self.user_identity = user_identity if user_identity is not None else superuser_identity
             self.notification_data = notification_data
             self.db = db
             self._create_reviewer_fixture = create_reviewer
