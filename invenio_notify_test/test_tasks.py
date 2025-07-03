@@ -119,17 +119,20 @@ def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identi
 
 def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record, superuser_identity, create_inbox,
                                                                     create_reviewer, create_endorsement_request):
-    """Test that rejection notifications create endorsement replies without endorsements."""
-    # KTODO review this test logic
+    """
+    Test that rejection notifications create endorsement replies without endorsements.
+
+    Case setting:
+    - Have an Endorsement request
+    - type: reject
+    """
     recid = rdm_record.id
 
     # Resolve record to get its UUID
     record = current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id)
 
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
-    import uuid
-    request_uuid = uuid.uuid4()
-    notification_data = create_inbox_payload__reject(recid, in_reply_to=request_uuid)
+    notification_data = create_inbox_payload__reject(recid)
 
     # Create reviewer matching the actor in notification
     reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
@@ -140,7 +143,7 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
         record_id=record.id,
         reviewer_id=reviewer.id,
         user_id=superuser_identity.id,
-        noti_id=request_uuid
+        noti_id=notification_data['inReplyTo'],
     )
 
     # Create inbox record with rejection notification
