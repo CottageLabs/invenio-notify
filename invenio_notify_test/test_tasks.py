@@ -132,7 +132,7 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
     notification_data = create_inbox_payload__reject(recid)
 
     # Use builder to create test data
-    builder = inbox_test_data_builder(rdm_record, superuser_identity, notification_data)
+    builder = inbox_test_data_builder(rdm_record, notification_data, superuser_identity)
     test_data = (builder
                  .create_reviewer()
                  .add_member_to_reviewer()
