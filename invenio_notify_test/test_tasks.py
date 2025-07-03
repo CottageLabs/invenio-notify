@@ -186,24 +186,18 @@ def test_inbox_processing__success__reject_without_endorsement_request(db, rdm_r
     assert EndorsementReplyModel.query.count() == 0
 
 
-def test_inbox_processing__fail__record_not_found(db, superuser_identity, create_inbox, create_reviewer):
+def test_inbox_processing__fail__record_not_found(db, superuser_identity, create_inbox, create_reviewer,
+                                                  inbox_test_data_builder):
     """Test inbox processing when the record is not found."""
 
     recid = 'r1'
-
     notification_data = create_inbox_payload__review(recid)
+    test_data = (inbox_test_data_builder(recid, notification_data)
+                 .create_reviewer()
+                 .add_member_to_reviewer()
+                 .create_inbox())
 
-    # Create reviewer so we pass the reviewer check and reach the record resolution failure
-    reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
-    reviewer_utils.add_member_to_reviewer(reviewer.id, superuser_identity.id, )
-
-    # Create inbox record with notification pointing to non-existent record
-    inbox = create_inbox(
-        recid=recid,
-        raw=notification_data
-    )
-
-    assert_inbox_processing_failed(inbox, "Failed to resolve record from notification")
+    assert_inbox_processing_failed(test_data.inbox, "Failed to resolve record from notification")
 
 
 def test_inbox_processing__fail__reviewer_not_found(db, rdm_record, superuser_identity, create_inbox):
