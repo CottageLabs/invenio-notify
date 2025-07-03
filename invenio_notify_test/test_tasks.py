@@ -117,8 +117,8 @@ def test_inbox_processing__success__endorsement(db, rdm_record, superuser_identi
     ]
 
 
-def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record, superuser_identity, create_inbox,
-                                                                    create_reviewer, create_endorsement_request):
+def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record, superuser_identity, 
+                                                                    inbox_test_data_builder):
     """
     Test that rejection notifications create endorsement replies without endorsements.
 
@@ -128,29 +128,18 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
     """
     recid = rdm_record.id
 
-    # Resolve record to get its UUID
-    record = current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id)
-
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
     notification_data = create_inbox_payload__reject(recid)
 
-    # Create reviewer matching the actor in notification
-    reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
-    reviewer_utils.add_member_to_reviewer(reviewer.id, superuser_identity.id, )
+    # Use builder to create test data
+    builder = inbox_test_data_builder(rdm_record, superuser_identity, notification_data)
+    test_data = (builder
+                 .create_reviewer()
+                 .add_member_to_reviewer()
+                 .create_endorsement_request()
+                 .create_inbox())
 
-    # Create an endorsement request first with the same noti_id as inReplyTo
-    endorsement_request = create_endorsement_request(
-        record_id=record.id,
-        reviewer_id=reviewer.id,
-        user_id=superuser_identity.id,
-        noti_id=notification_data['inReplyTo'],
-    )
-
-    # Create inbox record with rejection notification
-    inbox = create_inbox(
-        recid=recid,
-        raw=notification_data
-    )
+    inbox = test_data.inbox
 
     # Verify initial state
     assert_init_count(n_request=1)
