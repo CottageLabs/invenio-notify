@@ -133,7 +133,7 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
     notification_data = create_inbox_payload__reject(recid)
 
     # Use builder to create test data
-    test_data = (inbox_test_data_builder(rdm_record, notification_data)
+    test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
                  .create_reviewer()
                  .add_member_to_reviewer()
                  .create_endorsement_request()
@@ -167,7 +167,7 @@ def test_inbox_processing__success__reject_without_endorsement_request(db, rdm_r
     notification_data = create_inbox_payload__reject(recid)
 
     # Use builder to create test data
-    test_data = (inbox_test_data_builder(rdm_record, notification_data)
+    test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
                  .create_reviewer()
                  .add_member_to_reviewer()
                  .create_endorsement_request(noti_id=uuid.uuid4())
