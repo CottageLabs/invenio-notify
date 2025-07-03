@@ -5,10 +5,9 @@ from invenio_notify import constants
 from invenio_notify.records.models import NotifyInboxModel, EndorsementModel, EndorsementRequestModel, \
     EndorsementReplyModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
-from invenio_notify.utils import reviewer_utils
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox, create_inbox_payload__endorsement_resp
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__review, create_inbox_payload__reject
-from invenio_rdm_records.proxies import current_rdm_records
+from invenio_rdm_records.proxies import current_rdm_records_service
 
 
 def assert_init_count(n_request=0):
@@ -89,7 +88,7 @@ def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_
     assert len(endorsements) == 1
     assert EndorsementReplyModel.query.count() == 0
 
-    record = current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id)
+    record = current_rdm_records_service.record_cls.pid.resolve(rdm_record.id)
 
     # Verify the endorsement has the correct data
     endorsement = endorsements[0]
@@ -111,6 +110,40 @@ def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_
             }]
         }
     ]
+
+
+def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record,
+                                                                    inbox_test_data_builder):
+    """
+    Test that rejection notifications create endorsement replies without endorsements.
+
+    Case setting:
+    - Have an Endorsement request
+    - type: endorsement response
+    """
+    recid = rdm_record.id
+
+    # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
+    notification_data = create_inbox_payload__endorsement_resp(recid)
+
+    # Use builder to create test data
+    test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
+                 .create_reviewer()
+                 .add_member_to_reviewer()
+                 .create_endorsement_request()
+                 .create_inbox())
+
+    inbox = test_data.inbox
+
+    # Verify initial state
+    assert_init_count(n_request=1)
+
+    # Run the processing task
+    inbox_processing()
+
+    assert_inbox_processed(inbox)
+    assert EndorsementModel.query.count() == 1
+    assert EndorsementReplyModel.query.count() == 1
 
 
 def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record,
