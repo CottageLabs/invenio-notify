@@ -28,7 +28,8 @@ def create_endorsement(db):
             user_id,
             inbox_id=None,
             review_type=constants.TYPE_ENDORSEMENT,
-            result_url="https://example.com/result"
+            result_url="https://example.com/result",
+            reviewer_name="Test Reviewer"
     ):
         """Create an endorsement."""
         data = {
@@ -39,6 +40,8 @@ def create_endorsement(db):
             'inbox_id': inbox_id,
             'result_url': result_url,
         }
+        
+        data['reviewer_name'] = reviewer_name
 
         model = EndorsementModel()
         model.create(data)

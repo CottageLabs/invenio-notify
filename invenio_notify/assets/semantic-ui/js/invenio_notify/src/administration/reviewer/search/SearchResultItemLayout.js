@@ -1,7 +1,7 @@
 import { BoolFormatter, Actions } from "@js/invenio_administration";
 import PropTypes from "prop-types";
 import React, { Component } from "react";
-import { Table, Dropdown, Icon, Button } from "semantic-ui-react";
+import { Table, Dropdown, Icon, Button, Grid } from "semantic-ui-react";
 import { withState } from "react-searchkit";
 import { AdminUIRoutes } from "@js/invenio_administration/src/routes";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
@@ -13,9 +13,14 @@ class SearchResultItemComponent extends Component {
 
   render() {
     const {
+      title,
+      resourceName,
       result,
-      listUIEndpoint,
+      displayEdit,
+      displayDelete,
+      actions,
       idKeyPath,
+      listUIEndpoint,
       ...values
     } = this.props;
 
@@ -45,8 +50,21 @@ class SearchResultItemComponent extends Component {
           {new Date(result.updated).toLocaleString()}
         </Table.Cell>
         <Table.Cell collapsing>
-          <ReviewerSearchActions 
+          <Actions
+            title={title}
+            resourceName={resourceName}
+            editUrl={AdminUIRoutes.editView(listUIEndpoint, result, idKeyPath)}
+            displayEdit={displayEdit}
+            displayDelete={displayDelete}
+            actions={actions}
+            resource={result}
+            idKeyPath={idKeyPath}
+            successCallback={this.refreshAfterAction}
+            listUIEndpoint={listUIEndpoint}
+          />
+          <ReviewerSearchActions
             result={result}
+            className="ml-2"
           />
         </Table.Cell>
       </Table.Row>

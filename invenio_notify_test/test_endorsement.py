@@ -25,6 +25,7 @@ def test_model_create(db, superuser_identity, minimal_record, create_reviewer):
         review_type='endorsement',
         user_id=superuser_identity.id,
         result_url='https://fake.url',
+        reviewer_name=reviewer.name,
     )
     model = EndorsementModel()
     model.create(data)
@@ -81,6 +82,7 @@ def test_service_update(db, superuser_identity, minimal_record, test_app, create
         'inbox_id': inbox.id,
         'review_type': constants.TYPE_ENDORSEMENT,
         'result_url': 'https://example.com/endorsement1',
+        'reviewer_name': reviewer.name,
     }
 
     # Create endorsement using the data dictionary

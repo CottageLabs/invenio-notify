@@ -8,7 +8,6 @@ from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.base.utils import map_search_params
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
-from sqlalchemy.orm import with_loader_criteria, selectinload
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
@@ -183,51 +182,59 @@ class EndorsementService(BasicDbService):
         if not record_id:
             return []
 
-        # Find all reviewers who have endorsed this record using EXISTS
-        reviewers = (
-            db.session.query(ReviewerModel)
-            .filter(
-                db.exists().where(
-                    db.and_(
-                        EndorsementModel.reviewer_id == ReviewerModel.id,
-                        EndorsementModel.record_id == record_id
-                    )
-                )
-            )
-            .options(
-                selectinload(ReviewerModel.endorsements),
-                with_loader_criteria(EndorsementModel, lambda e: e.record_id == record_id)
-            ).all()
+        # Query endorsements directly for this record
+        endorsements = (
+            db.session.query(EndorsementModel)
+            .filter(EndorsementModel.record_id == record_id)
+            .all()
         )
 
-        if not reviewers:
+        if not endorsements:
             return []
 
-        result = []
-        for reviewer in reviewers:
-            endorsements = reviewer.endorsements
-            endorsement_count = sum(1 for e in endorsements if e.review_type == constants.TYPE_ENDORSEMENT)
-            review_count = sum(1 for e in endorsements if e.review_type == constants.TYPE_REVIEW)
+        # Group endorsements by reviewer_id
+        reviewer_endorsements = {}
+        for endorsement in endorsements:
+            reviewer_id = endorsement.reviewer_id
+            if reviewer_id not in reviewer_endorsements:
+                reviewer_endorsements[reviewer_id] = {
+                    'endorsements': [],
+                    'reviews': []
+                }
 
+            if endorsement.review_type == constants.TYPE_ENDORSEMENT:
+                reviewer_endorsements[reviewer_id]['endorsements'].append(endorsement)
+            elif endorsement.review_type == constants.TYPE_REVIEW:
+                reviewer_endorsements[reviewer_id]['reviews'].append(endorsement)
+            else:
+                current_app.logger.warning(
+                    f'Unknown review type: {endorsement.review_type} for endorsement {endorsement.id}')
+
+        # Prepare the result
+        result = []
+        for reviewer_id, data in reviewer_endorsements.items():
             sub_endorsement_list = []
             sub_review_list = []
-            for e in endorsements:
-                if e.review_type == constants.TYPE_ENDORSEMENT:
-                    sub_endorsement_list.append({
-                        'created': e.created.isoformat(),
-                        'url': e.result_url
-                    })
-                elif e.review_type == constants.TYPE_REVIEW:
-                    sub_review_list.append({
-                        'created': e.created.isoformat(),
-                        'url': e.result_url
-                    })
 
+            for e in data['endorsements']:
+                sub_endorsement_list.append({
+                    'created': e.created.isoformat(),
+                    'url': e.result_url
+                })
+
+            for e in data['reviews']:
+                sub_review_list.append({
+                    'created': e.created.isoformat(),
+                    'url': e.result_url
+                })
+
+            _endorsements = data['reviews'] + data['endorsements']
+            reviewer_name = _endorsements[-1].reviewer.name if _endorsements else 'Unknown'
             result.append({
-                'reviewer_id': reviewer.id,
-                'reviewer_name': reviewer.name,
-                'endorsement_count': endorsement_count,
-                'review_count': review_count,
+                'reviewer_id': reviewer_id,
+                'reviewer_name': reviewer_name,
+                'endorsement_count': len(sub_endorsement_list),
+                'review_count': len(sub_review_list),
                 'endorsement_list': sub_endorsement_list,
                 'review_list': sub_review_list,
             })

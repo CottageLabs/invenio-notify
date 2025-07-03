@@ -11,6 +11,25 @@ from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer_servic
 from invenio_rdm_records.proxies import current_rdm_records
 
 
+def assert_inbox_processing_failed(inbox, expected_note_prefix):
+    """Assert that inbox processing failed with expected behavior."""
+    # Verify no endorsements exist before processing
+    assert EndorsementModel.query.count() == 0
+
+    # Run the processing task
+    inbox_processing()
+
+    # Refresh the inbox record from DB
+    updated_inbox = NotifyInboxModel.get(inbox.id)
+
+    # Check that the inbox record was marked as processed with expected comment
+    assert updated_inbox.process_date is not None
+    assert updated_inbox.process_note.startswith(expected_note_prefix)
+
+    # Verify no endorsement was created
+    assert EndorsementModel.query.count() == 0
+
+
 def test_mark_as_processed(db, superuser_identity, create_inbox):
     """Test the mark_as_processed function."""
     # Create a test inbox record
@@ -102,18 +121,20 @@ def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox)
         raw=notification_data
     )
 
-    # Verify no endorsements exist before processing
-    assert EndorsementModel.query.count() == 0
+    assert_inbox_processing_failed(inbox, "Record with ID")
 
-    # Run the processing task
-    inbox_processing()
 
-    # Refresh the inbox record from DB
-    updated_inbox = NotifyInboxModel.get(inbox.id)
+def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity, create_inbox):
+    """Test inbox processing when the reviewer is not found."""
+    recid = rdm_record.id
 
-    # Check that the inbox record was marked as processed
-    assert updated_inbox.process_date is not None
-    assert updated_inbox.process_note is not None
+    notification_data = create_notification_data(recid)
+    # Do not create reviewer, so actor_id won't match any reviewer
 
-    # Verify no endorsement was created
-    assert EndorsementModel.query.count() == 0
+    # Create inbox record
+    inbox = create_inbox(
+        recid=recid,
+        raw=notification_data
+    )
+
+    assert_inbox_processing_failed(inbox, "Reviewer not found")
