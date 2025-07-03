@@ -15,15 +15,15 @@ def inbox_test_data_builder(
     class _InboxTestDataBuilder:
         """Builder class for creating inbox test data with a fluent interface."""
 
-        def __init__(self, rdm_record_item, notification_data, user_identity=None):
+        def __init__(self, recid, notification_data, user_identity=None):
             """Initialize the builder with core dependencies and fixtures.
 
             Args:
-                rdm_record_item: RDM record object
+                recid: RDM record ID
                 user_identity: User identity object (defaults to superuser_identity if None)
                 notification_data: Notification data dictionary
             """
-            self.rdm_record = rdm_record_item
+            self.recid = recid
             self.user_identity = user_identity if user_identity is not None else superuser_identity
             self.notification_data = notification_data
             self.db = db
@@ -59,7 +59,7 @@ def inbox_test_data_builder(
             from invenio_rdm_records.proxies import current_rdm_records
 
             # Resolve record to get its UUID
-            record = current_rdm_records.records_service.record_cls.pid.resolve(self.rdm_record.id)
+            record = current_rdm_records.records_service.record_cls.pid.resolve(self.recid)
 
             # Create endorsement request with noti_id from inReplyTo
             self.endorsement_request = self._create_endorsement_request_fixture(
@@ -74,7 +74,7 @@ def inbox_test_data_builder(
             """Create an inbox with the notification data."""
             # Create inbox record with notification data
             self.inbox = self._create_inbox_fixture(
-                recid=self.rdm_record.id,
+                recid=self.recid,
                 raw=self.notification_data
             )
             return self

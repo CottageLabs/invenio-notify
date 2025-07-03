@@ -11,7 +11,7 @@ def test_inbox_test_data_builder(db, rdm_record, superuser_identity, inbox_test_
     notification_data = create_inbox_payload__reject(recid)
     
     # Use the builder
-    builder = (inbox_test_data_builder(rdm_record, notification_data, superuser_identity)
+    builder = (inbox_test_data_builder(rdm_record.id, notification_data, superuser_identity)
                .create_reviewer()
                .add_member_to_reviewer()
                .create_endorsement_request()
@@ -41,7 +41,7 @@ def test_inbox_test_data_builder_usage_example(db, rdm_record, superuser_identit
 
     
     # NEW pattern - AFTER using builder:
-    test_data = (inbox_test_data_builder(rdm_record, notification_data, superuser_identity)
+    test_data = (inbox_test_data_builder(rdm_record.id, notification_data, superuser_identity)
                  .create_reviewer()
                  .add_member_to_reviewer()
                  .create_endorsement_request()
