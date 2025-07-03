@@ -56,3 +56,9 @@ class ReviewerResourceConfig(BasicResourceConfig):
     routes['member'] = "/<record_id>/member"
     routes['members'] = "/<record_id>/members"
 
+
+class InboxApiResourceConfig(RecordResourceConfig):
+    """Configuration for the inbox API resource."""
+    blueprint_name = "inbox_api"
+    url_prefix = ""  # No prefix needed as route is defined directly
+

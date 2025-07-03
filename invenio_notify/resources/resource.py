@@ -1,4 +1,4 @@
-from flask import g
+from flask import g, current_app
 from flask_resources import Resource, resource_requestctx, response_handler, route
 from invenio_records_resources.resources.records.resource import (
     request_data,
@@ -6,10 +6,30 @@ from invenio_records_resources.resources.records.resource import (
     request_search_args,
     request_view_args,
 )
+from invenio_pidstore.errors import PIDDoesNotExistError
+from coarnotify.server import COARNotifyServerError
 
+from invenio_notify import constants
+from invenio_notify.errors import COARProcessFail
 from invenio_notify.services.schemas import ReviewerSchema
+from invenio_notify.views.api_views import create_fail_response, response_coar_notify_receipt
 
 from .errors import ErrorHandlersMixin
+
+
+def require_inbox_oauth():
+    """Decorator that requires OAuth authentication with inbox scope."""
+
+    def decorator(f):
+        from invenio_oauth2server import require_oauth_scopes, require_api_auth
+        from invenio_notify.scopes import inbox_scope
+
+        # Apply decorators in correct order
+        f = require_oauth_scopes(inbox_scope.id)(f)
+        f = require_api_auth()(f)
+        return f
+
+    return decorator
 
 
 class BasicDbResource(ErrorHandlersMixin, Resource):
@@ -151,3 +171,44 @@ class ReviewerResource(BasicDbResource):
             id=resource_requestctx.view_args["record_id"],
         )
         return {"hits": members}, 200
+
+
+class InboxApiResource(ErrorHandlersMixin, Resource):
+    """Resource for handling COAR notification inbox endpoint."""
+
+    def __init__(self, config, service):
+        """Constructor."""
+        super().__init__(config)
+        self.service = service
+
+    def create_url_rules(self):
+        """Create the URL rules for the inbox resource."""
+        return [
+            route("POST", "/notify/inbox", self.receive_notification),
+        ]
+
+    @request_data
+    @response_handler()
+    @require_inbox_oauth()
+    def receive_notification(self):
+        """Receive COAR notification via POST to /inbox."""
+        # TODO catch and handle exception if actor id is not url
+        data = resource_requestctx.data
+
+        if not data:
+            return create_fail_response(constants.STATUS_BAD_REQUEST, "Request must be JSON")
+
+        try:
+            result = self.service.receive_notification(notification_raw=data)
+            return response_coar_notify_receipt(result)
+
+        except COARNotifyServerError as e:
+            current_app.logger.error(f'Error: {e.message}')
+            return create_fail_response(constants.STATUS_BAD_REQUEST)
+
+        except COARProcessFail as e:
+            return create_fail_response(e.status, e.msg)
+
+        except PIDDoesNotExistError as e:
+            current_app.logger.debug(f'inbox PIDDoesNotExistError {e.pid_type}:{e.pid_value}')
+            return create_fail_response(constants.STATUS_NOT_FOUND, "Record not found")
