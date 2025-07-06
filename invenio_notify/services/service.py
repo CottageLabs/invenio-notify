@@ -172,6 +172,9 @@ class EndorsementService(BasicDbService):
     @staticmethod
     def get_endorsement_info(record_id):
         """Get the endorsement information for a record by its ID.
+        Note: This method is not actually called in this module, it is called in
+        InvenioRDMRecords by the EndorsementsDumperExt and as a backup for the
+        Endorsements system field getter.
         
         Args:
             record_id: The UUID of the record
