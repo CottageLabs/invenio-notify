@@ -170,7 +170,7 @@ def inbox_processing():
         log.info(f"Created endorsement record: {endorsement._record.id}")
 
         # Indexing the record will add the endorsement data via EndorsementsDumperExt
-        records_service.indexer.index(record)
+        current_rdm_records_service.indexer.index(record)
 
         # Mark inbox as processed after successful endorsement creation
         mark_as_processed(inbox_record)
