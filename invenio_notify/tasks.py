@@ -259,8 +259,8 @@ def handle_endorsement_and_review(inbox_record: NotifyInboxModel, notification_r
 
     log.info(f"Created endorsement record: {endorsement._record.id}")
 
-    # re-commit rdm-record to refresh record.endorsements field
-    record.commit()
+    # Indexing the record will add the endorsement data via EndorsementsDumperExt
+    current_rdm_records_service.indexer.index(record)
 
 
 def handle_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict) -> Optional[
