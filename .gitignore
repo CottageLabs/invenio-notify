@@ -16,6 +16,7 @@ __pycache__/
 .idea/csv-editor.xml
 .idea/invenio-notify.iml
 .idea/vcs.xml
+.idea/misc.xml
 
 _playground
 
