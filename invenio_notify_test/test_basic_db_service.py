@@ -1,9 +1,14 @@
 import pytest
 
-from invenio_notify.proxies import current_inbox_service, current_reviewer_service, current_notify, \
-    current_endorsement_request_service, current_endorsement_reply_service
-from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request
+from invenio_notify.proxies import (
+    current_endorsement_reply_service,
+    current_endorsement_request_service,
+    current_inbox_service,
+    current_notify,
+    current_reviewer_service,
+)
 from invenio_notify_test.fixtures.endorsement_reply_fixture import create_endorsement_reply
+from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 from invenio_notify_test.fixtures.reviewer_map_fixture import create_reviewer_map

@@ -1,9 +1,12 @@
 from invenio_accounts.testutils import create_test_user
 
-from invenio_notify.records.models import ReviewerModel
 from invenio_notify.proxies import current_reviewer_service
-from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer, reviewer_data, \
-    sample_reviewers
+from invenio_notify.records.models import ReviewerModel
+from invenio_notify_test.fixtures.reviewer_fixture import (
+    create_reviewer,
+    reviewer_data,
+    sample_reviewers,
+)
 from invenio_notify_test.fixtures.user_fixture import create_test_users
 
 

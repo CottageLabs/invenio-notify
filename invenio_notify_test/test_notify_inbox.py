@@ -1,6 +1,9 @@
-from invenio_notify.records.models import NotifyInboxModel
 from invenio_notify.proxies import current_inbox_service
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox, create_notification_data
+from invenio_notify.records.models import NotifyInboxModel
+from invenio_notify_test.fixtures.inbox_fixture import (
+    create_inbox,
+    create_notification_data,
+)
 
 
 def test_create_model(db, superuser_identity, create_inbox):

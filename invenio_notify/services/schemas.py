@@ -1,7 +1,7 @@
-from datetime import timezone, datetime
+from datetime import datetime, timezone
 
 from invenio_records_resources.services.records.schema import BaseRecordSchema
-from marshmallow import fields, Schema
+from marshmallow import Schema, fields
 from marshmallow_utils.fields import TZDateTime
 
 

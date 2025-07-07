@@ -2,14 +2,37 @@ from invenio_i18n import gettext as _
 from invenio_records_resources.services import RecordServiceConfig
 from invenio_records_resources.services.records.links import pagination_links
 
-from invenio_notify.records.models import NotifyInboxModel, ReviewerMapModel, ReviewerModel, EndorsementModel, EndorsementRequestModel, EndorsementReplyModel
+from invenio_notify.records.models import (
+    EndorsementModel,
+    EndorsementReplyModel,
+    EndorsementRequestModel,
+    NotifyInboxModel,
+    ReviewerMapModel,
+    ReviewerModel,
+)
 from invenio_notify.services.config_utils import DefaultSearchOptions
-from invenio_notify.services.links import EndorsementLink, NotifyInboxLink, IdLink
-from invenio_notify.services.policies import NotifyInboxPermissionPolicy, AdminPermissionPolicy, \
-    EndorsementPermissionPolicy
+from invenio_notify.services.links import (
+    EndorsementLink,
+    IdLink,
+    NotifyInboxLink,
+)
+from invenio_notify.services.policies import (
+    AdminPermissionPolicy,
+    EndorsementPermissionPolicy,
+    NotifyInboxPermissionPolicy,
+)
 from invenio_notify.services.results import BasicDbModelRecordList
-from invenio_notify.services.schemas import AddMemberSchema, DelMemberSchema, ApiNotifyInboxSchema
-from invenio_notify.services.schemas import NotifyInboxSchema, EndorsementSchema, ReviewerMapSchema, ReviewerSchema, EndorsementRequestSchema, EndorsementReplySchema
+from invenio_notify.services.schemas import (
+    AddMemberSchema,
+    ApiNotifyInboxSchema,
+    DelMemberSchema,
+    EndorsementReplySchema,
+    EndorsementRequestSchema,
+    EndorsementSchema,
+    NotifyInboxSchema,
+    ReviewerMapSchema,
+    ReviewerSchema,
+)
 
 
 class NotifyInboxServiceConfig(RecordServiceConfig):
