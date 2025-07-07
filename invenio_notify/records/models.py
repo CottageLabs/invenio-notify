@@ -1,4 +1,5 @@
-from blib2to3.pgen2.driver import Iterable
+from typing import Iterable
+
 from invenio_accounts.models import User
 from invenio_db import db
 from sqlalchemy import or_
