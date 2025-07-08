@@ -27,3 +27,6 @@ _playground
 
 # js
 node_modules
+
+# Claude
+.mcp.json
