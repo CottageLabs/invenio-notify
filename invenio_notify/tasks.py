@@ -287,6 +287,7 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: d
     endorsement_request = EndorsementRequestModel.query.filter_by(noti_id=noti_id).first()
     if not endorsement_request:
         log.debug(f"Endorsement request with noti_id {noti_id} not found")
+        # KTODO should raise DataNotFound if related endorsement request is not found
         return
 
     # Extract status from notification type
@@ -306,6 +307,8 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: d
 
     reply = EndorsementReplyModel.create(reply_data)
     log.info(f"Created endorsement reply record: {reply.id}")
+
+    # KTODO should update endorsement_request.latest_status
 
     return reply
 
