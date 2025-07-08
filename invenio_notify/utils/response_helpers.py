@@ -2,8 +2,6 @@ from coarnotify.server import COARNotifyReceipt
 from invenio_notify import constants
 
 
-# TODO following function to better module
-
 def create_default_msg_by_status(status):
     if status == COARNotifyReceipt.ACCEPTED:
         msg = "Accepted"

@@ -17,7 +17,7 @@ from coarnotify.server import COARNotifyServerError
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.services.schemas import ReviewerSchema
-from invenio_notify.views.api_views import create_fail_response, response_coar_notify_receipt
+from invenio_notify.utils.response_helpers import create_fail_response, response_coar_notify_receipt
 from .errors import ErrorHandlersMixin
 
 
