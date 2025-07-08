@@ -10,11 +10,10 @@
 import sqlalchemy as sa
 import sqlalchemy_utils
 from alembic import op
-from sqlalchemy.dialects import mysql
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision = '1747215441'
+revision = '1751970206'
 down_revision = None
 branch_labels = ('invenio_notify',)
 depends_on = '843bc79c426f'
@@ -33,20 +32,12 @@ def upgrade():
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('updated', sa.DateTime(), nullable=False),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_reviewer')),
-    sa.UniqueConstraint('actor_id', name='uq_reviewer_actor_id')
+    sa.UniqueConstraint('actor_id', name=op.f('uq_reviewer_actor_id'))
     )
     op.create_table('notify_inbox',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column(
-        "raw",
-        sa.JSON()
-        .with_variant(sqlalchemy_utils.types.json.JSONType(), "mysql")
-        .with_variant(
-            postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), "postgresql"
-        )
-        .with_variant(sqlalchemy_utils.types.json.JSONType(), "sqlite"),
-        nullable=False,
-    ),
+    sa.Column('noti_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.Column('raw', sa.JSON().with_variant(sqlalchemy_utils.types.json.JSONType(), 'mysql').with_variant(postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), 'postgresql').with_variant(sqlalchemy_utils.types.json.JSONType(), 'sqlite'), nullable=False),
     sa.Column('recid', sa.Text(), nullable=False),
     sa.Column('process_date', sa.DateTime(), nullable=True),
     sa.Column('process_note', sa.Text(), nullable=True),
@@ -54,7 +45,8 @@ def upgrade():
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('updated', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['accounts_user.id'], name=op.f('fk_notify_inbox_user_id_accounts_user'), ondelete='NO ACTION'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_notify_inbox'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_notify_inbox')),
+    sa.UniqueConstraint('noti_id', name=op.f('uq_notify_inbox_noti_id'))
     )
     op.create_index(op.f('ix_notify_inbox_user_id'), 'notify_inbox', ['user_id'], unique=False)
     op.create_table('reviewer_map',
@@ -70,35 +62,69 @@ def upgrade():
     op.create_index(op.f('ix_reviewer_map_reviewer_id'), 'reviewer_map', ['reviewer_id'], unique=False)
     op.create_index(op.f('ix_reviewer_map_user_id'), 'reviewer_map', ['user_id'], unique=False)
     op.create_table('endorsement',
+    sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
     sa.Column('reviewer_id', sa.Integer(), nullable=True),
     sa.Column('review_type', sa.Text(), nullable=True),
     sa.Column('inbox_id', sa.Integer(), nullable=True),
     sa.Column('result_url', sa.Text(), nullable=False),
     sa.Column('reviewer_name', sa.Text(), nullable=False),
-    sa.Column('id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
-    sa.Column('json', sa.JSON().with_variant(sqlalchemy_utils.types.json.JSONType(), 'mysql').with_variant(postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), 'postgresql').with_variant(sqlalchemy_utils.types.json.JSONType(), 'sqlite'), nullable=True),
-    sa.Column('version_id', sa.Integer(), nullable=False),
-    sa.Column('created', sa.DateTime().with_variant(mysql.DATETIME(fsp=6), 'mysql'), nullable=False),
-    sa.Column('updated', sa.DateTime().with_variant(mysql.DATETIME(fsp=6), 'mysql'), nullable=False),
+    sa.Column('created', sa.DateTime(), nullable=False),
+    sa.Column('updated', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['inbox_id'], ['notify_inbox.id'], name=op.f('fk_endorsement_inbox_id_notify_inbox'), ondelete='NO ACTION'),
     sa.ForeignKeyConstraint(['record_id'], ['rdm_records_metadata.id'], name=op.f('fk_endorsement_record_id_rdm_records_metadata'), ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['reviewer_id'], ['reviewer.id'], name=op.f('fk_endorsement_reviewer_id_reviewer'), ondelete='NO ACTION'),
-    sa.ForeignKeyConstraint(['user_id'], ['accounts_user.id'], name=op.f('fk_endorsement_user_id_accounts_user'), ondelete='NO ACTION'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_endorsement'))
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_endorsement')),
+    sa.UniqueConstraint('inbox_id', name=op.f('uq_endorsement_inbox_id'))
     )
     op.create_index(op.f('ix_endorsement_record_id'), 'endorsement', ['record_id'], unique=False)
     op.create_index(op.f('ix_endorsement_reviewer_id'), 'endorsement', ['reviewer_id'], unique=False)
-    op.create_index(op.f('ix_endorsement_user_id'), 'endorsement', ['user_id'], unique=False)
-    op.drop_index('ix_uq_partial_files_object_is_head', table_name='files_object', postgresql_where='is_head')
+    op.create_table('endorsement_request',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('noti_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('reviewer_id', sa.Integer(), nullable=False),
+    sa.Column('raw', sa.JSON().with_variant(sqlalchemy_utils.types.json.JSONType(), 'mysql').with_variant(postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), 'postgresql').with_variant(sqlalchemy_utils.types.json.JSONType(), 'sqlite'), nullable=False),
+    sa.Column('latest_status', sa.Text(), nullable=False),
+    sa.Column('created', sa.DateTime(), nullable=False),
+    sa.Column('updated', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['record_id'], ['rdm_records_metadata.id'], name=op.f('fk_endorsement_request_record_id_rdm_records_metadata'), ondelete='NO ACTION'),
+    sa.ForeignKeyConstraint(['reviewer_id'], ['reviewer.id'], name=op.f('fk_endorsement_request_reviewer_id_reviewer'), ondelete='NO ACTION'),
+    sa.ForeignKeyConstraint(['user_id'], ['accounts_user.id'], name=op.f('fk_endorsement_request_user_id_accounts_user'), ondelete='NO ACTION'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_endorsement_request')),
+    sa.UniqueConstraint('noti_id', name=op.f('uq_endorsement_request_noti_id'))
+    )
+    op.create_index(op.f('ix_endorsement_request_record_id'), 'endorsement_request', ['record_id'], unique=False)
+    op.create_index(op.f('ix_endorsement_request_reviewer_id'), 'endorsement_request', ['reviewer_id'], unique=False)
+    op.create_index(op.f('ix_endorsement_request_user_id'), 'endorsement_request', ['user_id'], unique=False)
+    op.create_table('endorsement_reply',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('endorsement_request_id', sa.Integer(), nullable=False),
+    sa.Column('inbox_id', sa.Integer(), nullable=False),
+    sa.Column('status', sa.Text(), nullable=False),
+    sa.Column('message', sa.Text(), nullable=True),
+    sa.Column('created', sa.DateTime(), nullable=False),
+    sa.Column('updated', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['endorsement_request_id'], ['endorsement_request.id'], name=op.f('fk_endorsement_reply_endorsement_request_id_endorsement_request'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['inbox_id'], ['notify_inbox.id'], name=op.f('fk_endorsement_reply_inbox_id_notify_inbox'), ondelete='NO ACTION'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_endorsement_reply'))
+    )
+    op.create_index(op.f('ix_endorsement_reply_endorsement_request_id'), 'endorsement_reply', ['endorsement_request_id'], unique=False)
+    op.create_index(op.f('ix_endorsement_reply_inbox_id'), 'endorsement_reply', ['inbox_id'], unique=True)
     # ### end Alembic commands ###
 
 
 def downgrade():
     """Downgrade database."""
     # ### commands auto generated by Alembic - please adjust! ###
-    op.create_index('ix_uq_partial_files_object_is_head', 'files_object', ['bucket_id', 'key'], unique=True, postgresql_where='is_head')
-    op.drop_index(op.f('ix_endorsement_user_id'), table_name='endorsement')
+    op.drop_index(op.f('ix_endorsement_reply_inbox_id'), table_name='endorsement_reply')
+    op.drop_index(op.f('ix_endorsement_reply_endorsement_request_id'), table_name='endorsement_reply')
+    op.drop_table('endorsement_reply')
+    op.drop_index(op.f('ix_endorsement_request_user_id'), table_name='endorsement_request')
+    op.drop_index(op.f('ix_endorsement_request_reviewer_id'), table_name='endorsement_request')
+    op.drop_index(op.f('ix_endorsement_request_record_id'), table_name='endorsement_request')
+    op.drop_table('endorsement_request')
     op.drop_index(op.f('ix_endorsement_reviewer_id'), table_name='endorsement')
     op.drop_index(op.f('ix_endorsement_record_id'), table_name='endorsement')
     op.drop_table('endorsement')
