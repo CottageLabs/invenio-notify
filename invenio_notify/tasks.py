@@ -41,7 +41,7 @@ class ReviewerNotFoundError(Exception):
 
 
 @unit_of_work()
-def create_endorsement_record(identity, user_id, record_id, inbox_id, notification_raw,
+def create_endorsement_record(identity, user_id, record_id, parent_id, inbox_id, notification_raw,
                               uow=None):
     """
     Create a new endorsement record using the endorsement service.
@@ -49,6 +49,7 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     Args:
         identity: The identity to use for record creation
         record_id: The ID of the record being endorsed
+        parent_id: The ID of the parent record
         inbox_id: The ID of the notification inbox record
         notification_raw: The raw notification data
 
@@ -87,6 +88,7 @@ def create_endorsement_record(identity, user_id, record_id, inbox_id, notificati
     # Create the endorsement record data
     endorsement_data = {
         'record_id': record_id,
+        'parent_id': parent_id,
         'reviewer_id': reviewer_id,
         'review_type': reviewer_type,
         'user_id': user_id,
@@ -159,6 +161,7 @@ def inbox_processing():
                 system_identity,
                 inbox_record.user_id,
                 record.id,
+                str(record.parent.id),
                 inbox_record.id,
                 notification_raw
             )

@@ -71,6 +71,7 @@ def upgrade():
     op.create_index(op.f('ix_reviewer_map_user_id'), 'reviewer_map', ['user_id'], unique=False)
     op.create_table('endorsement',
     sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+    sa.Column('parent_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
     sa.Column('reviewer_id', sa.Integer(), nullable=True),
     sa.Column('review_type', sa.Text(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
@@ -84,11 +85,13 @@ def upgrade():
     sa.Column('updated', sa.DateTime().with_variant(mysql.DATETIME(fsp=6), 'mysql'), nullable=False),
     sa.ForeignKeyConstraint(['inbox_id'], ['notify_inbox.id'], name=op.f('fk_endorsement_inbox_id_notify_inbox'), ondelete='NO ACTION'),
     sa.ForeignKeyConstraint(['record_id'], ['rdm_records_metadata.id'], name=op.f('fk_endorsement_record_id_rdm_records_metadata'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['parent_id'], ['rdm_parents_metadata.id'], name=op.f('fk_endorsement_parent_id_rdm_parents_metadata'), ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['reviewer_id'], ['reviewer.id'], name=op.f('fk_endorsement_reviewer_id_reviewer'), ondelete='NO ACTION'),
     sa.ForeignKeyConstraint(['user_id'], ['accounts_user.id'], name=op.f('fk_endorsement_user_id_accounts_user'), ondelete='NO ACTION'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_endorsement'))
     )
     op.create_index(op.f('ix_endorsement_record_id'), 'endorsement', ['record_id'], unique=False)
+    op.create_index(op.f('ix_endorsement_parent_id'), 'endorsement', ['parent_id'], unique=False)
     op.create_index(op.f('ix_endorsement_reviewer_id'), 'endorsement', ['reviewer_id'], unique=False)
     op.create_index(op.f('ix_endorsement_user_id'), 'endorsement', ['user_id'], unique=False)
     op.drop_index('ix_uq_partial_files_object_is_head', table_name='files_object', postgresql_where='is_head')
