@@ -47,7 +47,7 @@ class TestDummyInboxEndpoint(TestDummyPCIAppBase):
         """Test POST with malformed JSON returns 400."""
         response = self.client.post(
             '/dummy-reviewer/dummy-inbox',
-            data='{"invalid": json}',
+            data='{"invalid": "json"}',
             content_type='application/json'
         )
 
