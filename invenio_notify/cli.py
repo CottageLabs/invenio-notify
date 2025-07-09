@@ -16,18 +16,6 @@ def print_key_value(k, v):
     print(f'{k:<20}: {v}')
 
 
-@click.group(chain=False)
-def notify():
-    """Notify commands."""
-
-
-@notify.command()
-@with_appcontext
-def run():
-    """Run the notify background job"""
-    tasks.inbox_processing()
-
-
 def get_sorted_records(model_class, size=None, order_field=None):
     """Get records sorted by created date in descending order with optional limit."""
     query = model_class.query
@@ -37,6 +25,22 @@ def get_sorted_records(model_class, size=None, order_field=None):
     if size:
         query = query.limit(size)
     return query.all()
+
+
+@click.group(chain=False)
+def notify():
+    """Notify commands."""
+
+
+# =============================================================================
+# Main notify commands
+# =============================================================================
+
+@notify.command()
+@with_appcontext
+def run():
+    """Run the notify background job"""
+    tasks.inbox_processing()
 
 
 @notify.command()
@@ -68,6 +72,46 @@ def list_notify(size):
         console.print_json(data=r.raw)
         print()
 
+
+@notify.command()
+@click.option('--email', '-e', type=str, help='Email of user to assign the reviewer to')
+@with_appcontext
+def test_data(email):
+    """Generate test data for ReviewerModel."""
+    from invenio_notify.proxies import current_reviewer_service
+
+    print("Generating a test record for ReviewerModel...")
+
+    # Generate reviewer record
+    reviewer = ReviewerModel.create({
+        'name': "Peer Community in Evolutionary Biology",
+        'actor_id': 'https://evolbiol.peercommunityin.org/coar_notify/',
+        'inbox_url': "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
+        'description': f"Test reviewer generated on {datetime.now().strftime('%Y-%m-%d')}"
+    })
+
+    print(f"Created reviewer: {reviewer.name} with actor ID: {reviewer.actor_id}")
+
+    # If email is provided, create a ReviewerMapModel for the user
+    if email:
+        user = user_utils.find_user_by_email(email)
+        if user is None:
+            print(f"User with email {email} not found. Reviewer created but not assigned to any user.")
+        else:
+            # Add required role to the user
+            user_utils.add_coarnotify_action(db, user.id)
+
+            # Add the user as a member
+            current_reviewer_service.add_member_by_email(reviewer.id, email)
+            print(f"Created reviewer mapping: {email} -> {reviewer.name}")
+
+    db.session.commit()
+    print("Successfully created test reviewer record")
+
+
+# =============================================================================
+# User management commands
+# =============================================================================
 
 @notify.group()
 def user():
@@ -128,41 +172,9 @@ def add(email, actor_ids):
         print(f'Successfully assigned {assigned_count} new reviewer ID(s) to {email}')
 
 
-@notify.command()
-@click.option('--email', '-e', type=str, help='Email of user to assign the reviewer to')
-@with_appcontext
-def test_data(email):
-    """Generate test data for ReviewerModel."""
-    from invenio_notify.proxies import current_reviewer_service
-
-    print("Generating a test record for ReviewerModel...")
-    
-    # Generate reviewer record
-    reviewer = ReviewerModel.create({
-        'name': "Peer Community in Evolutionary Biology",
-        'actor_id': 'https://evolbiol.peercommunityin.org/coar_notify/',
-        'inbox_url': "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
-        'description': f"Test reviewer generated on {datetime.now().strftime('%Y-%m-%d')}"
-    })
-    
-    print(f"Created reviewer: {reviewer.name} with actor ID: {reviewer.actor_id}")
-
-    # If email is provided, create a ReviewerMapModel for the user
-    if email:
-        user = user_utils.find_user_by_email(email)
-        if user is None:
-            print(f"User with email {email} not found. Reviewer created but not assigned to any user.")
-        else:
-            # Add required role to the user
-            user_utils.add_coarnotify_action(db, user.id)
-            
-            # Add the user as a member
-            current_reviewer_service.add_member_by_email(reviewer.id, email)
-            print(f"Created reviewer mapping: {email} -> {reviewer.name}")
-
-    db.session.commit()
-    print("Successfully created test reviewer record")
-
+# =============================================================================
+# Dummy PCI testing commands
+# =============================================================================
 
 @notify.group()
 def dummy_pci():
