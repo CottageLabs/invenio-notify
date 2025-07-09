@@ -1,11 +1,14 @@
 import json
 from pathlib import Path
 
+import requests
 from flask import Flask, request
 
 from coarnotify.exceptions import NotifyException
 from coarnotify.server import COARNotifyReceipt, COARNotifyServer, COARNotifyServiceBinding
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
+from invenio_notify_test.fixtures.inbox_payload import payload_endorsement_resp, payload_review, \
+    payload_tentative_accept, payload_reject
 
 app = Flask(__name__)
 
@@ -13,6 +16,7 @@ app = Flask(__name__)
 class DummyPCIBackend:
     def __init__(self):
         self.path = Path.home() / '.local/opt/dummy_pci_handler/store.json'
+        self.reply_inbox_url = 'https://127.0.0.1:5000/api/notify/inbox'
 
     def load_notifications(self) -> list:
         """Load notifications from JSON file."""
@@ -39,6 +43,69 @@ class DummyPCIBackend:
         notifications = self.load_notifications()
         notifications.append(noti)
         self.save_notifications(notifications)
+
+    def reply_last(self, payload_type='endorsement_resp'):
+        """Reply to the last notification in store and remove it."""
+        notifications = self.load_notifications()
+
+        if not notifications:
+            print("No notifications in store to reply to")
+            return
+
+        last_notification = notifications[-1]
+        print(f"Replying to notification: {last_notification.get('id', 'N/A')}")
+
+        # Extract record_id from context if available
+        context = last_notification.get('context', {})
+        context_id = context.get('id', '')
+        record_id = context_id.split('/')[-1] if context_id else '1'
+
+        # Get the notification ID to reply to
+        in_reply_to = last_notification.get('id', '').replace('urn:uuid:', '')
+
+        # Create payload based on type
+        payload_functions = {
+            'endorsement_resp': payload_endorsement_resp,
+            'review': payload_review,
+            'tentative_accept': payload_tentative_accept,
+            'reject': payload_reject
+        }
+
+        if payload_type not in payload_functions:
+            print(f"Unknown payload type: {payload_type}")
+            return
+
+        payload = payload_functions[payload_type](record_id, in_reply_to)
+
+        try:
+            # Send POST request to reply_inbox_url
+            response = requests.post(
+                self.reply_inbox_url,
+                json=payload,
+                headers={'Content-Type': 'application/json'}
+            )
+
+            print(f"Response status: {response.status_code}")
+
+            # Print response JSON if available
+            try:
+                response_json = response.json()
+                print(f"Response JSON: {json.dumps(response_json, indent=2)}")
+            except ValueError:
+                print(f"Response text: {response.text}")
+
+            # Remove last notification from store if request was successful
+            if response.status_code in [200, 201, 202]:
+                notifications.pop()  # Remove last notification
+                self.save_notifications(notifications)
+                print("Last notification removed from store")
+            else:
+                print("Request failed, notification not removed from store")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Error sending request: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
 
 
 class DummyCOARNotifyReceipt:
