@@ -205,9 +205,10 @@ def reply(type):
 @dummy_pci.command()
 def run():
     """Run the dummy PCI server"""
-    from invenio_notify.dummy_reviewer.dummy_pci_app import run
-    
-    run()
+    print('****************************************')
+    print("You have to run following command manual:")
+    print(f'python -m invenio_notify.dummy_reviewer.dummy_pci_app')
+    print('****************************************')
 
 
 @dummy_pci.command()
