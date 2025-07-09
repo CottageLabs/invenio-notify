@@ -127,6 +127,10 @@ class DummyPCIBackend:
         except Exception as e:
             print(f"Unexpected error: {e}")
 
+    def reset(self):
+        """Reset the store to empty list."""
+        self.save_notifications([])
+
 
 class DummyCOARNotifyReceipt:
     """Dummy version of COARNotifyReceipt for testing."""

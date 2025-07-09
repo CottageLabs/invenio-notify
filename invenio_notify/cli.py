@@ -209,3 +209,13 @@ def run():
     
     run()
 
+
+@dummy_pci.command()
+def reset():
+    """Reset dummy PCI store to empty list"""
+    from invenio_notify.dummy_reviewer.dummy_pci_app import DummyPCIBackend
+    
+    backend = DummyPCIBackend()
+    backend.reset()
+    print("Dummy PCI store reset to empty list")
+
