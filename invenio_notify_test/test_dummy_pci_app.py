@@ -1,10 +1,12 @@
 import json
 import pytest
+from unittest.mock import patch
 
 from invenio_notify.dummy_reviewer.dummy_pci_app import app
 from invenio_notify_test.fixtures.endorsement_request_payload import payload_endorsement_request
 
 
+@patch('invenio_notify.dummy_reviewer.dummy_pci_app.DummyPCIBackend')
 class TestDummyInboxEndpoint:
     """Test the dummy inbox endpoint."""
 
@@ -14,7 +16,7 @@ class TestDummyInboxEndpoint:
         app.config['TESTING'] = True
         self.client = app.test_client()
 
-    def test_success(self):
+    def test_success(self, mock_backend):
         """Test POST with valid endorsement request payload returns 200."""
         payload = payload_endorsement_request("test-record-123")
 
@@ -30,7 +32,7 @@ class TestDummyInboxEndpoint:
         assert data['status'] == 202
         assert 'message' in data
 
-    def test_no_json(self):
+    def test_no_json(self, mock_backend):
         """Test POST without JSON returns 400."""
         response = self.client.post('/dummy-reviewer/dummy-inbox')
 
@@ -40,7 +42,7 @@ class TestDummyInboxEndpoint:
         assert data['status'] == 400
         assert data['message'] == 'Request must be JSON'
 
-    def test_malformed_json(self):
+    def test_malformed_json(self, mock_backend):
         """Test POST with malformed JSON returns 400."""
         response = self.client.post(
             '/dummy-reviewer/dummy-inbox',
