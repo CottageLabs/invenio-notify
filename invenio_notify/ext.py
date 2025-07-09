@@ -1,10 +1,31 @@
 from invenio_notify import config, cli
 from invenio_notify.blueprints import blueprint
-from invenio_notify.resources.config import NotifyInboxResourceConfig, ReviewerResourceConfig, InboxApiResourceConfig
-from invenio_notify.resources.resource import NotifyInboxResource, ReviewerResource, InboxApiResource
-from invenio_notify.services.config import NotifyInboxServiceConfig, EndorsementServiceConfig, ReviewerMapServiceConfig, \
-    ReviewerServiceConfig
-from invenio_notify.services.service import NotifyInboxService, EndorsementService, ReviewerMapService, ReviewerService
+from invenio_notify.resources.config import (
+    NotifyInboxResourceConfig,
+    ReviewerResourceConfig,
+    InboxApiResourceConfig,
+)
+from invenio_notify.resources.resource import (
+    NotifyInboxResource,
+    ReviewerResource,
+    InboxApiResource,
+)
+from invenio_notify.services.config import (
+    EndorsementReplyServiceConfig,
+    EndorsementRequestServiceConfig,
+    EndorsementServiceConfig,
+    NotifyInboxServiceConfig,
+    ReviewerMapServiceConfig,
+    ReviewerServiceConfig,
+)
+from invenio_notify.services.service import (
+    EndorsementReplyService,
+    EndorsementRequestService,
+    EndorsementService,
+    NotifyInboxService,
+    ReviewerMapService,
+    ReviewerService,
+)
 
 
 class InvenioNotify:
@@ -45,6 +66,8 @@ class InvenioNotify:
         self.endorsement_service = EndorsementService(config=EndorsementServiceConfig)
         self.reviewer_map_service = ReviewerMapService(config=ReviewerMapServiceConfig)
         self.reviewer_service = ReviewerService(config=ReviewerServiceConfig)
+        self.endorsement_request_service = EndorsementRequestService(config=EndorsementRequestServiceConfig)
+        self.endorsement_reply_service = EndorsementReplyService(config=EndorsementReplyServiceConfig)
 
     def init_resources(self, app):
         """Initialize the resources for notifications."""

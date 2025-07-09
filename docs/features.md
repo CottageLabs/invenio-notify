@@ -22,7 +22,7 @@ invenio notify user add admina@dev.dev evolbiol.peercommunityin.org
 
 # create a notification  
 # review_1.json can be found in the docs/examples/review_1.json
-curl -X POST -i https://127.0.0.1:5000/api/notify-rest/inbox/somerecordid \
+curl -X POST -i https://127.0.0.1:5000/api/notify/inbox/somerecordid \
      -k \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer ehFjcA7aOSv9YTc6rahaxGPCAETenKqt3efRVoJTVP1clBW7gUMHvB8cZ5Rs" \

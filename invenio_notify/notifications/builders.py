@@ -6,7 +6,6 @@ from invenio_pidstore.providers.recordid_v2 import RecordIdProviderV2
 from invenio_records_resources.services import RecordEndpointLink
 from invenio_users_resources.notifications.generators import EmailRecipient
 
-from invenio_notify.records.models import EndorsementModel
 from invenio_rdm_records.records.models import RDMRecordMetadata
 
 
@@ -92,39 +91,6 @@ class NewEndorsementNotificationBuilder(NotificationBuilder):
                 receiver_email=receiver_email,
                 user_id=user_id
             ),
-        )
-
-    # For backward compatibility with endorsement objects
-    @classmethod
-    def build_from_endorsement(cls, endorsement: 'EndorsementModel'):
-        """
-        Build notification from an endorsement object.
-
-        Args:
-            endorsement: The endorsement model object
-
-        Returns:
-            Notification: A notification object with context from the endorsement
-        """
-        # Extract data from endorsement
-        record = endorsement.record if hasattr(endorsement, 'record') else None
-
-        # Get reviewer information
-        reviewer_name = "Unknown"
-        if hasattr(endorsement, 'reviewer') and endorsement.reviewer:
-            reviewer_name = endorsement.reviewer.name
-
-        # Get user ID (to be used if receiver_email is not available)
-        user_id = endorsement.user_id if hasattr(endorsement, 'user_id') else None
-
-        # Build endorsement URL
-        endorsement_url = endorsement.result_url if hasattr(endorsement, 'result_url') and endorsement.result_url else f"https://example.com/endorsement/{endorsement.id}"
-
-        return cls.build(
-            record=record,
-            reviewer_name=reviewer_name,
-            endorsement_url=endorsement_url,
-            user_id=user_id
         )
 
     context = [

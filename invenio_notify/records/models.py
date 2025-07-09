@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from invenio_accounts.models import User
 from invenio_db import db
 from sqlalchemy import or_
@@ -14,6 +16,7 @@ JSON = (
     .with_variant(JSONType(), "sqlite")
     .with_variant(JSONType(), "mysql")
 )
+
 
 class DbOperationMixin:
     @classmethod
@@ -66,11 +69,14 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    noti_id = db.Column(UUIDType, nullable=False, unique=True)
+    """ notification id from COAR notification """
+
     raw = db.Column(JSON, nullable=False)
     """ Coar notification data as json string """
 
     recid = db.Column(db.Text, nullable=False)
-    """ record id (recid) instead of object id of record """
+    """ record id (recid e.g. p97a0-c4p20 ) instead of uuid of record """
 
     process_date = db.Column(db.DateTime, nullable=True)
 
@@ -83,10 +89,15 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
         nullable=False,
         index=True,
     )
-
     user = db.relationship(
         "User", backref=db.backref("inbox_messages", cascade="all, delete-orphan")
     )
+    """ user id of the sender """
+
+    @classmethod
+    def unprocessed_records(cls) -> Iterable["NotifyInboxModel"]:
+        """Get all unprocessed inbox records (where process_date is None)."""
+        return cls.search(None, [cls.process_date.is_(None)])
 
 
 class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
@@ -222,21 +233,84 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     review_type = db.Column(db.Text, nullable=True)
     """ review or endorsement """
 
-    user_id = db.Column(
-        db.Integer(),
-        db.ForeignKey(User.id, ondelete="NO ACTION"),
-        nullable=True,
-        index=True,
-    )
-    """ user id of the sender """
-
     inbox_id = db.Column(db.Integer, db.ForeignKey(
         NotifyInboxModel.id, ondelete="NO ACTION"
-    ), nullable=True)
-    inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id])
+    ), nullable=True, unique=True)
+    inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id], uselist=False)
 
     result_url = db.Column(db.Text, nullable=False)
     """ url of review results """
 
     reviewer_name = db.Column(db.Text, nullable=False)
     """ name of the reviewer, copy it in case the reviewer is deleted """
+
+
+class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
+    """
+    This model stores records created by record owners who want to send endorsement requests to reviewers.
+    It serves as an outbox of our repository system for COAR endorsement notifications.
+    """
+    __tablename__ = "endorsement_request"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    noti_id = db.Column(UUIDType, nullable=False, unique=True)
+    """ notification id from COAR notification """
+
+    record_id = db.Column(UUIDType, db.ForeignKey(
+        RDMRecordMetadata.id, ondelete="NO ACTION",
+    ), index=True, nullable=False)
+    """ record uuid that binded to version """
+
+    user_id = db.Column(
+        db.Integer(),
+        db.ForeignKey(User.id, ondelete="NO ACTION"),
+        nullable=False,
+        index=True,
+    )
+    """ user id of the sender """
+
+    reviewer_id = db.Column(
+        db.Integer,
+        db.ForeignKey("reviewer.id", ondelete="NO ACTION"),
+        nullable=False,
+        index=True,
+    )
+    reviewer = db.relationship("ReviewerModel")
+
+    raw = db.Column(JSON, nullable=False)
+    """ raw notification data as json """
+
+    latest_status = db.Column(db.Text, nullable=False)
+    """ latest status e.g 'Request Endorsement', 'Reject', 'Announce Endorsement' """
+
+    replies = db.relationship("EndorsementReplyModel", back_populates="endorsement_request")
+
+
+class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
+    __tablename__ = "endorsement_reply"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    endorsement_request_id = db.Column(
+        db.Integer,
+        db.ForeignKey("endorsement_request.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    endorsement_request = db.relationship("EndorsementRequestModel", back_populates="replies")
+
+    inbox_id = db.Column(
+        db.Integer,
+        db.ForeignKey(NotifyInboxModel.id, ondelete="NO ACTION"),
+        nullable=False,
+        index=True,
+        unique=True,
+    )
+    inbox = db.relationship(NotifyInboxModel, uselist=False)
+
+    status = db.Column(db.Text, nullable=False)
+    """ status e.g 'Request Endorsement', 'Reject', 'Announce Endorsement' """
+
+    message = db.Column(db.Text, nullable=True)
+    """ message of the reply, can be empty if no message """

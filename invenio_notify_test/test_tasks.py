@@ -1,33 +1,47 @@
+import uuid
 from datetime import datetime
 
-from invenio_accounts.models import User
-
 from invenio_notify import constants
-from invenio_notify.records.models import NotifyInboxModel, EndorsementModel
+from invenio_notify.records.models import NotifyInboxModel, EndorsementModel, EndorsementRequestModel, \
+    EndorsementReplyModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox
-from invenio_notify_test.fixtures.inbox_fixture import create_notification_data
-from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer_service
-from invenio_rdm_records.proxies import current_rdm_records
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox, create_inbox_payload__endorsement_resp
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__review, create_inbox_payload__reject
+from invenio_rdm_records.proxies import current_rdm_records_service
 
 
-def assert_inbox_processing_failed(inbox, expected_note_prefix):
+def assert_init_count(n_request=0):
+    """Assert initial count of models."""
+    assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 0
+    assert EndorsementRequestModel.query.count() == n_request
+
+
+def assert_inbox_processed(inbox, process_note_startswith=None):
+    """Assert that inbox was processed with expected process_note."""
+    updated_inbox = NotifyInboxModel.get(inbox.id)
+    assert updated_inbox.process_date is not None
+    assert isinstance(updated_inbox.process_date, datetime)
+
+    if process_note_startswith is None:
+        assert updated_inbox.process_note is None
+    else:
+        assert updated_inbox.process_note.startswith(process_note_startswith)
+
+
+def assert_inbox_processing_failed(inbox, process_note_startswith):
     """Assert that inbox processing failed with expected behavior."""
     # Verify no endorsements exist before processing
-    assert EndorsementModel.query.count() == 0
+    assert_init_count()
 
     # Run the processing task
     inbox_processing()
 
-    # Refresh the inbox record from DB
-    updated_inbox = NotifyInboxModel.get(inbox.id)
-
-    # Check that the inbox record was marked as processed with expected comment
-    assert updated_inbox.process_date is not None
-    assert updated_inbox.process_note.startswith(expected_note_prefix)
+    assert_inbox_processed(inbox, process_note_startswith=process_note_startswith)
 
     # Verify no endorsement was created
     assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 0
 
 
 def test_mark_as_processed(db, superuser_identity, create_inbox):
@@ -39,57 +53,47 @@ def test_mark_as_processed(db, superuser_identity, create_inbox):
     assert inbox.process_date is None
 
     # Mark as processed
-    mark_as_processed(inbox, "Test comment")
-
-    inbox = NotifyInboxModel.query.get(inbox.id)
-    assert inbox.process_date is not None
-    assert isinstance(inbox.process_date, datetime)
+    comment = "Test comment"
+    mark_as_processed(inbox, comment)
+    assert_inbox_processed(inbox, comment)
 
 
-def test_inbox_processing_success(db, rdm_record, superuser_identity, create_reviewer):
-    """Test successful inbox processing that creates an endorsement."""
+def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_builder):
+    """
+    Test successful inbox processing that creates an endorsement.
+
+    Case setting:
+    - No Endorsement request
+    - type: review
+    """
     recid = rdm_record.id
+    notification_data = create_inbox_payload__review(recid)
 
-    notification_data = create_notification_data(recid)
-
-    # add sender account to reviewer members
-    reviewer = create_reviewer(actor_id=notification_data['actor']['id'])
-    reviewer_service = create_reviewer_service()
-    reviewer_service.add_member_by_emails(
-        reviewer.id,
-        [User.query.get(superuser_identity.id).email]
-    )
-
-    # Create inbox record with real notification data
-    inbox = NotifyInboxModel.create({
-        'raw': notification_data,
-        'recid': recid,
-        'user_id': superuser_identity.id,
-    })
+    # Use builder to create test data
+    test_data = (inbox_test_data_builder(recid, notification_data)
+                 .create_reviewer()
+                 .add_member_to_reviewer()
+                 .create_inbox())
 
     # Verify no endorsements exist before processing
-    assert EndorsementModel.query.count() == 0
+    assert_init_count()
 
     # Run the processing task
     inbox_processing()
 
-    # Refresh the inbox record from DB
-    updated_inbox = NotifyInboxModel.get(inbox.id)
-
-    # Check that the inbox record was marked as processed
-    assert updated_inbox.process_date is not None
+    assert_inbox_processed(test_data.inbox)
 
     # Verify an endorsement was created
     endorsements = EndorsementModel.query.all()
     assert len(endorsements) == 1
+    assert EndorsementReplyModel.query.count() == 0
 
-    record = current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id)
+    record = current_rdm_records_service.record_cls.pid.resolve(rdm_record.id)
 
     # Verify the endorsement has the correct data
     endorsement = endorsements[0]
     assert endorsement.record_id == record.id
-    assert endorsement.user_id == superuser_identity.id
-    assert endorsement.inbox_id == inbox.id
+    assert endorsement.inbox_id == test_data.inbox.id
     assert endorsement.review_type == constants.TYPE_REVIEW
 
     # Verify record.endorsements is updated
@@ -98,8 +102,8 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
             'endorsement_count': 0,
             'endorsement_list': [],
             'review_count': 1,
-            'reviewer_id': reviewer.id,
-            'reviewer_name': reviewer.name,
+            'reviewer_id': test_data.reviewer.id,
+            'reviewer_name': test_data.reviewer.name,
             'review_list': [{
                 'created': endorsement.created.isoformat(),
                 'url': endorsement.result_url,
@@ -108,33 +112,142 @@ def test_inbox_processing_success(db, rdm_record, superuser_identity, create_rev
     ]
 
 
-def test_inbox_processing_record_not_found(db, superuser_identity, create_inbox):
+def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record,
+                                                                    inbox_test_data_builder):
+    """
+    Test that rejection notifications create endorsement replies without endorsements.
+
+    Case setting:
+    - Have an Endorsement request
+    - type: endorsement response
+    """
+    recid = rdm_record.id
+
+    # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
+    notification_data = create_inbox_payload__endorsement_resp(recid)
+
+    # Use builder to create test data
+    test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
+                 .create_reviewer()
+                 .add_member_to_reviewer()
+                 .create_endorsement_request()
+                 .create_inbox())
+
+    inbox = test_data.inbox
+
+    # Verify initial state
+    assert_init_count(n_request=1)
+
+    # Run the processing task
+    inbox_processing()
+
+    assert_inbox_processed(inbox)
+    assert EndorsementModel.query.count() == 1
+    assert EndorsementReplyModel.query.count() == 1
+
+
+def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record,
+                                                                    inbox_test_data_builder):
+    """
+    Test that rejection notifications create endorsement replies without endorsements.
+
+    Case setting:
+    - Have an Endorsement request
+    - type: reject
+    """
+    recid = rdm_record.id
+
+    # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
+    notification_data = create_inbox_payload__reject(recid)
+
+    # Use builder to create test data
+    test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
+                 .create_reviewer()
+                 .add_member_to_reviewer()
+                 .create_endorsement_request()
+                 .create_inbox())
+
+    inbox = test_data.inbox
+
+    # Verify initial state
+    assert_init_count(n_request=1)
+
+    # Run the processing task
+    inbox_processing()
+
+    assert_inbox_processed(inbox)
+    assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 1
+
+
+def test_inbox_processing__success__reject_without_endorsement_request(db, rdm_record,
+                                                                       inbox_test_data_builder):
+    """
+    Test that rejection notifications create endorsement replies without endorsements.
+
+    Case setting:
+    - NO related Endorsement request
+    - type: reject
+    """
+    recid = rdm_record.id
+
+    # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
+    notification_data = create_inbox_payload__reject(recid)
+
+    # Even endorsement request is created, but noti_id does not match with new notification data
+    test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
+                 .create_reviewer()
+                 .add_member_to_reviewer()
+                 .create_endorsement_request(noti_id=uuid.uuid4())
+                 .create_inbox())
+
+    inbox = test_data.inbox
+
+    # Verify initial state
+    assert_init_count(n_request=1)
+
+    # Run the processing task
+    inbox_processing()
+
+    assert_inbox_processed(inbox)
+    assert EndorsementModel.query.count() == 0
+    assert EndorsementReplyModel.query.count() == 0
+
+
+def test_inbox_processing__fail__record_not_found(db, superuser_identity, create_inbox, create_reviewer,
+                                                  inbox_test_data_builder):
     """Test inbox processing when the record is not found."""
 
     recid = 'r1'
+    notification_data = create_inbox_payload__review(recid)
+    test_data = (inbox_test_data_builder(recid, notification_data)
+                 .create_reviewer()
+                 .add_member_to_reviewer()
+                 .create_inbox())
 
-    notification_data = create_notification_data(recid)
-
-    # Create inbox record with notification pointing to non-existent record
-    inbox = create_inbox(
-        recid=recid,
-        raw=notification_data
-    )
-
-    assert_inbox_processing_failed(inbox, "Record with ID")
+    assert_inbox_processing_failed(test_data.inbox, "Failed to resolve record from notification")
 
 
-def test_inbox_processing_reviewer_not_found(db, rdm_record, superuser_identity, create_inbox):
+def test_inbox_processing__fail__reviewer_not_found(db, rdm_record, inbox_test_data_builder):
     """Test inbox processing when the reviewer is not found."""
     recid = rdm_record.id
+    notification_data = create_inbox_payload__review(recid)
 
-    notification_data = create_notification_data(recid)
     # Do not create reviewer, so actor_id won't match any reviewer
+    test_data = (inbox_test_data_builder(recid, notification_data)
+                 .create_inbox())
 
-    # Create inbox record
-    inbox = create_inbox(
-        recid=recid,
-        raw=notification_data
-    )
+    assert_inbox_processing_failed(test_data.inbox, "Reviewer not found")
 
-    assert_inbox_processing_failed(inbox, "Reviewer not found")
+
+def test_inbox_processing__fail__not_a_member(db, rdm_record, inbox_test_data_builder):
+    """ Test inbox processing failure when user is not a member of the reviewer."""
+    recid = rdm_record.id
+    notification_data = create_inbox_payload__review(recid)
+
+    # Create reviewer but do not add user as member
+    test_data = (inbox_test_data_builder(recid, notification_data)
+                 .create_reviewer()
+                 .create_inbox())
+
+    assert_inbox_processing_failed(test_data.inbox, "User is not a member of reviewer")

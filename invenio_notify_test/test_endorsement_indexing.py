@@ -1,12 +1,11 @@
 """Test endorsement indexing functionality."""
 
-import pytest
+from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_search import current_search_client
 
 from invenio_notify.constants import TYPE_ENDORSEMENT, TYPE_REVIEW
 from invenio_notify.records.models import EndorsementModel, ReviewerModel
 from invenio_notify_test.conftest import prepare_test_rdm_record
-from invenio_rdm_records.proxies import current_rdm_records_service
 
 
 def test_record_indexing_with_endorsements(db, superuser_identity, minimal_record, 
@@ -27,7 +26,6 @@ def test_record_indexing_with_endorsements(db, superuser_identity, minimal_recor
         'record_id': record.id,
         'reviewer_id': reviewer.id,
         'review_type': TYPE_ENDORSEMENT,
-        'user_id': superuser_identity.id,
         'result_url': 'https://test-reviewer.example.com/endorsement/123',
         'reviewer_name': reviewer.name,
     }
@@ -98,7 +96,6 @@ def test_record_indexing_with_mixed_endorsements_and_reviews(db, superuser_ident
         'record_id': record.id,
         'reviewer_id': reviewer.id,
         'review_type': TYPE_ENDORSEMENT,
-        'user_id': superuser_identity.id,
         'result_url': 'https://mixed-reviewer.example.com/endorsement/456',
         'reviewer_name': reviewer.name,
     }
@@ -108,7 +105,6 @@ def test_record_indexing_with_mixed_endorsements_and_reviews(db, superuser_ident
         'record_id': record.id,
         'reviewer_id': reviewer.id,
         'review_type': TYPE_REVIEW,
-        'user_id': superuser_identity.id,
         'result_url': 'https://mixed-reviewer.example.com/review/456',
         'reviewer_name': reviewer.name,
     }
@@ -168,7 +164,6 @@ def test_record_indexing_with_multiple_reviewers(db, superuser_identity, minimal
         'record_id': record.id,
         'reviewer_id': reviewer1.id,
         'review_type': TYPE_ENDORSEMENT,
-        'user_id': superuser_identity.id,
         'result_url': 'https://first-reviewer.example.com/endorsement/789',
         'reviewer_name': reviewer1.name,
     }
@@ -177,7 +172,6 @@ def test_record_indexing_with_multiple_reviewers(db, superuser_identity, minimal
         'record_id': record.id,
         'reviewer_id': reviewer2.id,
         'review_type': TYPE_ENDORSEMENT,
-        'user_id': superuser_identity.id,
         'result_url': 'https://second-reviewer.example.com/endorsement/789',
         'reviewer_name': reviewer2.name,
     }
