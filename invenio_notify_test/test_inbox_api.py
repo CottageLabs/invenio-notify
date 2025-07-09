@@ -4,7 +4,7 @@ from invenio_oauth2server.models import Token
 from invenio_notify.records.models import ReviewerMapModel
 from invenio_notify.scopes import inbox_scope
 from invenio_notify.utils import user_utils
-from invenio_notify_test.fixtures import inbox_fixture
+from invenio_notify_test.fixtures.inbox_payload import payload_review
 from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
 
 
@@ -57,13 +57,13 @@ def user_reviewer_setup(db, superuser_identity, create_reviewer):
 
 
 def test_inbox_401(client):
-    notify_review_data = inbox_fixture.create_inbox_payload__review('test-record-id')
+    notify_review_data = payload_review('test-record-id')
     response = client.post("/api/notify/inbox", json=notify_review_data)
     assert response.status_code == 401
 
 
 def test_inbox__success(client, rdm_record, user_reviewer_setup):
-    notify_review_data = inbox_fixture.create_inbox_payload__review(rdm_record.id)
+    notify_review_data = payload_review(rdm_record.id)
     token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'])
 
     response = send_inbox(client, token, notify_review_data)
@@ -72,7 +72,7 @@ def test_inbox__success(client, rdm_record, user_reviewer_setup):
 
 
 def test_inbox__actor_id_mismatch(client, rdm_record, user_reviewer_setup):
-    notify_review_data = inbox_fixture.create_inbox_payload__review(rdm_record.id)
+    notify_review_data = payload_review(rdm_record.id)
     token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'] + 'wrong')
 
     response = send_inbox(client, token, notify_review_data)
@@ -82,7 +82,7 @@ def test_inbox__actor_id_mismatch(client, rdm_record, user_reviewer_setup):
 
 
 def test_inbox__duplicate_noti_id(client, rdm_record, user_reviewer_setup):
-    notify_review_data = inbox_fixture.create_inbox_payload__review(rdm_record.id)
+    notify_review_data = payload_review(rdm_record.id)
     token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'])
 
     # Send the same notification first time - should succeed

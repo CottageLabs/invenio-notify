@@ -5,8 +5,10 @@ from invenio_notify import constants
 from invenio_notify.records.models import NotifyInboxModel, EndorsementModel, EndorsementRequestModel, \
     EndorsementReplyModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox, create_inbox_payload__endorsement_resp
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__review, create_inbox_payload__reject
+from invenio_notify_test.fixtures.inbox_fixture import create_inbox
+from invenio_notify_test.fixtures.inbox_payload import payload_endorsement_resp
+from invenio_notify_test.fixtures.inbox_payload import payload_review, \
+    payload_reject
 from invenio_rdm_records.proxies import current_rdm_records_service
 
 
@@ -67,7 +69,7 @@ def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_
     - type: review
     """
     recid = rdm_record.id
-    notification_data = create_inbox_payload__review(recid)
+    notification_data = payload_review(recid)
 
     # Use builder to create test data
     test_data = (inbox_test_data_builder(recid, notification_data)
@@ -124,7 +126,7 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
     recid = rdm_record.id
 
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
-    notification_data = create_inbox_payload__endorsement_resp(recid)
+    notification_data = payload_endorsement_resp(recid)
 
     # Use builder to create test data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
@@ -158,7 +160,7 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
     recid = rdm_record.id
 
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
-    notification_data = create_inbox_payload__reject(recid)
+    notification_data = payload_reject(recid)
 
     # Use builder to create test data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
@@ -192,7 +194,7 @@ def test_inbox_processing__success__reject_without_endorsement_request(db, rdm_r
     recid = rdm_record.id
 
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
-    notification_data = create_inbox_payload__reject(recid)
+    notification_data = payload_reject(recid)
 
     # Even endorsement request is created, but noti_id does not match with new notification data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
@@ -219,7 +221,7 @@ def test_inbox_processing__fail__record_not_found(db, superuser_identity, create
     """Test inbox processing when the record is not found."""
 
     recid = 'r1'
-    notification_data = create_inbox_payload__review(recid)
+    notification_data = payload_review(recid)
     test_data = (inbox_test_data_builder(recid, notification_data)
                  .create_reviewer()
                  .add_member_to_reviewer()
@@ -231,7 +233,7 @@ def test_inbox_processing__fail__record_not_found(db, superuser_identity, create
 def test_inbox_processing__fail__reviewer_not_found(db, rdm_record, inbox_test_data_builder):
     """Test inbox processing when the reviewer is not found."""
     recid = rdm_record.id
-    notification_data = create_inbox_payload__review(recid)
+    notification_data = payload_review(recid)
 
     # Do not create reviewer, so actor_id won't match any reviewer
     test_data = (inbox_test_data_builder(recid, notification_data)
@@ -243,7 +245,7 @@ def test_inbox_processing__fail__reviewer_not_found(db, rdm_record, inbox_test_d
 def test_inbox_processing__fail__not_a_member(db, rdm_record, inbox_test_data_builder):
     """ Test inbox processing failure when user is not a member of the reviewer."""
     recid = rdm_record.id
-    notification_data = create_inbox_payload__review(recid)
+    notification_data = payload_review(recid)
 
     # Create reviewer but do not add user as member
     test_data = (inbox_test_data_builder(recid, notification_data)
