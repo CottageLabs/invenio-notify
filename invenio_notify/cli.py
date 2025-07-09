@@ -163,3 +163,37 @@ def test_data(email):
     db.session.commit()
     print("Successfully created test reviewer record")
 
+
+@notify.group()
+def dummy_pci():
+    """Dummy PCI commands for testing"""
+
+
+@dummy_pci.command()
+def list():
+    """List all received notifications in dummy PCI store"""
+    from invenio_notify.dummy_reviewer.dummy_pci_app import DummyPCIBackend
+    
+    backend = DummyPCIBackend()
+    backend.print_notifications()
+
+
+@dummy_pci.command()
+@click.option('--type', '-t', default='endorsement_resp', 
+              type=click.Choice(['endorsement_resp', 'review', 'tentative_accept', 'reject']),
+              help='Type of reply payload to send')
+def reply(type):
+    """Reply to the last notification in store"""
+    from invenio_notify.dummy_reviewer.dummy_pci_app import DummyPCIBackend
+    
+    backend = DummyPCIBackend()
+    backend.reply_last(type)
+
+
+@dummy_pci.command()
+def run():
+    """Run the dummy PCI server"""
+    from invenio_notify.dummy_reviewer.dummy_pci_app import run
+    
+    run()
+

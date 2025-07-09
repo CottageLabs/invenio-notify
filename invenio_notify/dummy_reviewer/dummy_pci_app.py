@@ -44,6 +44,26 @@ class DummyPCIBackend:
         notifications.append(noti)
         self.save_notifications(notifications)
 
+    def print_notifications(self):
+        """Print all notifications in store."""
+        notifications = self.load_notifications()
+        
+        if not notifications:
+            print("No notifications in store")
+            return
+        
+        print(f"Found {len(notifications)} notification(s) in store:")
+        print("=" * 60)
+        
+        for i, notification in enumerate(notifications, 1):
+            print(f"Notification {i}:")
+            print(f"  ID: {notification.get('id', 'N/A')}")
+            print(f"  Type: {notification.get('type', 'N/A')}")
+            print(f"  Actor: {notification.get('actor', {}).get('name', 'N/A')}")
+            print(f"  Context: {notification.get('context', {}).get('id', 'N/A')}")
+            print(f"  Object: {notification.get('object', {}).get('id', 'N/A')}")
+            print("-" * 40)
+
     def reply_last(self, payload_type='endorsement_resp'):
         """Reply to the last notification in store and remove it."""
         notifications = self.load_notifications()
