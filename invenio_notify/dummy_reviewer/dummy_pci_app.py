@@ -10,11 +10,35 @@ from invenio_notify.utils.notify_response import create_fail_response, response_
 app = Flask(__name__)
 
 
-class DummyPCIHandler:
+class DummyPCIBackend:
     def __init__(self):
         self.path = Path.home() / '.local/opt/dummy_pci_handler/store.json'
 
+    def load_notifications(self) -> list:
+        """Load notifications from JSON file."""
+        self.path.parent.mkdir(parents=True, exist_ok=True)
 
+        notifications = []
+        if self.path.exists():
+            try:
+                with open(self.path, 'r') as f:
+                    notifications = json.load(f)
+            except (json.JSONDecodeError, FileNotFoundError):
+                notifications = []
+
+        return notifications
+
+    def save_notifications(self, notifications: list):
+        """Save notifications list to JSON file."""
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.path, 'w') as f:
+            json.dump(notifications, f, indent=2)
+
+    def save(self, noti: dict):
+        """Save notification to JSON file."""
+        notifications = self.load_notifications()
+        notifications.append(noti)
+        self.save_notifications(notifications)
 
 
 class DummyCOARNotifyReceipt:
@@ -29,6 +53,9 @@ class DummyCOARNotifyReceipt:
 
 class DummyInboxCOARBinding(COARNotifyServiceBinding):
     """Dummy version of InboxCOARBinding for testing."""
+
+    def __init__(self):
+        self.handler = DummyPCIBackend()
 
     def notification_received(self, notification):
         """Process a notification and return a receipt."""
@@ -45,6 +72,9 @@ class DummyInboxCOARBinding(COARNotifyServiceBinding):
             print(f"Notification ID: {notification_data.get('id', 'N/A')}")
             print(f"Notification type: {notification_data.get('type', 'N/A')}")
             print(f"Actor ID: {notification_data.get('actor', {}).get('id', 'N/A')}")
+
+        # Save notification using DummyPCIHandler
+        self.handler.save(notification_data)
 
         # Always return accepted for dummy implementation
         return COARNotifyReceipt(COARNotifyReceipt.ACCEPTED)
