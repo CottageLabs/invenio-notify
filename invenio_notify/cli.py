@@ -1,3 +1,4 @@
+import os.path
 from datetime import datetime
 
 import click
@@ -205,9 +206,11 @@ def reply(type):
 @dummy_pci.command()
 def run():
     """Run the dummy PCI server"""
+    from invenio_notify.dummy_reviewer import dummy_pci_app
+    p = os.path.abspath(dummy_pci_app.__file__)
     print('****************************************')
     print("You have to run following command manual:")
-    print(f'python -m invenio_notify.dummy_reviewer.dummy_pci_app')
+    print(f'python {p}')
     print('****************************************')
 
 

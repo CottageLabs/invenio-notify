@@ -174,6 +174,11 @@ class DummyInboxCOARBinding(COARNotifyServiceBinding):
 @app.route('/dummy-reviewer/dummy-inbox', methods=['POST'])
 def dummy_inbox():
     """Dummy reviewer inbox endpoint for testing purposes."""
+    print("Received request at /dummy-reviewer/dummy-inbox")
+
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return create_fail_response(401, "Unauthorized: Missing or invalid token")
 
     # Handle POST requests like InboxApiResource.receive_notification
     try:
@@ -208,10 +213,11 @@ def dummy_inbox():
 
 def run():
     """Run the dummy reviewer Flask server."""
+    port = 53010
     try:
         print("Starting dummy reviewer server...")
-        print("Server will be available at: http://localhost:5000/dummy-reviewer/dummy-inbox")
-        app.run(debug=True, host='0.0.0.0', port=53010)
+        print(f"Server will be available at: http://localhost:{port}/dummy-reviewer/dummy-inbox")
+        app.run(debug=True, host='0.0.0.0', port=port)
     except Exception as e:
         print(f"Error starting server: {e}")
         raise
