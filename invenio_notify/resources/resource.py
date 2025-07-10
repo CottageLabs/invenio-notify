@@ -232,8 +232,13 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
     def send_endorsement_request(self):
         """Send endorsement request."""
         data = resource_requestctx.data
-        
+
+        # KTODO add permission checking
+        # KTODO request can be only sent by a record owner
+
         if not data or 'reviewer_id' not in data:
             return create_fail_response(constants.STATUS_BAD_REQUEST, "reviewer_id is required")
+
+        # KTODO implement send and receive logic
         
         return {'is_success': 1, 'reason': 'Request Accepted'}, 200
