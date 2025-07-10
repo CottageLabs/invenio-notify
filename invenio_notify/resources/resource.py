@@ -216,3 +216,24 @@ class InboxApiResource(ErrorHandlersMixin, Resource):
         except PIDDoesNotExistError as e:
             current_app.logger.debug(f'inbox PIDDoesNotExistError {e.pid_type}:{e.pid_value}')
             return create_fail_response(constants.STATUS_NOT_FOUND, "Record not found")
+
+
+class EndorsementRequestResource(ErrorHandlersMixin, Resource):
+    """Resource for handling endorsement requests."""
+
+    def create_url_rules(self):
+        """Create the URL rules for the endorsement request resource."""
+        return [
+            route("POST", "/send", self.send_endorsement_request),
+        ]
+
+    @request_data
+    @response_handler()
+    def send_endorsement_request(self):
+        """Send endorsement request."""
+        data = resource_requestctx.data
+        
+        if not data or 'reviewer_id' not in data:
+            return create_fail_response(constants.STATUS_BAD_REQUEST, "reviewer_id is required")
+        
+        return {'is_success': 1, 'reason': 'Request Accepted'}, 200

@@ -62,3 +62,8 @@ class InboxApiResourceConfig(RecordResourceConfig):
     blueprint_name = "inbox_api"
     url_prefix = ""  # No prefix needed as route is defined directly
 
+
+class EndorsementRequestResourceConfig(RecordResourceConfig):
+    """Configuration for the inbox API resource."""
+    blueprint_name = "endorsement_request"
+    url_prefix = "/endorsement-request"

@@ -3,12 +3,13 @@ from invenio_notify.blueprints import blueprint
 from invenio_notify.resources.config import (
     NotifyInboxResourceConfig,
     ReviewerResourceConfig,
-    InboxApiResourceConfig,
+    InboxApiResourceConfig, EndorsementRequestResourceConfig,
 )
 from invenio_notify.resources.resource import (
     NotifyInboxResource,
     ReviewerResource,
     InboxApiResource,
+EndorsementRequestResource,
 )
 from invenio_notify.services.config import (
     EndorsementReplyServiceConfig,
@@ -82,4 +83,7 @@ class InvenioNotify:
         self.inbox_api_resource = InboxApiResource(
             service=self.notify_inbox_service,
             config=InboxApiResourceConfig,
+        )
+        self.endorsement_request_resource = EndorsementRequestResource(
+            config=EndorsementRequestResourceConfig,
         )
