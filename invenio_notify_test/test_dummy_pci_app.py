@@ -23,7 +23,8 @@ class TestDummyInboxEndpoint:
         response = self.client.post(
             '/dummy-reviewer/dummy-inbox',
             data=json.dumps(payload),
-            content_type='application/json'
+            content_type='application/json',
+            headers={'Authorization': 'Bearer test-token'}
         )
 
         assert response.status_code == 202
@@ -34,7 +35,10 @@ class TestDummyInboxEndpoint:
 
     def test_no_json(self, mock_backend):
         """Test POST without JSON returns 400."""
-        response = self.client.post('/dummy-reviewer/dummy-inbox')
+        response = self.client.post(
+            '/dummy-reviewer/dummy-inbox',
+            headers={'Authorization': 'Bearer test-token'}
+        )
 
         assert response.status_code == 400
 
@@ -47,7 +51,8 @@ class TestDummyInboxEndpoint:
         response = self.client.post(
             '/dummy-reviewer/dummy-inbox',
             data='{"invalid": "json"}',
-            content_type='application/json'
+            content_type='application/json',
+            headers={'Authorization': 'Bearer test-token'}
         )
 
         assert response.status_code == 400
@@ -55,3 +60,19 @@ class TestDummyInboxEndpoint:
         data = json.loads(response.data)
         assert data['status'] == 400
         assert 'message' in data
+
+    def test_missing_auth_header(self, mock_backend):
+        """Test POST without Authorization header returns 401."""
+        payload = payload_endorsement_request("test-record-123")
+
+        response = self.client.post(
+            '/dummy-reviewer/dummy-inbox',
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+
+        assert response.status_code == 401
+
+        data = json.loads(response.data)
+        assert data['status'] == 401
+        assert data['message'] == 'Unauthorized: Missing or invalid token'
