@@ -224,14 +224,15 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
     def create_url_rules(self):
         """Create the URL rules for the endorsement request resource."""
         return [
-            route("POST", "/send", self.send_endorsement_request),
+            route("POST", self.config.routes["send"], self.send, ),
         ]
 
     @request_data
     @response_handler()
-    def send_endorsement_request(self):
+    def send(self):
         """Send endorsement request."""
         data = resource_requestctx.data
+        # pid_value = resource_requestctx.view_args["pid_value"]
 
         # KTODO add permission checking
         # KTODO request can be only sent by a record owner

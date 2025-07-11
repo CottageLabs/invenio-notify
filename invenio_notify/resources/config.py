@@ -1,9 +1,10 @@
 import marshmallow as ma
-from flask_resources import JSONDeserializer, RequestBodyParser
+from flask_resources import JSONDeserializer, RequestBodyParser, ResourceConfig, ResponseHandler, JSONSerializer
 from invenio_records_resources.resources import (
     RecordResourceConfig,
     SearchRequestArgsSchema,
 )
+from invenio_records_resources.services.base.config import ConfiguratorMixin
 
 
 class BasicSearchRequestArgsSchema(SearchRequestArgsSchema):
@@ -63,7 +64,18 @@ class InboxApiResourceConfig(RecordResourceConfig):
     url_prefix = ""  # No prefix needed as route is defined directly
 
 
-class EndorsementRequestResourceConfig(RecordResourceConfig):
+class EndorsementRequestResourceConfig(ResourceConfig, ConfiguratorMixin):
     """Configuration for the inbox API resource."""
     blueprint_name = "endorsement_request"
     url_prefix = "/endorsement-request"
+
+    routes = {
+        'send': '/send/<path:pid_value>',
+    }
+
+    request_view_args = {
+        "pid_value": ma.fields.Str(),
+    }
+
+    response_handler = {"application/json": ResponseHandler(JSONSerializer())}
+
