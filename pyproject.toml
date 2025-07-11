@@ -43,7 +43,7 @@ invenio_notify = "invenio_notify.ext:InvenioNotify"
 notify_inbox_resource = "invenio_notify.blueprints:create_notify_inbox_resource_api_bp"
 reviewer_resource = "invenio_notify.blueprints:create_reviewer_resource_api_bp"
 inbox_api_resource = "invenio_notify.blueprints:create_inbox_api_resource_bp"
-endorsement_request_resource = "invenio_notify.blueprints:create_endorsement_request_resource_api_bp"
+endorsement_request = "invenio_notify.blueprints:create_endorsement_request_resource_api_bp"
 
 [project.entry-points."invenio_base.apps"]
 invenio_notify = "invenio_notify.ext:InvenioNotify"
