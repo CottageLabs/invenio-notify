@@ -16,6 +16,7 @@ from invenio_records_resources.resources.records.resource import (
 from coarnotify.server import COARNotifyServerError
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
+from invenio_notify.records.models import ReviewerModel
 from invenio_notify.services.schemas import ReviewerSchema
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
 from .errors import ErrorHandlersMixin
@@ -225,8 +226,10 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
         """Create the URL rules for the endorsement request resource."""
         return [
             route("POST", self.config.routes["send"], self.send, ),
+            route("GET", self.config.routes["reviewers"], self.list_reviewers, ),
         ]
 
+    @request_view_args
     @request_data
     @response_handler()
     def send(self):
@@ -243,3 +246,18 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
         # KTODO implement send and receive logic
         
         return {'is_success': 1, 'reason': 'Request Accepted'}, 200
+
+    @request_view_args
+    @response_handler()
+    def list_reviewers(self):
+        """List all available reviewers."""
+        # KTODO implement permission checking
+
+        all_reviewers = ReviewerModel.query.all()
+        reviewers = []
+        for reviewer in all_reviewers:
+            reviewers.append({
+                "reviewer_id": reviewer.id,
+                "reviewer_name": reviewer.name
+            })
+        return reviewers, 200

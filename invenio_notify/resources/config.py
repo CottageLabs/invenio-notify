@@ -71,6 +71,7 @@ class EndorsementRequestResourceConfig(ResourceConfig, ConfiguratorMixin):
 
     routes = {
         'send': '/send/<path:pid_value>',
+        'reviewers': '/reviewers/<path:pid_value>',
     }
 
     request_view_args = {
