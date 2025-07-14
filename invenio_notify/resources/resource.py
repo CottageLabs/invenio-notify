@@ -19,7 +19,7 @@ from invenio_notify.errors import COARProcessFail
 from invenio_notify.services.schemas import ReviewerSchema
 from invenio_notify.utils.endorsement_request_utils import send_endorsement_request, get_available_reviewers
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
-from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_notify.utils.record_utils import resolve_record_from_pid
 from .errors import ErrorHandlersMixin
 
 
@@ -236,7 +236,7 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
     def send(self):
         """Send endorsement request."""
         data = resource_requestctx.data
-        # pid_value = resource_requestctx.view_args["pid_value"]
+        pid_value = resource_requestctx.view_args["pid_value"]
 
         # KTODO add permission checking
         # KTODO request can be only sent by a record owner
@@ -244,8 +244,15 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
         if not data or 'reviewer_id' not in data:
             return {'is_success': 0, 'message': 'reviewer_id is required'}, 400
 
+        # Resolve pid_value to record
+        try:
+            record = resolve_record_from_pid(pid_value)
+        except PIDDoesNotExistError:
+            return {'error': 'Record not found'}, 404
+
         reviewer_id = data['reviewer_id']
-        return send_endorsement_request(reviewer_id)
+        user_id = g.identity.id
+        return send_endorsement_request(reviewer_id, record, user_id)
 
     @request_view_args
     @response_handler()
@@ -255,11 +262,10 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
 
         pid_value = resource_requestctx.view_args["pid_value"]
         try:
-            record = current_rdm_records_service.record_cls.pid.resolve(pid_value, registered_only=False)
-            record_id = record.id
+            record = resolve_record_from_pid(pid_value)
         except PIDDoesNotExistError:
             return {'error': 'Record not found'}, 404
         
         user_id = g.identity.id
-        reviewers = get_available_reviewers(record_id, user_id)
+        reviewers = get_available_reviewers(record.id, user_id)
         return reviewers, 200
