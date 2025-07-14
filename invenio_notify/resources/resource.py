@@ -1,3 +1,4 @@
+import requests
 from flask import g, current_app
 from flask_resources import (
     Resource,
@@ -241,11 +242,37 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
         # KTODO request can be only sent by a record owner
 
         if not data or 'reviewer_id' not in data:
-            return create_fail_response(constants.STATUS_BAD_REQUEST, "reviewer_id is required")
+            return {'is_success': 0, 'message': 'reviewer_id is required'}, 400
 
-        # KTODO implement send and receive logic
-        
-        return {'is_success': 1, 'reason': 'Request Accepted'}, 200
+        reviewer_id = data['reviewer_id']
+
+        try:
+            reviewer = ReviewerModel.get(reviewer_id)
+        except Exception:
+            return {'is_success': 0, 'message': 'Reviewer not found'}, 404
+
+        if not reviewer.inbox_url or reviewer.inbox_url.startswith('http'):
+            current_app.logger.error(
+                f'Reviewer inbox URL is not configured for reviewer {reviewer_id} url[{reviewer.inbox_url}]'
+            )
+            return {'is_success': 0, 'message': 'Reviewer inbox URL not configured'}, 400
+
+        try:
+            response = requests.post(
+                reviewer.inbox_url,
+                json=data,
+                headers={'Content-Type': 'application/json'},
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                return {'is_success': 1, 'message': 'Request Accepted'}, 200
+            else:
+                return {'is_success': 0, 'message': f'Request failed: {response.status_code}'}, 400
+
+        except requests.exceptions.RequestException as e:
+            current_app.logger.error(f'Failed to send request to reviewer inbox: {e}')
+            return {'is_success': 0, 'message': 'Failed to send request'}, 500
 
     @request_view_args
     @response_handler()
