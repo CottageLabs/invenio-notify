@@ -1,8 +1,11 @@
 import uuid
+
 import requests
 from flask import current_app
+from invenio_db.uow import unit_of_work
 
-from invenio_notify.records.models import ReviewerModel
+from invenio_notify import constants
+from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
 
 
 def create_endorsement_request_data():
@@ -53,6 +56,7 @@ def create_endorsement_request_data():
     return data
 
 
+@unit_of_work()
 def send_endorsement_request(reviewer_id):
     """Send endorsement request to a reviewer's inbox.
     
@@ -86,32 +90,55 @@ def send_endorsement_request(reviewer_id):
             timeout=30
         )
 
-        if response.status_code in {200, 201, 202}:
-            return {'is_success': 1, 'message': 'Request Accepted'}, 200
-        else:
-            # KTODO should not return status code
-            return {'is_success': 0, 'message': f'Request failed: {response.status_code}'}, 400
-
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f'Failed to send request to reviewer inbox: {e}')
         return {'is_success': 0, 'message': 'Failed to send request'}, 500
 
+    if response.status_code not in {200, 201, 202}:
+        # KTODO should not return status code
+        return {'is_success': 0, 'message': f'Request failed: {response.status_code}'}, 400
 
-def get_available_reviewers():
-    """Get list of available reviewers.
+    return {'is_success': 1, 'message': 'Request Accepted'}, 200
+
+
+def get_available_reviewers(record_id, user_id):
+    """Get list of available reviewers with their endorsement request status.
     
+    Args:
+        record_id: UUID of the record
+        user_id: ID of the user making the request
+        
     Returns:
-        list: List of reviewer dictionaries with id and name
+        list: List of reviewer dictionaries with id, name, and status
     """
-    # KTODO implement permission checking
-    # KTODO add status name
-    # KTODO add available for request
 
     all_reviewers = ReviewerModel.query.all()
     reviewers = []
+
     for reviewer in all_reviewers:
+        # Find the latest endorsement request for this reviewer and record
+        endorsement_request = EndorsementRequestModel.query.filter_by(
+            record_id=record_id,
+            reviewer_id=reviewer.id,
+            user_id=user_id
+        ).order_by(EndorsementRequestModel.created.desc()).first()
+
+        # Set status based on endorsement request
+        if endorsement_request:
+            status = endorsement_request.latest_status
+        else:
+            status = 'available'
+
+        available = (
+                not endorsement_request or
+                endorsement_request.latest_status == constants.TYPE_TENTATIVE_REJECT
+        )
+
         reviewers.append({
             "reviewer_id": reviewer.id,
-            "reviewer_name": reviewer.name
+            "reviewer_name": reviewer.name,
+            "status": status,
+            'available': available,
         })
+
     return reviewers

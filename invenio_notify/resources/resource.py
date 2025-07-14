@@ -1,4 +1,3 @@
-import requests
 from flask import g, current_app
 from flask_resources import (
     Resource,
@@ -17,10 +16,10 @@ from invenio_records_resources.resources.records.resource import (
 from coarnotify.server import COARNotifyServerError
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
-from invenio_notify.records.models import ReviewerModel
 from invenio_notify.services.schemas import ReviewerSchema
-from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
 from invenio_notify.utils.endorsement_request_utils import send_endorsement_request, get_available_reviewers
+from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
+from invenio_rdm_records.proxies import current_rdm_records_service
 from .errors import ErrorHandlersMixin
 
 
@@ -252,5 +251,15 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
     @response_handler()
     def list_reviewers(self):
         """List all available reviewers."""
-        reviewers = get_available_reviewers()
+        # KTODO implement permission checking
+
+        pid_value = resource_requestctx.view_args["pid_value"]
+        try:
+            record = current_rdm_records_service.record_cls.pid.resolve(pid_value, registered_only=False)
+            record_id = record.id
+        except PIDDoesNotExistError:
+            return {'error': 'Record not found'}, 404
+        
+        user_id = g.identity.id
+        reviewers = get_available_reviewers(record_id, user_id)
         return reviewers, 200
