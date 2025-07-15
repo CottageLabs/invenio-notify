@@ -23,7 +23,8 @@ from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
 from invenio_notify.services.schemas import ReviewerSchema
-from invenio_notify.utils.endorsement_request_utils import create_endorsement_request_data, get_available_reviewers
+from invenio_notify.utils.endorsement_request_utils import create_endorsement_request_data, get_available_reviewers, \
+    get_latest_endorsement_request, can_resend
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
 from invenio_notify.utils.record_utils import resolve_record_from_pid
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -310,19 +311,30 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
 
         # KTODO add permission checking
         # KTODO request can be only sent by a record owner
-        # KTODO check reviewer available
 
         if not data or 'reviewer_id' not in data:
             return {'is_success': 0, 'message': 'reviewer_id is required'}, 400
+
+        reviewer_id = data['reviewer_id']
+        
+        # Check if reviewer exists
+        reviewer = ReviewerModel.query.filter_by(id=reviewer_id).first()
+        if not reviewer:
+            return {'is_success': 0, 'message': 'Reviewer not found'}, 404
 
         # Get the record through service
         try:
             record: RecordItem = current_rdm_records_service.read(system_identity, pid_value)
         except PIDDoesNotExistError:
-            return {'error': 'Record not found'}, 404
+            return {'is_success': 0, 'message': 'Record not found'}, 404
 
-        reviewer_id = data['reviewer_id']
         user = User.query.get(g.identity.id)
+        
+        # Check if reviewer is available using can_resend logic
+        endorsement_request = get_latest_endorsement_request(record._record.model.id, reviewer_id, user.id)
+        if not can_resend(endorsement_request):
+            return {'is_success': 0, 'message': 'Reviewer not available for endorsement request'}, 400
+        
         return send_endorsement_request(reviewer_id, record, user)
 
     @request_view_args

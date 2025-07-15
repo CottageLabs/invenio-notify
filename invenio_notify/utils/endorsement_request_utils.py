@@ -79,12 +79,7 @@ def get_available_reviewers(record_id, user_id):
     reviewers = []
 
     for reviewer in all_reviewers:
-        # Find the latest endorsement request for this reviewer and record
-        endorsement_request = EndorsementRequestModel.query.filter_by(
-            record_id=record_id,
-            reviewer_id=reviewer.id,
-            user_id=user_id
-        ).order_by(EndorsementRequestModel.created.desc()).first()
+        endorsement_request = get_latest_endorsement_request(record_id, reviewer.id, user_id)
 
         # Set status based on endorsement request
         if endorsement_request:
@@ -92,10 +87,7 @@ def get_available_reviewers(record_id, user_id):
         else:
             status = 'available'
 
-        available = (
-                not endorsement_request or
-                endorsement_request.latest_status == constants.TYPE_TENTATIVE_REJECT
-        )
+        available = can_resend(endorsement_request)
 
         reviewers.append({
             "reviewer_id": reviewer.id,
@@ -105,3 +97,20 @@ def get_available_reviewers(record_id, user_id):
         })
 
     return reviewers
+
+
+def get_latest_endorsement_request(record_id, reviewer_id, user_id):
+    endorsement_request = EndorsementRequestModel.query.filter_by(
+        record_id=record_id,
+        reviewer_id=reviewer_id,
+        user_id=user_id
+    ).order_by(EndorsementRequestModel.created.desc()).first()
+    return endorsement_request
+
+
+def can_resend(endorsement_request):
+    available = (
+            not endorsement_request or
+            endorsement_request.latest_status == constants.TYPE_TENTATIVE_REJECT
+    )
+    return available
