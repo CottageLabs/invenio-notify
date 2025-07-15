@@ -24,7 +24,7 @@ from invenio_notify.errors import COARProcessFail
 from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
 from invenio_notify.services.schemas import ReviewerSchema
 from invenio_notify.utils.endorsement_request_utils import create_endorsement_request_data, get_available_reviewers, \
-    get_latest_endorsement_request, can_resend
+    get_latest_endorsement_request, can_send
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
 from invenio_notify.utils.record_utils import resolve_record_from_pid
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -328,9 +328,9 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
 
         user = User.query.get(g.identity.id)
 
-        # Check if reviewer is available using can_resend logic
+        # Check if reviewer is available using can_send logic
         endorsement_request = get_latest_endorsement_request(record._record.model.id, reviewer_id, user.id)
-        if not can_resend(endorsement_request):
+        if not can_send(endorsement_request, reviewer):
             return {'is_success': 0, 'message': 'Reviewer not available for endorsement request'}, 400
 
         # Send endorsement request to reviewer's inbox

@@ -87,7 +87,7 @@ def get_available_reviewers(record_id, user_id):
         else:
             status = 'available'
 
-        available = can_resend(endorsement_request)
+        available = can_send(endorsement_request, reviewer)
 
         reviewers.append({
             "reviewer_id": reviewer.id,
@@ -108,7 +108,10 @@ def get_latest_endorsement_request(record_id, reviewer_id, user_id):
     return endorsement_request
 
 
-def can_resend(endorsement_request):
+def can_send(endorsement_request, reviewer):
+    if not reviewer or not reviewer.inbox_url or not reviewer.inbox_api_token:
+        return False
+    
     available = (
             not endorsement_request or
             endorsement_request.latest_status == constants.TYPE_TENTATIVE_REJECT
