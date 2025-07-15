@@ -1,8 +1,9 @@
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.records import RDMRecord
 
 
-def resolve_record_from_pid(pid_value):
+def resolve_record_from_pid(pid_value) -> RDMRecord :
     """Resolve a record from its PID value.
     
     Args:
