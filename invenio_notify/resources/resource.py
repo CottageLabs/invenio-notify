@@ -1,3 +1,4 @@
+import requests
 from flask import g, current_app
 from flask_resources import (
     Resource,
@@ -7,6 +8,7 @@ from flask_resources import (
 )
 from invenio_access.permissions import system_identity
 from invenio_accounts.models import User
+from invenio_db.uow import unit_of_work
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_records_resources.resources.records.resource import (
     request_data,
@@ -19,8 +21,9 @@ from invenio_records_resources.services.records.results import RecordItem
 from coarnotify.server import COARNotifyServerError
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
+from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
 from invenio_notify.services.schemas import ReviewerSchema
-from invenio_notify.utils.endorsement_request_utils import send_endorsement_request, get_available_reviewers
+from invenio_notify.utils.endorsement_request_utils import create_endorsement_request_data, get_available_reviewers
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
 from invenio_notify.utils.record_utils import resolve_record_from_pid
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -222,6 +225,69 @@ class InboxApiResource(ErrorHandlersMixin, Resource):
         except PIDDoesNotExistError as e:
             current_app.logger.debug(f'inbox PIDDoesNotExistError {e.pid_type}:{e.pid_value}')
             return create_fail_response(constants.STATUS_NOT_FOUND, "Record not found")
+
+
+@unit_of_work()
+def send_endorsement_request(reviewer_id, record: RecordItem, user, uow=None):
+    """Send endorsement request to a reviewer's inbox.
+    
+    Args:
+        reviewer_id: ID of the reviewer to send request to
+        record: The record object
+        user: User object making the request
+        
+    Returns:
+        tuple: (response_dict, status_code)
+    """
+
+    try:
+        reviewer = ReviewerModel.get(reviewer_id)
+    except Exception:
+        return {'is_success': 0, 'message': 'Reviewer not found'}, 404
+
+    if not reviewer.inbox_url or not reviewer.inbox_url.startswith('http'):
+        current_app.logger.error(
+            f'Reviewer inbox URL is not configured for reviewer {reviewer_id} url[{reviewer.inbox_url}]'
+        )
+        return {'is_success': 0, 'message': 'Reviewer inbox URL not configured'}, 400
+
+    endorsement_request_data = create_endorsement_request_data(user, record)
+
+    try:
+        response = requests.post(
+            reviewer.inbox_url,
+            json=endorsement_request_data,
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {reviewer.inbox_api_token}',
+            },
+            timeout=30
+        )
+
+    except requests.exceptions.RequestException as e:
+        current_app.logger.error(f'Failed to send request to reviewer inbox: {e}')
+        return {'is_success': 0, 'message': 'Failed to send request'}, 500
+
+    if response.status_code not in {200, 201, 202}:
+        # KTODO should not return status code
+        return {'is_success': 0, 'message': f'Request failed: {response.status_code}'}, 400
+
+    # Create endorsement request record
+    try:
+        EndorsementRequestModel.create({
+            "noti_id": endorsement_request_data["id"],
+            "record_id": record._record.model.id,
+            "user_id": user.id,
+            "reviewer_id": reviewer_id,
+            "raw": endorsement_request_data,
+            "latest_status": constants.STATUS_REQUEST_ENDORSEMENT,
+        })
+        current_app.logger.info(f'Created endorsement request record for reviewer {reviewer_id}')
+    except Exception as e:
+        current_app.logger.error(f'Failed to create endorsement request record: {e}')
+        return {'is_success': 0, 'message': 'Failed to create endorsement request record'}, 500
+
+    return {'is_success': 1, 'message': 'Request Accepted'}, 200
 
 
 class EndorsementRequestResource(ErrorHandlersMixin, Resource):
