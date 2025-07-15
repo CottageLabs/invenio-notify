@@ -229,30 +229,43 @@ class InboxApiResource(ErrorHandlersMixin, Resource):
 
 
 @unit_of_work()
-def send_endorsement_request(reviewer_id, record: RecordItem, user, uow=None):
-    """Send endorsement request to a reviewer's inbox.
+def create_endorsement_request_record(endorsement_request_data, record_id, user_id, reviewer_id, uow=None):
+    """Create endorsement request database record.
     
     Args:
-        reviewer_id: ID of the reviewer to send request to
-        record: The record object
-        user: User object making the request
+        endorsement_request_data: Dictionary containing endorsement request data
+        record_id: ID of the record
+        user_id: ID of the user making the request
+        reviewer_id: ID of the reviewer
         
     Returns:
-        tuple: (response_dict, status_code)
+        EndorsementRequestModel: The created endorsement request record
     """
+    return EndorsementRequestModel.create({
+        "noti_id": endorsement_request_data["id"],
+        "record_id": record_id,
+        "user_id": user_id,
+        "reviewer_id": reviewer_id,
+        "raw": endorsement_request_data,
+        "latest_status": constants.STATUS_REQUEST_ENDORSEMENT,
+    })
 
-    try:
-        reviewer = ReviewerModel.get(reviewer_id)
-    except Exception:
-        return {'is_success': 0, 'message': 'Reviewer not found'}, 404
 
+def send_to_reviewer_inbox(reviewer, endorsement_request_data: dict):
+    """Send endorsement request to reviewer's inbox.
+    
+    Args:
+        reviewer: ReviewerModel instance
+        endorsement_request_data: Dictionary containing endorsement request data
+        
+    Returns:
+        str: Error message if validation fails, None if successful
+    """
     if not reviewer.inbox_url or not reviewer.inbox_url.startswith('http'):
         current_app.logger.error(
-            f'Reviewer inbox URL is not configured for reviewer {reviewer_id} url[{reviewer.inbox_url}]'
+            f'Reviewer inbox URL is not configured for reviewer {reviewer.id} url[{reviewer.inbox_url}]'
         )
-        return {'is_success': 0, 'message': 'Reviewer inbox URL not configured'}, 400
-
-    endorsement_request_data = create_endorsement_request_data(user, record)
+        return 'Reviewer inbox URL not configured'
 
     try:
         response = requests.post(
@@ -267,28 +280,13 @@ def send_endorsement_request(reviewer_id, record: RecordItem, user, uow=None):
 
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f'Failed to send request to reviewer inbox: {e}')
-        return {'is_success': 0, 'message': 'Failed to send request'}, 500
+        return 'Failed to send request'
 
     if response.status_code not in {200, 201, 202}:
-        # KTODO should not return status code
-        return {'is_success': 0, 'message': f'Request failed: {response.status_code}'}, 400
+        # KTODO should not return status code to frontend
+        return f'Request failed: {response.status_code}'
 
-    # Create endorsement request record
-    try:
-        EndorsementRequestModel.create({
-            "noti_id": endorsement_request_data["id"],
-            "record_id": record._record.model.id,
-            "user_id": user.id,
-            "reviewer_id": reviewer_id,
-            "raw": endorsement_request_data,
-            "latest_status": constants.STATUS_REQUEST_ENDORSEMENT,
-        })
-        current_app.logger.info(f'Created endorsement request record for reviewer {reviewer_id}')
-    except Exception as e:
-        current_app.logger.error(f'Failed to create endorsement request record: {e}')
-        return {'is_success': 0, 'message': 'Failed to create endorsement request record'}, 500
-
-    return {'is_success': 1, 'message': 'Request Accepted'}, 200
+    return None
 
 
 class EndorsementRequestResource(ErrorHandlersMixin, Resource):
@@ -316,7 +314,7 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
             return {'is_success': 0, 'message': 'reviewer_id is required'}, 400
 
         reviewer_id = data['reviewer_id']
-        
+
         # Check if reviewer exists
         reviewer = ReviewerModel.query.filter_by(id=reviewer_id).first()
         if not reviewer:
@@ -329,13 +327,27 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
             return {'is_success': 0, 'message': 'Record not found'}, 404
 
         user = User.query.get(g.identity.id)
-        
+
         # Check if reviewer is available using can_resend logic
         endorsement_request = get_latest_endorsement_request(record._record.model.id, reviewer_id, user.id)
         if not can_resend(endorsement_request):
             return {'is_success': 0, 'message': 'Reviewer not available for endorsement request'}, 400
-        
-        return send_endorsement_request(reviewer_id, record, user)
+
+        # Send endorsement request to reviewer's inbox
+        endorsement_request_data = create_endorsement_request_data(user, record)
+        error_message = send_to_reviewer_inbox(reviewer, endorsement_request_data)
+        if error_message:
+            return {'is_success': 0, 'message': error_message}, 400
+
+        # Create endorsement request record
+        try:
+            create_endorsement_request_record(endorsement_request_data, record._record.model.id, user.id, reviewer_id)
+            current_app.logger.info(f'Created endorsement request record for reviewer {reviewer_id}')
+        except Exception as e:
+            current_app.logger.error(f'Failed to create endorsement request record: {e}')
+            return {'is_success': 0, 'message': 'Failed to create endorsement request record'}, 500
+
+        return {'is_success': 1, 'message': 'Request Accepted'}, 200
 
     @request_view_args
     @response_handler()
