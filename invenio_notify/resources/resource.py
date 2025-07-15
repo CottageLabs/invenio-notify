@@ -5,6 +5,8 @@ from flask_resources import (
     response_handler,
     route,
 )
+from invenio_access.permissions import system_identity
+from invenio_accounts.models import User
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_records_resources.resources.records.resource import (
     request_data,
@@ -12,6 +14,7 @@ from invenio_records_resources.resources.records.resource import (
     request_search_args,
     request_view_args,
 )
+from invenio_records_resources.services.records.results import RecordItem
 
 from coarnotify.server import COARNotifyServerError
 from invenio_notify import constants
@@ -20,6 +23,7 @@ from invenio_notify.services.schemas import ReviewerSchema
 from invenio_notify.utils.endorsement_request_utils import send_endorsement_request, get_available_reviewers
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
 from invenio_notify.utils.record_utils import resolve_record_from_pid
+from invenio_rdm_records.proxies import current_rdm_records_service
 from .errors import ErrorHandlersMixin
 
 
@@ -240,19 +244,20 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
 
         # KTODO add permission checking
         # KTODO request can be only sent by a record owner
+        # KTODO check reviewer available
 
         if not data or 'reviewer_id' not in data:
             return {'is_success': 0, 'message': 'reviewer_id is required'}, 400
 
-        # Resolve pid_value to record
+        # Get the record through service
         try:
-            record = resolve_record_from_pid(pid_value)
+            record: RecordItem = current_rdm_records_service.read(system_identity, pid_value)
         except PIDDoesNotExistError:
             return {'error': 'Record not found'}, 404
 
         reviewer_id = data['reviewer_id']
-        user_id = g.identity.id
-        return send_endorsement_request(reviewer_id, record, user_id)
+        user = User.query.get(g.identity.id)
+        return send_endorsement_request(reviewer_id, record, user)
 
     @request_view_args
     @response_handler()
@@ -265,7 +270,7 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
             record = resolve_record_from_pid(pid_value)
         except PIDDoesNotExistError:
             return {'error': 'Record not found'}, 404
-        
+
         user_id = g.identity.id
         reviewers = get_available_reviewers(record.id, user_id)
         return reviewers, 200

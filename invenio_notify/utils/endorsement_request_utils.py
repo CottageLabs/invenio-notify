@@ -3,27 +3,39 @@ import uuid
 import requests
 from flask import current_app
 from invenio_db.uow import unit_of_work
+from invenio_records_resources.services.records.results import RecordItem
 
 from invenio_notify import constants
 from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
+from invenio_rdm_records.records import RDMRecord
 
 
-def create_endorsement_request_data():
-    """Create endorsement request data following COAR notification structure."""
+def create_endorsement_request_data(user, record: RecordItem):
+    """Create endorsement request data following COAR notification structure.
+    
+    Args:
+        user: User object making the endorsement request
+    """
+    # KTODO add test cases
     # KTODO hardcoded for now
+
+    # KTODO define how to fill-in the value of `object`
+    # KTODO fill-in value origin
+    # KTODO fill-in value target
+
     data = {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
             "https://coar-notify.net"
         ],
         "actor": {
-            "id": "mailto:josiah.carberry@example.com",
-            "name": "Josiah Carberry",
+            "id": f"mailto:{user.email}",
+            "name": user.username if user.username else user.email,
             "type": "Person"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
         "object": {
-            "id": f"https://127.0.0.1:5000/records/",
+            "id": record.data["links"]["self_html"],
             "ietf:cite-as": "https://doi.org/10.5555/12345680",
             "ietf:item": {
                 "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
@@ -57,17 +69,18 @@ def create_endorsement_request_data():
 
 
 @unit_of_work()
-def send_endorsement_request(reviewer_id, record, user_id):
+def send_endorsement_request(reviewer_id, record: RecordItem, user, uow=None):
     """Send endorsement request to a reviewer's inbox.
     
     Args:
         reviewer_id: ID of the reviewer to send request to
         record: The record object
-        user_id: ID of the user making the request
+        user: User object making the request
         
     Returns:
         tuple: (response_dict, status_code)
     """
+
     try:
         reviewer = ReviewerModel.get(reviewer_id)
     except Exception:
@@ -79,7 +92,7 @@ def send_endorsement_request(reviewer_id, record, user_id):
         )
         return {'is_success': 0, 'message': 'Reviewer inbox URL not configured'}, 400
 
-    endorsement_request_data = create_endorsement_request_data()
+    endorsement_request_data = create_endorsement_request_data(user, record)
 
     try:
         response = requests.post(
@@ -104,8 +117,8 @@ def send_endorsement_request(reviewer_id, record, user_id):
     try:
         EndorsementRequestModel.create({
             "noti_id": endorsement_request_data["id"],
-            "record_id": record.id,
-            "user_id": user_id,
+            "record_id": record._record.model.id,
+            "user_id": user.id,
             "reviewer_id": reviewer_id,
             "raw": endorsement_request_data,
             "latest_status": constants.STATUS_REQUEST_ENDORSEMENT,
