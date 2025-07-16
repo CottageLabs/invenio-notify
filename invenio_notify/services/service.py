@@ -11,6 +11,8 @@ from invenio_records_resources.services.records.schema import ServiceSchemaWrapp
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
+from sqlalchemy.orm import selectinload
+
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
@@ -21,6 +23,21 @@ from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services import RDMRecordService
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
+
+
+def _build_endorsement_item(endorsement):
+    """Build endorsement/review item dictionary."""
+    item = {
+        'created': endorsement.created.isoformat(),
+        'url': endorsement.result_url,
+        'index': endorsement.record.index
+    }
+
+    # Add version if it exists in metadata
+    if 'version' in endorsement.record.data.get('metadata', {}):
+        item['version'] = endorsement.record.data['metadata']['version']
+
+    return item
 
 
 class BasicDbService(RecordService):
@@ -170,25 +187,26 @@ class EndorsementService(BasicDbService):
     """Service for managing endorsements."""
 
     @staticmethod
-    def get_endorsement_info(record_id):
+    def get_endorsement_info(parent_id):
         """Get the endorsement information for a record by its ID.
         Note: This method is not actually called in this module, it is called in
         InvenioRDMRecords by the EndorsementsDumperExt and as a backup for the
         Endorsements system field getter.
         
         Args:
-            record_id: The UUID of the record
+            parent_id: The UUID of the record
             
         Returns:
             list: A list of dictionaries containing endorsement information
         """
-        if not record_id:
+        if not parent_id:
             return []
 
         # Query endorsements directly for this record
         endorsements = (
             db.session.query(EndorsementModel)
-            .filter(EndorsementModel.record_id == record_id)
+            .options(selectinload(EndorsementModel.record))
+            .filter(EndorsementModel.parent_id == parent_id)
             .all()
         )
 
@@ -220,16 +238,10 @@ class EndorsementService(BasicDbService):
             sub_review_list = []
 
             for e in data['endorsements']:
-                sub_endorsement_list.append({
-                    'created': e.created.isoformat(),
-                    'url': e.result_url
-                })
+                sub_endorsement_list.append(_build_endorsement_item(e))
 
-            for e in data['reviews']:
-                sub_review_list.append({
-                    'created': e.created.isoformat(),
-                    'url': e.result_url
-                })
+            for r in data['reviews']:
+                sub_review_list.append(_build_endorsement_item(r))
 
             _endorsements = data['reviews'] + data['endorsements']
             reviewer_name = _endorsements[-1].reviewer.name if _endorsements else 'Unknown'
