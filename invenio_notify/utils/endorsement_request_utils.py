@@ -14,7 +14,6 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
         user: User object making the endorsement request
         reviewer: Reviewer object containing inbox URL and other details
     """
-    # KTODO add test cases
 
     # KTODO do we need to handle other file type than PDF in `object`?
     # KTODO which value should be used for `origin.id`?
