@@ -9,12 +9,11 @@ from invenio_files_rest.models import Location
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
 
+from invenio_notify_test.builders.inbox_test_data_builder import *  # noqa
 from invenio_notify_test.fixtures.endorsement_request_fixture import *  # noqa
 from invenio_notify_test.fixtures.inbox_fixture import *  # noqa
 from invenio_notify_test.fixtures.reviewer_fixture import *  # noqa
-from invenio_notify_test.builders.inbox_test_data_builder import *  # noqa
 from invenio_rdm_records.proxies import current_rdm_records
-from invenio_rdm_records.records import RDMParent, RDMRecord
 
 RunningApp = namedtuple(
     "RunningApp",
@@ -159,15 +158,6 @@ def minimal_record():
             "title": "A Romans story",
         },
     }
-
-
-def prepare_test_rdm_record(db, record_data):
-    # KTODO try to extract the creation to session fixture, to improve performance
-    # KTODO move it outside of conftest.py
-    parent = RDMParent.create({})
-    record = RDMRecord.create(record_data, parent=parent)
-    db.session.commit()
-    return record
 
 
 @pytest.fixture(scope="module")
