@@ -199,11 +199,13 @@ def dummy_inbox():
         # Return response in COAR notify receipt format
         return response_coar_notify_receipt(receipt)
 
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        print(f"JSON decode error: {e}")
         return create_fail_response(400, "Invalid JSON format")
 
-    except NotifyException:
-        return create_fail_response(400, "Notification processing failed")
+    except NotifyException as e:
+        print(f"Notification processing failed: {e}")
+        return create_fail_response(400, f"Notification processing failed: {e}")
 
 
     except Exception as e:
