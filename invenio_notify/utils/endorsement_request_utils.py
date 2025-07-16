@@ -16,9 +16,7 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
     """
     # KTODO add test cases
 
-    # KTODO define how to fill-in the value of `object`
-
-
+    # KTODO do we need to handle other file type than PDF in `object`?
     # KTODO which value should be used for `origin.id`?
 
     # define the object structure
