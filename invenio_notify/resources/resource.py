@@ -284,6 +284,11 @@ def send_to_reviewer_inbox(reviewer, endorsement_request_data: dict):
 
     if response.status_code not in {200, 201, 202}:
         # KTODO should not return status code to frontend
+        current_app.logger.warning(
+            f'Reviewer inbox request failed with '
+            f'status code [{response.status_code}] for reviewer [{reviewer.inbox_url}]'
+            f' -- {response.text}'
+        )
         return f'Request failed: {response.status_code}'
 
     return None
@@ -334,7 +339,7 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
             return {'is_success': 0, 'message': 'Reviewer not available for endorsement request'}, 400
 
         # Send endorsement request to reviewer's inbox
-        endorsement_request_data = create_endorsement_request_data(user, record)
+        endorsement_request_data = create_endorsement_request_data(user, record, reviewer)
         error_message = send_to_reviewer_inbox(reviewer, endorsement_request_data)
         if error_message:
             return {'is_success': 0, 'message': error_message}, 400

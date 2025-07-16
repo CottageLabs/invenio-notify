@@ -1,24 +1,59 @@
 import uuid
 
+from invenio_base import invenio_url_for
 from invenio_records_resources.services.records.results import RecordItem
 
 from invenio_notify import constants
 from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
 
 
-def create_endorsement_request_data(user, record: RecordItem):
+def create_endorsement_request_data(user, record: RecordItem, reviewer: ReviewerModel):
     """Create endorsement request data following COAR notification structure.
     
     Args:
         user: User object making the endorsement request
+        reviewer: Reviewer object containing inbox URL and other details
     """
     # KTODO add test cases
-    # KTODO hardcoded for now
 
     # KTODO define how to fill-in the value of `object`
-    # KTODO fill-in value origin
-    # KTODO fill-in value target
 
+
+    # KTODO which value should be used for `origin.id`?
+
+    # define the object structure
+    object = {
+        "id": record.data["links"]["self_html"],
+        "type": ["Page", "sorg:AboutPage"]
+    }
+
+    if 'doi' in record.data['links']:
+        object['ietf:cite-as'] = record.data['links']['doi']
+
+    if 'files' in record.data and record.data:
+
+        # they have two versions to get file objects
+        record_files = record.data['files']
+        if isinstance(record_files, list):
+            files = record_files
+        else:
+            files = record_files.get('entries', {}).values()
+
+        for file in files:
+            link = file.get('links', {}).get('self')
+            if not link:
+                continue
+
+            is_pdf = file['key'].endswith('.pdf') or '.pdf' in link
+            if is_pdf:
+                object['ietf:item'] = {
+                    "id": link,
+                    "mediaType": "application/pdf",
+                    "type": ["Article", "sorg:ScholarlyArticle"],
+                }
+                break
+
+    # define full notification data structure
     data = {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
@@ -30,30 +65,15 @@ def create_endorsement_request_data(user, record: RecordItem):
             "type": "Person"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
-        "object": {
-            "id": record.data["links"]["self_html"],
-            "ietf:cite-as": "https://doi.org/10.5555/12345680",
-            "ietf:item": {
-                "id": "https://research-organisation.org/repository/preprint/201203/421/content.pdf",
-                "mediaType": "application/pdf",
-                "type": [
-                    "Article",
-                    "sorg:ScholarlyArticle"
-                ]
-            },
-            "type": [
-                "Page",
-                "sorg:AboutPage"
-            ]
-        },
+        "object": object,
         "origin": {
-            "id": "https://research-organisation.org/repository",
-            "inbox": "https://research-organisation.org/inbox/",
+            "id": invenio_url_for('inbox_api.receive_notification'),
+            "inbox": invenio_url_for('inbox_api.receive_notification'),
             "type": "Service"
         },
         "target": {
-            "id": "https://evolbiol.peercommunityin.org/coar_notify/",
-            "inbox": "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
+            "id": reviewer.actor_id,
+            "inbox": reviewer.inbox_url,
             "type": "Service"
         },
         "type": [
@@ -61,6 +81,9 @@ def create_endorsement_request_data(user, record: RecordItem):
             "coar-notify:EndorsementAction"
         ]
     }
+
+    import pprint
+    pprint.pprint(data)
     return data
 
 
@@ -111,7 +134,7 @@ def get_latest_endorsement_request(record_id, reviewer_id, user_id):
 def can_send(endorsement_request, reviewer):
     if not reviewer or not reviewer.inbox_url or not reviewer.inbox_api_token:
         return False
-    
+
     available = (
             not endorsement_request or
             endorsement_request.latest_status == constants.TYPE_TENTATIVE_REJECT
