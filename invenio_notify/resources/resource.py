@@ -242,7 +242,7 @@ def create_endorsement_request_record(endorsement_request_data, record_id, user_
         EndorsementRequestModel: The created endorsement request record
     """
     return EndorsementRequestModel.create({
-        "noti_id": endorsement_request_data["id"],
+        "noti_id": endorsement_request_data["id"].replace('urn:uuid:', ''),
         "record_id": record_id,
         "user_id": user_id,
         "reviewer_id": reviewer_id,
