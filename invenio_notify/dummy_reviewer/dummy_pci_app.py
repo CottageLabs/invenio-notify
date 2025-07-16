@@ -8,24 +8,24 @@ from coarnotify.exceptions import NotifyException
 from coarnotify.server import COARNotifyReceipt, COARNotifyServer, COARNotifyServiceBinding
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
 from invenio_notify_test.fixtures.inbox_payload import payload_endorsement_resp, payload_review, \
-    payload_tentative_accept, payload_reject
+    payload_tentative_accept, payload_reject, payload_tentative_reject
 
 app = Flask(__name__)
 
 
 class DummyPCIBackend:
     def __init__(self):
-        self.path = Path.home() / '.local/opt/dummy_pci_handler/store.json'
+        self.store_path = Path.home() / '.local/opt/dummy_pci_handler/store.json'
         self.reply_inbox_url = 'https://127.0.0.1:5000/api/notify/inbox'
 
     def load_notifications(self) -> list:
         """Load notifications from JSON file."""
-        self.path.parent.mkdir(parents=True, exist_ok=True)
+        self.store_path.parent.mkdir(parents=True, exist_ok=True)
 
         notifications = []
-        if self.path.exists():
+        if self.store_path.exists():
             try:
-                with open(self.path, 'r') as f:
+                with open(self.store_path, 'r') as f:
                     notifications = json.load(f)
             except (json.JSONDecodeError, FileNotFoundError):
                 notifications = []
@@ -34,8 +34,8 @@ class DummyPCIBackend:
 
     def save_notifications(self, notifications: list):
         """Save notifications list to JSON file."""
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.path, 'w') as f:
+        self.store_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(self.store_path, 'w') as f:
             json.dump(notifications, f, indent=2)
 
     def save(self, noti: dict):
@@ -88,6 +88,7 @@ class DummyPCIBackend:
             'endorsement_resp': payload_endorsement_resp,
             'review': payload_review,
             'tentative_accept': payload_tentative_accept,
+            'tentative_reject': payload_tentative_reject,
             'reject': payload_reject
         }
 
@@ -114,18 +115,24 @@ class DummyPCIBackend:
             except ValueError:
                 print(f"Response text: {response.text}")
 
-            # Remove last notification from store if request was successful
-            if response.status_code in [200, 201, 202]:
-                notifications.pop()  # Remove last notification
-                self.save_notifications(notifications)
-                print("Last notification removed from store")
-            else:
-                print("Request failed, notification not removed from store")
 
         except requests.exceptions.RequestException as e:
             print(f"Error sending request: {e}")
+            return
         except Exception as e:
             print(f"Unexpected error: {e}")
+            return
+
+        # Remove last notification from store if request was successful
+        if response.status_code not in [200, 201, 202]:
+            print(f"Request failed status[{response.status_code}], notification will be kept in store")
+
+        if payload_type not in ['tentative_accept', 'tentative_reject']:
+            notifications.pop()  # Remove last notification
+            self.save_notifications(notifications)
+            print("Last notification removed from store")
+
+
 
     def reset(self):
         """Reset the store to empty list."""
