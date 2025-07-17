@@ -192,8 +192,8 @@ def list():
 
 
 @dummy_pci.command()
-@click.option('--type', '-t', default='endorsement_resp', 
-              type=click.Choice(['endorsement_resp', 'review', 'tentative_accept',
+@click.option('--type', '-t', default='endorsement', 
+              type=click.Choice(['endorsement', 'review', 'tentative_accept',
                                  'tentative_reject', 'reject']),
               help='Type of reply payload to send')
 def reply(type):

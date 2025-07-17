@@ -64,7 +64,7 @@ class DummyPCIBackend:
             print(f"  Object: {notification.get('object', {}).get('id', 'N/A')}")
             print("-" * 40)
 
-    def reply_last(self, payload_type='endorsement_resp'):
+    def reply_last(self, payload_type='endorsement'):
         """Reply to the last notification in store and remove it."""
         notifications = self.load_notifications()
 
@@ -85,7 +85,7 @@ class DummyPCIBackend:
 
         # Create payload based on type
         payload_functions = {
-            'endorsement_resp': payload_endorsement_resp,
+            'endorsement': payload_endorsement_resp,
             'review': payload_review,
             'tentative_accept': payload_tentative_accept,
             'tentative_reject': payload_tentative_reject,
