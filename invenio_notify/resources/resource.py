@@ -28,7 +28,22 @@ from invenio_notify.utils.endorsement_request_utils import create_endorsement_re
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
 from invenio_notify.utils.record_utils import resolve_record_from_pid
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.records import RDMRecord
 from .errors import ErrorHandlersMixin, ApiErrorHandlersMixin
+
+
+def validate_owner_id(record: RDMRecord, user_id):
+    """Check if the user is the owner of the record.
+    
+    Args:
+        record: RDMRecord instance
+        user_id: ID of the user to check
+        
+    Raises:
+        BadRequestError: If user is not the record owner
+    """
+    if record.parent.access.owner.owner_id != user_id:
+        raise BadRequestError('User is not the owner of this record')
 
 
 def require_inbox_oauth():
@@ -311,9 +326,6 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
         data = resource_requestctx.data
         pid_value = resource_requestctx.view_args["pid_value"]
 
-        # KTODO add permission checking
-        # KTODO request can be only sent by a record owner
-
         if not data or 'reviewer_id' not in data:
             raise ValueError('reviewer_id is required')
 
@@ -322,6 +334,9 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
         reviewer = ReviewerModel.query.filter_by(id=reviewer_id).one()
         record: RecordItem = current_rdm_records_service.read(system_identity, pid_value)
         user = User.query.get(g.identity.id)
+
+        # Check if user is the record owner
+        validate_owner_id(record._record, user.id)
 
         # Check if reviewer is available using can_send logic
         endorsement_request = get_latest_endorsement_request(record._record.model.id, reviewer_id, user.id)
@@ -346,11 +361,13 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
     @response_handler()
     def list_reviewers(self):
         """List all available reviewers."""
-        # KTODO implement permission checking
-
         pid_value = resource_requestctx.view_args["pid_value"]
         record = resolve_record_from_pid(pid_value)
 
         user_id = g.identity.id
+
+        # Check if user is the record owner
+        validate_owner_id(record, user_id)
+
         reviewers = get_available_reviewers(record.id, user_id)
         return reviewers, 200
