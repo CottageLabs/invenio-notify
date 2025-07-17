@@ -196,12 +196,13 @@ def list():
               type=click.Choice(['endorsement', 'review', 'tentative_accept',
                                  'tentative_reject', 'reject']),
               help='Type of reply payload to send')
-def reply(type):
+@click.option('--token', help='token that used to notify api' )
+def reply(token, type):
     """Reply to the last notification in store"""
     from invenio_notify.dummy_reviewer.dummy_pci_app import DummyPCIBackend
     
     backend = DummyPCIBackend()
-    backend.reply_last(type)
+    backend.reply_last(token, payload_type=type)
 
 
 @dummy_pci.command()

@@ -3,6 +3,9 @@ from pathlib import Path
 
 import requests
 from flask import Flask, request
+from rich.console import Console
+from rich.panel import Panel
+from rich.syntax import Syntax
 
 from coarnotify.exceptions import NotifyException
 from coarnotify.server import COARNotifyReceipt, COARNotifyServer, COARNotifyServiceBinding
@@ -11,6 +14,14 @@ from invenio_notify_test.fixtures.inbox_payload import payload_endorsement_resp,
     payload_tentative_accept, payload_reject, payload_tentative_reject
 
 app = Flask(__name__)
+console = Console()
+
+
+def print_json_panel(data, title, border_style="blue"):
+    """Print JSON data in a formatted panel with syntax highlighting."""
+    json_str = json.dumps(data, indent=2)
+    syntax = Syntax(json_str, "json", theme="monokai", line_numbers=True)
+    console.print(Panel(syntax, title=title, border_style=border_style))
 
 
 class DummyPCIBackend:
@@ -64,19 +75,25 @@ class DummyPCIBackend:
             print(f"  Object: {notification.get('object', {}).get('id', 'N/A')}")
             print("-" * 40)
 
-    def reply_last(self, payload_type='endorsement'):
+    def reply_last(self, token, payload_type='endorsement'):
         """Reply to the last notification in store and remove it."""
         notifications = self.load_notifications()
 
         if not notifications:
-            print("No notifications in store to reply to")
+            console.print("[red]No notifications in store to reply to[/red]")
             return
 
         last_notification = notifications[-1]
-        print(f"Replying to notification: {last_notification.get('id', 'N/A')}")
+        notification_id = last_notification.get('id', 'N/A')
+        
+        console.print(Panel(
+            f"[bold blue]Replying to notification:[/bold blue] {notification_id}",
+            title="Reply Operation",
+            border_style="blue"
+        ))
 
         # Extract record_id from context if available
-        context = last_notification.get('context', {})
+        context = last_notification.get('object', {})
         context_id = context.get('id', '')
         record_id = context_id.split('/')[-1] if context_id else '1'
 
@@ -93,44 +110,64 @@ class DummyPCIBackend:
         }
 
         if payload_type not in payload_functions:
-            print(f"Unknown payload type: {payload_type}")
+            console.print(f"[red]Unknown payload type: {payload_type}[/red]")
             return
 
         payload = payload_functions[payload_type](record_id, in_reply_to)
 
+        # Display source notification with rich formatting
+        console.print("\n[bold cyan]Source notification:[/bold cyan]")
+        print_json_panel(last_notification, "Source Notification", "cyan")
+
+        # Display generated payload with rich formatting
+        console.print("\n[bold green]Generated payload:[/bold green]")
+        print_json_panel(payload, "Generated Payload", "green")
+
+        headers = {'Content-Type': 'application/json'}
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+            
         try:
             # Send POST request to reply_inbox_url
             response = requests.post(
                 self.reply_inbox_url,
                 json=payload,
-                headers={'Content-Type': 'application/json'}
+                headers=headers,
+                verify=False,
             )
 
-            print(f"Response status: {response.status_code}")
+            # Create status color based on response code
+            if response.status_code in [200, 201, 202]:
+                status_color = "green"
+                status_text = "✓ SUCCESS"
+            else:
+                status_color = "red"
+                status_text = "✗ FAILED"
+
+            console.print(f"\n[{status_color}]{status_text}[/{status_color}] Response status: {response.status_code}")
 
             # Print response JSON if available
             try:
                 response_json = response.json()
-                print(f"Response JSON: {json.dumps(response_json, indent=2)}")
+                print_json_panel(response_json, "Response JSON", status_color)
             except ValueError:
-                print(f"Response text: {response.text}")
-
+                console.print(Panel(response.text, title="Response Text", border_style=status_color))
 
         except requests.exceptions.RequestException as e:
-            print(f"Error sending request: {e}")
+            console.print(f"[red]Error sending request: {e}[/red]")
             return
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            console.print(f"[red]Unexpected error: {e}[/red]")
             return
 
         # Remove last notification from store if request was successful
         if response.status_code not in [200, 201, 202]:
-            print(f"Request failed status[{response.status_code}], notification will be kept in store")
+            console.print(f"[yellow]Request failed status[{response.status_code}], notification will be kept in store[/yellow]")
 
-        if payload_type not in ['tentative_accept', 'tentative_reject']:
+        if payload_type not in ['tentative_accept', 'review']:
             notifications.pop()  # Remove last notification
             self.save_notifications(notifications)
-            print("Last notification removed from store")
+            console.print("[green]Last notification removed from store[/green]")
 
 
 
