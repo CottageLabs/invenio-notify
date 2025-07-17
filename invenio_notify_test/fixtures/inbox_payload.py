@@ -3,10 +3,8 @@ import uuid
 
 def payload_review(record_id, in_reply_to=None) -> dict:
     """Create notification data with a real record ID."""
-    if in_reply_to is None:
-        in_reply_to = uuid.uuid4()
 
-    return {
+    data =  {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
             "https://coar-notify.net"
@@ -20,7 +18,6 @@ def payload_review(record_id, in_reply_to=None) -> dict:
             "id": f"https://127.0.0.1:5000/records/{record_id}"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
-        "inReplyTo": f"urn:uuid:{in_reply_to}",
         "object": {
             "id": "https://evolbiol.peercommunityin.org/articles/rec?articleId=794#review-3136",
             "ietf:cite-as": "https://evolbiol.peercommunityin.org/articles/rec?articleId=794#review-3136",
@@ -45,12 +42,13 @@ def payload_review(record_id, in_reply_to=None) -> dict:
         ]
     }
 
+    if in_reply_to:
+        data["inReplyTo"] = f"urn:uuid:{in_reply_to}"
+    return data
+
 
 def payload_endorsement_resp(record_id, in_reply_to=None) -> dict:
-    if in_reply_to is None:
-        in_reply_to = uuid.uuid4()
-    
-    return {
+    data = {
         "@context": [
             "https://www.w3.org/ns/activitystreams",
             "https://coar-notify.net"
@@ -64,7 +62,6 @@ def payload_endorsement_resp(record_id, in_reply_to=None) -> dict:
             "id": f"https://127.0.0.1:5000/records/{record_id}"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
-        "inReplyTo": f"urn:uuid:{in_reply_to}",
         "object": {
             "id": "https://evolbiol.peercommunityin.org/articles/rec?articleId=794",
             "ietf:cite-as": "https://doi.org/10.24072/pci.evolbiol.100794",
@@ -88,6 +85,10 @@ def payload_endorsement_resp(record_id, in_reply_to=None) -> dict:
             "coar-notify:EndorsementAction"
         ]
     }
+    
+    if in_reply_to:
+        data["inReplyTo"] = f"urn:uuid:{in_reply_to}"
+    return data
 
 
 def payload_tentative_accept(record_id, in_reply_to=None) -> dict:
