@@ -20,7 +20,7 @@ from invenio_records_resources.services.records.results import RecordItem
 
 from coarnotify.server import COARNotifyServerError
 from invenio_notify import constants
-from invenio_notify.errors import COARProcessFail
+from invenio_notify.errors import COARProcessFail, SendRequestFail, BadRequestError
 from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
 from invenio_notify.services.schemas import ReviewerSchema
 from invenio_notify.utils.endorsement_request_utils import create_endorsement_request_data, get_available_reviewers, \
@@ -28,7 +28,7 @@ from invenio_notify.utils.endorsement_request_utils import create_endorsement_re
 from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
 from invenio_notify.utils.record_utils import resolve_record_from_pid
 from invenio_rdm_records.proxies import current_rdm_records_service
-from .errors import ErrorHandlersMixin
+from .errors import ErrorHandlersMixin, ApiErrorHandlersMixin
 
 
 def require_inbox_oauth():
@@ -265,7 +265,7 @@ def send_to_reviewer_inbox(reviewer, endorsement_request_data: dict):
         current_app.logger.error(
             f'Reviewer inbox URL is not configured for reviewer {reviewer.id} url[{reviewer.inbox_url}]'
         )
-        return 'Reviewer inbox URL not configured'
+        raise ValueError('Reviewer inbox URL is not configured')
 
     try:
         response = requests.post(
@@ -280,21 +280,20 @@ def send_to_reviewer_inbox(reviewer, endorsement_request_data: dict):
 
     except requests.exceptions.RequestException as e:
         current_app.logger.error(f'Failed to send request to reviewer inbox: {e}')
-        return 'Failed to send request'
+        raise SendRequestFail('Failed to send request')
 
     if response.status_code not in {200, 201, 202}:
-        # KTODO should not return status code to frontend
         current_app.logger.warning(
             f'Reviewer inbox request failed with '
             f'status code [{response.status_code}] for reviewer [{reviewer.inbox_url}]'
             f' -- {response.text}'
         )
-        return f'Request failed: {response.status_code}'
+        raise SendRequestFail('Reviewer reply invalid request', status=response.status_code)
 
     return None
 
 
-class EndorsementRequestResource(ErrorHandlersMixin, Resource):
+class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
     """Resource for handling endorsement requests."""
 
     def create_url_rules(self):
@@ -316,33 +315,22 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
         # KTODO request can be only sent by a record owner
 
         if not data or 'reviewer_id' not in data:
-            return {'is_success': 0, 'message': 'reviewer_id is required'}, 400
+            raise ValueError('reviewer_id is required')
 
         reviewer_id = data['reviewer_id']
 
-        # Check if reviewer exists
-        reviewer = ReviewerModel.query.filter_by(id=reviewer_id).first()
-        if not reviewer:
-            return {'is_success': 0, 'message': 'Reviewer not found'}, 404
-
-        # Get the record through service
-        try:
-            record: RecordItem = current_rdm_records_service.read(system_identity, pid_value)
-        except PIDDoesNotExistError:
-            return {'is_success': 0, 'message': 'Record not found'}, 404
-
+        reviewer = ReviewerModel.query.filter_by(id=reviewer_id).one()
+        record: RecordItem = current_rdm_records_service.read(system_identity, pid_value)
         user = User.query.get(g.identity.id)
 
         # Check if reviewer is available using can_send logic
         endorsement_request = get_latest_endorsement_request(record._record.model.id, reviewer_id, user.id)
         if not can_send(endorsement_request, reviewer):
-            return {'is_success': 0, 'message': 'Reviewer not available for endorsement request'}, 400
+            raise BadRequestError('Reviewer not available for endorsement request')
 
         # Send endorsement request to reviewer's inbox
         endorsement_request_data = create_endorsement_request_data(user, record, reviewer)
-        error_message = send_to_reviewer_inbox(reviewer, endorsement_request_data)
-        if error_message:
-            return {'is_success': 0, 'message': error_message}, 400
+        send_to_reviewer_inbox(reviewer, endorsement_request_data)
 
         # Create endorsement request record
         try:
@@ -350,7 +338,7 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
             current_app.logger.info(f'Created endorsement request record for reviewer {reviewer_id}')
         except Exception as e:
             current_app.logger.error(f'Failed to create endorsement request record: {e}')
-            return {'is_success': 0, 'message': 'Failed to create endorsement request record'}, 500
+            raise Exception('Failed to create endorsement request record')
 
         return {'is_success': 1, 'message': 'Request Accepted'}, 200
 
@@ -361,10 +349,7 @@ class EndorsementRequestResource(ErrorHandlersMixin, Resource):
         # KTODO implement permission checking
 
         pid_value = resource_requestctx.view_args["pid_value"]
-        try:
-            record = resolve_record_from_pid(pid_value)
-        except PIDDoesNotExistError:
-            return {'error': 'Record not found'}, 404
+        record = resolve_record_from_pid(pid_value)
 
         user_id = g.identity.id
         reviewers = get_available_reviewers(record.id, user_id)
