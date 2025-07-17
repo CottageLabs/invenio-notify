@@ -12,9 +12,9 @@ class NotExistsError(Exception):
 
 class COARProcessFail(Exception):
 
-    def __init__(self, status, msg):
+    def __init__(self, status, description):
         self.status = status
-        self.msg = msg
+        self.description = description
 
 
 class SendRequestFail(Exception):

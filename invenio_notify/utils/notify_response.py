@@ -20,11 +20,6 @@ def create_default_msg_by_status(status):
     return msg
 
 
-def create_fail_response(status, msg=None):
-    msg = msg or create_default_msg_by_status(status)
-    return {"status": status, "message": msg}, status
-
-
 def response_coar_notify_receipt(receipt: COARNotifyReceipt, msg=None):
     data = {
         "status": receipt.status,

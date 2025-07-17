@@ -4,12 +4,11 @@ from flask_resources import (
     Resource,
     resource_requestctx,
     response_handler,
-    route,
+    route, create_error_handler,
 )
 from invenio_access.permissions import system_identity
 from invenio_accounts.models import User
 from invenio_db.uow import unit_of_work
-from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_records_resources.resources.records.resource import (
     request_data,
     request_headers,
@@ -25,11 +24,12 @@ from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
 from invenio_notify.services.schemas import ReviewerSchema
 from invenio_notify.utils.endorsement_request_utils import create_endorsement_request_data, get_available_reviewers, \
     get_latest_endorsement_request, can_send
-from invenio_notify.utils.notify_response import create_fail_response, response_coar_notify_receipt
+from invenio_notify.utils.notify_response import response_coar_notify_receipt, create_default_msg_by_status
 from invenio_notify.utils.record_utils import resolve_record_from_pid
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.records import RDMRecord
-from .errors import ErrorHandlersMixin, ApiErrorHandlersMixin
+from invenio_rdm_records.resources.errors import HTTPJSONException
+from .errors import ErrorHandlersMixin, ApiErrorHandlersMixin, create_error_handler_with_json
 
 
 def validate_owner_id(record: RDMRecord, user_id):
@@ -202,8 +202,19 @@ class ReviewerResource(BasicDbResource):
         return {"hits": members}, 200
 
 
-class InboxApiResource(ErrorHandlersMixin, Resource):
+class InboxApiResource(Resource):
     """Resource for handling COAR notification inbox endpoint."""
+
+    error_handlers = {
+        **ApiErrorHandlersMixin.error_handlers,
+        COARNotifyServerError: create_error_handler_with_json(400, lambda e: create_default_msg_by_status(400)),
+        COARProcessFail: create_error_handler(
+            lambda e: HTTPJSONException(
+                code=e.status,
+                description=e.description
+            )
+        )
+    }
 
     def __init__(self, config, service):
         """Constructor."""
@@ -225,22 +236,10 @@ class InboxApiResource(ErrorHandlersMixin, Resource):
         data = resource_requestctx.data
 
         if not data:
-            return create_fail_response(constants.STATUS_BAD_REQUEST, "Request must be JSON")
+            raise ValueError("Request data is required")
 
-        try:
-            result = self.service.receive_notification(notification_raw=data)
-            return response_coar_notify_receipt(result)
-
-        except COARNotifyServerError as e:
-            current_app.logger.error(f'Error: {e.message}')
-            return create_fail_response(constants.STATUS_BAD_REQUEST)
-
-        except COARProcessFail as e:
-            return create_fail_response(e.status, e.msg)
-
-        except PIDDoesNotExistError as e:
-            current_app.logger.debug(f'inbox PIDDoesNotExistError {e.pid_type}:{e.pid_value}')
-            return create_fail_response(constants.STATUS_NOT_FOUND, "Record not found")
+        result = self.service.receive_notification(notification_raw=data)
+        return response_coar_notify_receipt(result)
 
 
 @unit_of_work()
