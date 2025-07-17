@@ -35,6 +35,32 @@ from invenio_rdm_records.services import RDMRecordService
 re_url_record_id = regex.compile(r'/records/(.*?)$')
 
 
+def get_record_id_from_notification(raw: dict) -> str:
+    """Extract record ID from notification data.
+    
+    Args:
+        raw (dict): Raw notification data
+        
+    Returns:
+        str: Record ID extracted from notification
+        
+    Raises:
+        COARProcessFail: If no record URL is found
+    """
+    # Try to get record URL from different locations based on notification type
+    record_url = None
+    if raw.get('context', {}).get('id'):
+        record_url = raw['context']['id']
+    elif raw.get('object', {}).get('object', {}).get('id'):
+        record_url = raw['object']['object']['id']
+    
+    if not record_url:
+        current_app.logger.error('No record URL found in notification')
+        raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'No record URL found')
+    
+    return get_recid_by_record_url(record_url)
+
+
 class BasicDbService(RecordService):
 
     def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
@@ -166,7 +192,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         current_app.logger.debug('called notification_received')
 
         raw = notification.to_jsonld()
-        recid = get_recid_by_record_url(raw['context']['id'])
+        recid = get_record_id_from_notification(raw)
 
         # Extract notification ID from the raw notification
         noti_id = raw.get('id')
