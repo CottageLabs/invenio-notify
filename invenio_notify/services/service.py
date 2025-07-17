@@ -407,33 +407,7 @@ class ReviewerService(BasicDbService):
 
 
 class EndorsementRequestService(BasicDbService):
-    """Service for managing endorsement requests."""
-
-    # KTODO consider extracting common search logic to a base class
-    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
-        if filter_maker is None:
-            def filter_maker(query_param):
-                filters = []
-                if query_param:
-                    filters.extend([
-                        self.record_cls.record_id == query_param,
-                    ])
-                return filters
-
-        return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)
-
-    @unit_of_work()
-    def create(self, identity, data, raise_errors=True, uow=None):
-        # KTODO default value should be status type of coar_notify constants
-        data['latest_status'] = data.get('latest_status', 'Request Endorsement')
-        if data.get('user_id') is None:
-            data['user_id'] = identity.id
-        # Convert UUID to string if needed for schema validation
-        if 'record_id' in data and hasattr(data['record_id'], '__str__'):
-            data['record_id'] = str(data['record_id'])
-        if 'noti_id' in data and hasattr(data['noti_id'], '__str__'):
-            data['noti_id'] = str(data['noti_id'])
-        return super().create(identity, data, raise_errors=raise_errors, uow=uow)
+    """ Endorsement Request Service, no use for now """
 
 
 class EndorsementReplyService(BasicDbService):
