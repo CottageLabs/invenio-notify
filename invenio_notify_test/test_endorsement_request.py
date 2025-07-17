@@ -37,17 +37,6 @@ def test_service_create(superuser_identity, create_reviewer, db, minimal_record)
     assert result.data['user_id'] == superuser_identity.id
 
 
-def test_service_update_status(superuser_identity, create_endorsement_request):
-    """Test updating endorsement request status via service."""
-    request = create_endorsement_request()
-
-    result = current_endorsement_request_service.update_status(superuser_identity, request.id, 'Announce Endorsement')
-
-    # Verify the status was updated
-    updated_request = EndorsementRequestModel.get(request.id)
-    assert updated_request.latest_status == 'Announce Endorsement'
-
-
 def test_service_search_by_record_id(superuser_identity, create_endorsement_request, db, minimal_record):
     """Test searching endorsement requests by record ID."""
     # Create a test record and use its ID

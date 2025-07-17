@@ -1,24 +1,22 @@
 from typing import List, Dict
 
 import regex
+from flask import current_app
+from flask import g
+from invenio_accounts.models import User
+from invenio_db import db
+from invenio_db.uow import unit_of_work
+from invenio_records_resources.services import RecordService
+from invenio_records_resources.services.base import LinksTemplate
+from invenio_records_resources.services.base.utils import map_search_params
+from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
+
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import (
     COARNotifyReceipt,
     COARNotifyServer,
     COARNotifyServiceBinding,
 )
-from flask import current_app
-from flask import g
-from invenio_accounts.models import User
-from invenio_db import db
-from invenio_db.uow import unit_of_work
-from invenio_rdm_records.proxies import current_rdm_records_service
-from invenio_rdm_records.services import RDMRecordService
-from invenio_records_resources.services import RecordService
-from invenio_records_resources.services.base import LinksTemplate
-from invenio_records_resources.services.base.utils import map_search_params
-from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
-
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
@@ -31,6 +29,8 @@ from invenio_notify.records.models import (
 from invenio_notify.tasks import get_notification_type
 from invenio_notify.utils import user_utils, reviewer_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
+from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.services import RDMRecordService
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
 
@@ -434,24 +434,6 @@ class EndorsementRequestService(BasicDbService):
         if 'noti_id' in data and hasattr(data['noti_id'], '__str__'):
             data['noti_id'] = str(data['noti_id'])
         return super().create(identity, data, raise_errors=raise_errors, uow=uow)
-
-    @unit_of_work()
-    def update_status(self, identity, id, status, uow=None):
-        """Update the latest status of an endorsement request."""
-
-        # KTODO do we need this function
-
-        self.require_permission(identity, "update")
-
-        record = self.record_cls.get(id)
-        self.record_cls.update({'latest_status': status}, id)
-
-        return self.result_item(
-            self,
-            identity,
-            record,
-            links_tpl=self.links_item_tpl,
-        )
 
 
 class EndorsementReplyService(BasicDbService):
