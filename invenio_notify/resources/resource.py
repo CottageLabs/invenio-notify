@@ -367,6 +367,9 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
         pid_value = resource_requestctx.view_args["pid_value"]
         record = resolve_record_from_pid(pid_value)
 
+        if g.identity is None or g.identity.id is None:
+            raise BadRequestError('User identity is required')
+
         user_id = g.identity.id
 
         # Check if user is the record owner

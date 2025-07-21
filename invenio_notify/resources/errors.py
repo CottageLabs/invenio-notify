@@ -6,7 +6,7 @@ from flask_resources import HTTPJSONException, create_error_handler
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_records_resources.errors import validation_error_to_list_errors
 
-from invenio_notify.errors import NotExistsError, SendRequestFail
+from invenio_notify.errors import NotExistsError, SendRequestFail, BadRequestError
 
 
 def create_description(e, description_fn=None):
@@ -57,4 +57,5 @@ class ApiErrorHandlersMixin(ErrorHandlersMixin):
         SendRequestFail: create_error_handler_with_json(400),
         PIDDoesNotExistError: create_error_handler_with_json(404),
         sqlalchemy.orm.exc.NoResultFound: create_error_handler_with_json(404, 'Data not found.'),
+        BadRequestError: create_error_handler_with_json(400),
     }
