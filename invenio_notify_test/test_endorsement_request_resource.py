@@ -9,6 +9,21 @@ from invenio_notify_test.fixtures.reviewer_fixture import create_multiple_review
 class TestListReviewers:
     """Test class for EndorsementRequestResource.list_reviewers endpoint."""
 
+    @staticmethod
+    def send_list_reviewers(client, identity, record=None, record_id=None):
+        """Helper method to make request with mocked g.identity and resolve_record_from_pid."""
+        actual_record_id = record_id or record.id
+        url = f'/api/endorsement-request/reviewers/{actual_record_id}'
+
+        with patch('invenio_notify.resources.resource.g') as mock_g:
+            mock_g.identity = identity
+            if record:
+                with patch('invenio_notify.resources.resource.resolve_record_from_pid') as mock_resolve:
+                    mock_resolve.return_value = record._record
+                    return client.get(url)
+            else:
+                return client.get(url)
+
     @pytest.fixture
     def different_user(self, db):
         """Create a different user for non-owner tests."""
@@ -24,13 +39,7 @@ class TestListReviewers:
         # Ensure the superuser is the owner
         rdm_record._record.parent.access.owner.owner_id = superuser_identity.user.id
         
-        with patch('invenio_notify.resources.resource.g') as mock_g, \
-             patch('invenio_notify.resources.resource.resolve_record_from_pid') as mock_resolve:
-            mock_g.identity = superuser_identity
-            mock_resolve.return_value = rdm_record._record
-            response = client.get(
-                f'/api/endorsement-request/reviewers/{rdm_record.id}'
-            )
+        response = self.send_list_reviewers(client, superuser_identity, rdm_record, rdm_record.id)
         
         assert response.status_code == 200
         data = response.get_json()
@@ -43,13 +52,7 @@ class TestListReviewers:
         # Set record owner to different user
         rdm_record._record.parent.access.owner.owner_id = different_user.id
 
-        with patch('invenio_notify.resources.resource.g') as mock_g, \
-             patch('invenio_notify.resources.resource.resolve_record_from_pid') as mock_resolve:
-            mock_g.identity = superuser_identity
-            mock_resolve.return_value = rdm_record._record
-            response = client.get(
-                f'/api/endorsement-request/reviewers/{rdm_record.id}'
-            )
+        response = self.send_list_reviewers(client, superuser_identity, rdm_record, rdm_record.id)
 
         assert response.status_code == 400
         data = response.get_json()
@@ -59,11 +62,7 @@ class TestListReviewers:
         """Test request with non-existent record ID."""
         create_multiple_reviewers(1)
         
-        with patch('invenio_notify.resources.resource.g') as mock_g:
-            mock_g.identity = superuser_identity
-            response = client.get(
-                '/api/endorsement-request/reviewers/non-existent-record'
-            )
+        response = self.send_list_reviewers(client, superuser_identity, None, 'non-existent-record')
         
         assert response.status_code == 404
 
@@ -72,13 +71,7 @@ class TestListReviewers:
         # Ensure the superuser is the owner
         rdm_record._record.parent.access.owner.owner_id = superuser_identity.user.id
         
-        with patch('invenio_notify.resources.resource.g') as mock_g, \
-             patch('invenio_notify.resources.resource.resolve_record_from_pid') as mock_resolve:
-            mock_g.identity = superuser_identity
-            mock_resolve.return_value = rdm_record._record
-            response = client.get(
-                f'/api/endorsement-request/reviewers/{rdm_record.id}'
-            )
+        response = self.send_list_reviewers(client, superuser_identity, rdm_record, rdm_record.id)
         
         assert response.status_code == 200
         data = response.get_json()
@@ -89,13 +82,7 @@ class TestListReviewers:
         """Test request without authentication."""
         create_multiple_reviewers(1)
         
-        with patch('invenio_notify.resources.resource.g') as mock_g, \
-             patch('invenio_notify.resources.resource.resolve_record_from_pid') as mock_resolve:
-            mock_g.identity = None
-            mock_resolve.return_value = rdm_record._record
-            response = client.get(
-                f'/api/endorsement-request/reviewers/{rdm_record.id}'
-            )
+        response = self.send_list_reviewers(client, None, rdm_record, rdm_record.id)
         
         # The API actually returns a handled error response, not 500
         # Based on the actual behavior, it should return a client error
