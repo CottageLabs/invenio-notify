@@ -32,6 +32,10 @@ from invenio_rdm_records.resources.errors import HTTPJSONException
 from .errors import ErrorHandlersMixin, ApiErrorHandlersMixin, create_error_handler_with_json
 
 
+# KTODO add Admin page for Endorsement Requests
+# KTODO refactor to make resource become a package, all Resource should be a module in a package
+
+
 def validate_owner_id(record: RDMRecord, user_id):
     """Check if the user is the owner of the record.
     

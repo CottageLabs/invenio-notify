@@ -316,6 +316,7 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
     # Update endorsement_request.latest_status
     endorsement_request.latest_status = noti_type
 
+    # KTODO notification when save
     return reply
 
 

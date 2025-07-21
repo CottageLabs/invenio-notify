@@ -15,8 +15,8 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
         reviewer: Reviewer object containing inbox URL and other details
     """
 
-    # KTODO do we need to handle other file type than PDF in `object`?
-    # KTODO which value should be used for `origin.id`?
+    # KTODO which value should be used for `origin.id`? --- config
+    # KTODO update it to only attach HTML link to the object
 
     # define the object structure
     object = {
