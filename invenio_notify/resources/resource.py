@@ -356,7 +356,7 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
             current_app.logger.info(f'Created endorsement request record for reviewer {reviewer_id}')
         except Exception as e:
             current_app.logger.error(f'Failed to create endorsement request record: {e}')
-            raise Exception('Failed to create endorsement request record')
+            raise Exception('Failed to create endorsement request record') from e
 
         return {'is_success': 1, 'message': 'Request Accepted'}, 200
 
