@@ -40,6 +40,23 @@ def create_reviewer(db, superuser_identity):
     return _create_reviewer
 
 
+@pytest.fixture
+def create_multiple_reviewers(db, create_reviewer):
+    """Fixture to create multiple reviewers for testing."""
+    def _create_multiple_reviewers(count=3):
+        reviewers = []
+        for i in range(count):
+            reviewer = create_reviewer(
+                name=f'Test Reviewer {i+1}',
+                inbox_url=f'https://reviewer{i+1}.example.com/inbox',
+                inbox_api_token=f'token{i+1}',
+                actor_id=f'https://reviewer{i+1}.example.com'
+            )
+            reviewers.append(reviewer)
+        return reviewers
+    return _create_multiple_reviewers
+
+
 def reviewer_data(actor_id='reviewer-actor-123', name='Test Reviewer',
                  inbox_url='https://example.com/inbox',
                  inbox_api_token='test-inbox-api-token', description='Test description'):
