@@ -16,14 +16,11 @@ def test_model_create(db, superuser_identity, minimal_record, create_reviewer):
     record = prepare_test_rdm_record(db, minimal_record)
 
     assert EndorsementModel.query.count() == 0
-    record_uuid = record.id
-
     reviewer = create_reviewer()
     data = dict(
-        record_id=record_uuid,
+        record_id=(record.id),
         reviewer_id=reviewer.id,
         review_type='endorsement',
-        user_id=superuser_identity.id,
         result_url='https://fake.url',
         reviewer_name=reviewer.name,
     )
@@ -50,7 +47,6 @@ def test_service_create(db, superuser_identity, minimal_record, test_app, create
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer_id,
-        user_id=superuser_identity.id,
         inbox_id=inbox.id
     )
 
@@ -78,7 +74,6 @@ def test_service_update(db, superuser_identity, minimal_record, test_app, create
     endorsement_data = {
         'record_id': str(record.id),
         'reviewer_id': reviewer.id,
-        'user_id': superuser_identity.id,
         'inbox_id': inbox.id,
         'review_type': constants.TYPE_ENDORSEMENT,
         'result_url': 'https://example.com/endorsement1',
@@ -111,44 +106,43 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     record = prepare_test_rdm_record(db, minimal_record)
     not_related_record = prepare_test_rdm_record(db, minimal_record)
     service = proxies.current_endorsement_service
-    inbox = create_inbox(recid='r1')
 
     record_id = str(record.id)
     reviewer1 = create_reviewer(name="Reviewer One")
     reviewer2 = create_reviewer(name="Reviewer Two")
 
-    # Create endorsements using the fixture
+    # Create endorsements using the fixture - each needs unique inbox due to unique constraint
+    inbox1 = create_inbox(recid='r1')
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer1.id,
-        user_id=superuser_identity.id,
-        inbox_id=inbox.id,
+        inbox_id=inbox1.id,
         review_type=constants.TYPE_ENDORSEMENT,
         result_url='https://example.com/endorsement1'
     )
 
+    inbox2 = create_inbox(recid='r2')
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer1.id,
-        user_id=superuser_identity.id,
-        inbox_id=inbox.id,
+        inbox_id=inbox2.id,
         review_type=constants.TYPE_REVIEW,
         result_url='https://example.com/review1'
     )
 
     # Create an endorsement for a different record
+    inbox3 = create_inbox(recid='r3')
     create_endorsement(
         record_id=str(not_related_record.id),
         reviewer_id=reviewer1.id,
-        user_id=superuser_identity.id,
-        inbox_id=inbox.id
+        inbox_id=inbox3.id
     )
 
+    inbox4 = create_inbox(recid='r4')
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer2.id,
-        user_id=superuser_identity.id,
-        inbox_id=inbox.id,
+        inbox_id=inbox4.id,
         result_url='https://example.com/endorsement2'
     )
 

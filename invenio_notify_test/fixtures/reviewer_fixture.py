@@ -3,7 +3,6 @@ import datetime
 import pytest
 
 from invenio_notify.records.models import ReviewerModel
-from invenio_notify.services.service import ReviewerService
 
 
 @pytest.fixture
@@ -87,6 +86,3 @@ def sample_reviewers(count=3):
     return reviewers
 
 
-def create_reviewer_service() -> ReviewerService:
-    from invenio_notify.proxies import current_reviewer_service
-    return current_reviewer_service

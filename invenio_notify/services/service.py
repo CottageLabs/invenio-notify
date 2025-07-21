@@ -1,24 +1,36 @@
+from typing import List, Dict
+
 import regex
+from coarnotify.core.notify import NotifyPattern
+from coarnotify.server import (
+    COARNotifyReceipt,
+    COARNotifyServer,
+    COARNotifyServiceBinding,
+)
 from flask import current_app
 from flask import g
 from invenio_accounts.models import User
 from invenio_db import db
 from invenio_db.uow import unit_of_work
+from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.services import RDMRecordService
 from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.base.utils import map_search_params
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 
-from coarnotify.core.notify import NotifyPattern
-from coarnotify.server import COARNotifyServiceBinding, COARNotifyReceipt, COARNotifyServer
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
-from invenio_notify.records.models import ReviewerMapModel, ReviewerModel, EndorsementModel
-from invenio_notify.utils import user_utils
+from invenio_notify.records.models import (
+    EndorsementModel,
+    EndorsementRequestModel,
+    ReviewerMapModel,
+    ReviewerModel,
+)
+from invenio_notify.tasks import get_notification_type
+from invenio_notify.utils import user_utils, reviewer_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
-from invenio_rdm_records.proxies import current_rdm_records_service
-from invenio_rdm_records.services import RDMRecordService
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
 
@@ -128,6 +140,17 @@ class NotifyInboxService(BasicDbService):
     @unit_of_work()
     def create(self, identity, data, raise_errors=True, uow=None):
         data['user_id'] = identity.id
+
+        # Extract noti_id from raw data if not already provided
+        if 'noti_id' not in data and 'raw' in data:
+            raw = data['raw']
+            noti_id = raw.get('id')
+            if noti_id:
+                data['noti_id'] = noti_id
+            else:
+                current_app.logger.error('Missing notification ID in raw data')
+                raise ValueError('Missing notification ID in raw data')
+
         return super().create(
             identity,
             data,
@@ -145,6 +168,12 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         raw = notification.to_jsonld()
         recid = get_recid_by_record_url(raw['context']['id'])
 
+        # Extract notification ID from the raw notification
+        noti_id = raw.get('id')
+        if not noti_id:
+            current_app.logger.error('Missing notification ID in COAR notification')
+            raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'Missing notification ID')
+
         # Check actor_id match with user
         actor_id = raw['actor']['id']
         if not ReviewerModel.has_member(g.identity.id, actor_id):
@@ -152,7 +181,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
         # Check if the notification type is supported
-        if all(t not in constants.REVIEW_TYPES for t in raw.get('type', [])):
+        if not get_notification_type(raw):
             current_app.logger.info(f'Unknown type: [{recid=}]{raw.get("type")}')
             raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
 
@@ -161,7 +190,11 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         records_service.record_cls.pid.resolve(recid)  # raises PIDDoesNotExistError if not found
 
         current_app.logger.debug(f'client input raw: {raw}')
-        current_inbox_service.create(g.identity, {"raw": raw, 'recid': recid})
+        try:
+            current_inbox_service.create(g.identity, {"noti_id": noti_id, "raw": raw, 'recid': recid})
+        except Exception as e:
+            current_app.logger.error(f'Failed to create inbox record: {e}')
+            raise COARProcessFail(constants.STATUS_BAD_REQUEST, f'Failed to create inbox record')
 
         return COARNotifyReceipt(COARNotifyReceipt.ACCEPTED)
 
@@ -170,12 +203,12 @@ class EndorsementService(BasicDbService):
     """Service for managing endorsements."""
 
     @staticmethod
-    def get_endorsement_info(record_id):
+    def get_endorsement_info(record_id) -> List[Dict]:
         """Get the endorsement information for a record by its ID.
         Note: This method is not actually called in this module, it is called in
         InvenioRDMRecords by the EndorsementsDumperExt and as a backup for the
         Endorsements system field getter.
-        
+
         Args:
             record_id: The UUID of the record
             
@@ -308,17 +341,11 @@ class ReviewerService(BasicDbService):
             current_app.logger.info('No new emails to add')
             raise ValueError('Duplicate emails found')
 
-        added_members = []
         for email in new_emails:
             user = user_utils.find_user_by_email(email)
             if user:
                 current_app.logger.info(f'Adding user [{user.email}] to reviewer [{reviewer.actor_id}]')
-                ReviewerMapModel.create({
-                    'user_id': user.id,
-                    'reviewer_id': reviewer.id
-                })
-                user_utils.add_coarnotify_action(db, user.id)
-                added_members.append(user)
+                reviewer_utils.add_member_to_reviewer(reviewer_id, user.id, uow=uow)
             else:
                 current_app.logger.warning(f'User with email {email} not found')
 
@@ -377,3 +404,82 @@ class ReviewerService(BasicDbService):
             })
 
         return member_data
+
+
+class EndorsementRequestService(BasicDbService):
+    """Service for managing endorsement requests."""
+
+    # KTODO consider extracting common search logic to a base class
+    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
+        if filter_maker is None:
+            def filter_maker(query_param):
+                filters = []
+                if query_param:
+                    filters.extend([
+                        self.record_cls.record_id == query_param,
+                    ])
+                return filters
+
+        return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)
+
+    @unit_of_work()
+    def create(self, identity, data, raise_errors=True, uow=None):
+        # KTODO default value should be status type of coar_notify constants
+        data['latest_status'] = data.get('latest_status', 'Request Endorsement')
+        if data.get('user_id') is None:
+            data['user_id'] = identity.id
+        # Convert UUID to string if needed for schema validation
+        if 'record_id' in data and hasattr(data['record_id'], '__str__'):
+            data['record_id'] = str(data['record_id'])
+        if 'noti_id' in data and hasattr(data['noti_id'], '__str__'):
+            data['noti_id'] = str(data['noti_id'])
+        return super().create(identity, data, raise_errors=raise_errors, uow=uow)
+
+    @unit_of_work()
+    def update_status(self, identity, id, status, uow=None):
+        """Update the latest status of an endorsement request."""
+
+        # KTODO do we need this function
+
+        self.require_permission(identity, "update")
+
+        record = self.record_cls.get(id)
+        self.record_cls.update({'latest_status': status}, id)
+
+        return self.result_item(
+            self,
+            identity,
+            record,
+            links_tpl=self.links_item_tpl,
+        )
+
+
+class EndorsementReplyService(BasicDbService):
+    """Service for managing endorsement replies."""
+
+    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
+        if filter_maker is None:
+            def filter_maker(query_param):
+                filters = []
+                if query_param:
+                    filters.extend([
+                        self.record_cls.endorsement_request_id == query_param,
+                    ])
+                return filters
+
+        return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)
+
+    @unit_of_work()
+    def create(self, identity, data, raise_errors=True, uow=None):
+        """Create a new endorsement reply and optionally update the parent request status."""
+        result = super().create(identity, data, raise_errors=raise_errors, uow=uow)
+
+        # Update the parent endorsement request status if provided
+        if 'endorsement_request_id' in data and 'status' in data:
+            request_record = EndorsementRequestModel.get(data['endorsement_request_id'])
+            EndorsementRequestModel.update(
+                {'latest_status': data['status']},
+                data['endorsement_request_id']
+            )
+
+        return result
