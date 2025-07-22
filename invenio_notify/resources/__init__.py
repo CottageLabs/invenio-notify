@@ -4,7 +4,9 @@ from .config import (
     ReviewerAdminResourceConfig,
     InboxApiResourceConfig,
     EndorsementRequestResourceConfig,
+    EndorsementRequestAdminResourceConfig,
 )
+from .endorsement_request_admin_resource import EndorsementRequestAdminResource
 from .endorsement_request_resource import EndorsementRequestResource
 from .inbox_admin_resource import InboxAdminResource
 from .inbox_api_resource import InboxApiResource
@@ -17,10 +19,12 @@ __all__ = [
     "ReviewerAdminResource",
     "InboxApiResource",
     "EndorsementRequestResource",
+    "EndorsementRequestAdminResource",
 
     # Configs
     "InboxAdminResourceConfig",
     "ReviewerAdminResourceConfig", 
     "InboxApiResourceConfig",
     "EndorsementRequestResourceConfig",
+    "EndorsementRequestAdminResourceConfig",
 ]

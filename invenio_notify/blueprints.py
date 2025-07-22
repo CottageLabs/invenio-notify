@@ -21,3 +21,7 @@ def create_inbox_api_resource_bp(app):
 
 def create_endorsement_request_resource_api_bp(app):
     return app.extensions["invenio-notify"].endorsement_request_resource.as_blueprint()
+
+
+def create_endorsement_request_admin_resource_api_bp(app):
+    return app.extensions["invenio-notify"].endorsement_request_admin_resource.as_blueprint()

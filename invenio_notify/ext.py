@@ -5,10 +5,12 @@ from invenio_notify.resources import (
     ReviewerAdminResourceConfig,
     InboxApiResourceConfig,
     EndorsementRequestResourceConfig,
+    EndorsementRequestAdminResourceConfig,
     InboxAdminResource,
     ReviewerAdminResource,
     InboxApiResource,
     EndorsementRequestResource,
+    EndorsementRequestAdminResource,
 )
 from invenio_notify.services.config import (
     EndorsementReplyServiceConfig,
@@ -85,4 +87,8 @@ class InvenioNotify:
         )
         self.endorsement_request_resource = EndorsementRequestResource(
             config=EndorsementRequestResourceConfig.build(app),
+        )
+        self.endorsement_request_admin_resource = EndorsementRequestAdminResource(
+            service=self.endorsement_request_service,
+            config=EndorsementRequestAdminResourceConfig,
         )

@@ -80,3 +80,9 @@ class EndorsementRequestResourceConfig(ResourceConfig, ConfiguratorMixin):
 
     response_handler = {"application/json": ResponseHandler(JSONSerializer())}
 
+
+class EndorsementRequestAdminResourceConfig(BasicResourceConfig):
+    """Configuration for the endorsement request admin resource."""
+    blueprint_name = "endorsement_request_admin"
+    url_prefix = "/endorsement-request-admin"
+

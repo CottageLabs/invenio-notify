@@ -35,6 +35,8 @@ reviewer_list = "invenio_notify.views.reviewer_views:ReviewerListView"
 reviewer_detail = "invenio_notify.views.reviewer_views:ReviewerDetailView"
 reviewer_create = "invenio_notify.views.reviewer_views:ReviewerCreateView"
 reviewer_edit = "invenio_notify.views.reviewer_views:ReviewerEditView"
+endorsement_request_list = "invenio_notify.views.endorsement_request_admin_views:EndorsementRequestListView"
+endorsement_request_detail = "invenio_notify.views.endorsement_request_admin_views:EndorsementRequestDetailView"
 
 [project.entry-points."invenio_base.api_apps"]
 invenio_notify = "invenio_notify.ext:InvenioNotify"
@@ -44,6 +46,7 @@ inbox_admin_resource = "invenio_notify.blueprints:create_inbox_admin_resource_ap
 reviewer_admin_resource = "invenio_notify.blueprints:create_reviewer_admin_resource_api_bp"
 inbox_api_resource = "invenio_notify.blueprints:create_inbox_api_resource_bp"
 endorsement_request = "invenio_notify.blueprints:create_endorsement_request_resource_api_bp"
+endorsement_request_admin_resource = "invenio_notify.blueprints:create_endorsement_request_admin_resource_api_bp"
 
 [project.entry-points."invenio_base.apps"]
 invenio_notify = "invenio_notify.ext:InvenioNotify"
