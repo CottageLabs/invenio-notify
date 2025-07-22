@@ -1,3 +1,5 @@
+import pytest
+from invenio_accounts.models import User
 from invenio_accounts.testutils import create_test_user
 
 def create_test_users(emails=None):
@@ -18,3 +20,17 @@ def create_test_users(emails=None):
         users.append(create_test_user(email=email))
     
     return users
+
+@pytest.fixture
+def different_user(db):
+    """Create a different user for non-owner tests."""
+    user = User(email='different@example.com', username='different_user')
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
+@pytest.fixture
+def superuser(superuser_identity):
+    """Get User object from superuser_identity."""
+    return User.query.filter_by(id=superuser_identity.id).first()
