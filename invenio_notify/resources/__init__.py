@@ -1,26 +1,26 @@
 from .basic_db_resource import BasicDbResource
 from .config import (
-    NotifyInboxResourceConfig,
-    ReviewerResourceConfig,
+    InboxAdminResourceConfig,
+    ReviewerAdminResourceConfig,
     InboxApiResourceConfig,
     EndorsementRequestResourceConfig,
 )
 from .endorsement_request_resource import EndorsementRequestResource
+from .inbox_admin_resource import InboxAdminResource
 from .inbox_api_resource import InboxApiResource
-from .notify_inbox_resource import NotifyInboxResource
-from .reviewer_resource import ReviewerResource
+from .reviewer_admin_resource import ReviewerAdminResource
 
 __all__ = [
     # Resources
     "BasicDbResource",
-    "NotifyInboxResource", 
-    "ReviewerResource",
+    "InboxAdminResource", 
+    "ReviewerAdminResource",
     "InboxApiResource",
     "EndorsementRequestResource",
 
     # Configs
-    "NotifyInboxResourceConfig",
-    "ReviewerResourceConfig", 
+    "InboxAdminResourceConfig",
+    "ReviewerAdminResourceConfig", 
     "InboxApiResourceConfig",
     "EndorsementRequestResourceConfig",
 ]

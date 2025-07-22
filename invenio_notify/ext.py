@@ -1,12 +1,12 @@
 from invenio_notify import config, cli
 from invenio_notify.blueprints import blueprint
 from invenio_notify.resources import (
-    NotifyInboxResourceConfig,
-    ReviewerResourceConfig,
+    InboxAdminResourceConfig,
+    ReviewerAdminResourceConfig,
     InboxApiResourceConfig,
     EndorsementRequestResourceConfig,
-    NotifyInboxResource,
-    ReviewerResource,
+    InboxAdminResource,
+    ReviewerAdminResource,
     InboxApiResource,
     EndorsementRequestResource,
 )
@@ -71,13 +71,13 @@ class InvenioNotify:
 
     def init_resources(self, app):
         """Initialize the resources for notifications."""
-        self.notify_inbox_resource = NotifyInboxResource(
+        self.inbox_admin_resource = InboxAdminResource(
             service=self.notify_inbox_service,
-            config=NotifyInboxResourceConfig,
+            config=InboxAdminResourceConfig,
         )
-        self.reviewer_resource = ReviewerResource(
+        self.reviewer_admin_resource = ReviewerAdminResource(
             service=self.reviewer_service,
-            config=ReviewerResourceConfig,
+            config=ReviewerAdminResourceConfig,
         )
         self.inbox_api_resource = InboxApiResource(
             service=self.notify_inbox_service,
