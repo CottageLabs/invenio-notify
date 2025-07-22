@@ -1,11 +1,10 @@
 from invenio_notify import config, cli
 from invenio_notify.blueprints import blueprint
-from invenio_notify.resources.config import (
+from invenio_notify.resources import (
     NotifyInboxResourceConfig,
     ReviewerResourceConfig,
-    InboxApiResourceConfig, EndorsementRequestResourceConfig,
-)
-from invenio_notify.resources.resource import (
+    InboxApiResourceConfig,
+    EndorsementRequestResourceConfig,
     NotifyInboxResource,
     ReviewerResource,
     InboxApiResource,
