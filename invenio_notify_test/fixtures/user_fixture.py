@@ -28,3 +28,9 @@ def different_user(db):
     db.session.add(user)
     db.session.commit()
     return user
+
+
+@pytest.fixture
+def superuser(superuser_identity):
+    """Get User object from superuser_identity."""
+    return User.query.filter_by(id=superuser_identity.id).first()

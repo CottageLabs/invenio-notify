@@ -16,39 +16,20 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
     """
 
     # KTODO which value should be used for `origin.id`? --- config
-    # KTODO update it to only attach HTML link to the object
 
     # define the object structure
     object = {
         "id": record.data["links"]["self_html"],
-        "type": ["Page", "sorg:AboutPage"]
+        "type": ["Page", "sorg:AboutPage"],
+        "ietf:item": {
+            "id": record.data["links"]["self_html"],
+            "mediaType": "text/html",
+            "type": ["Page", "sorg:AboutPage"],
+        },
     }
 
     if 'doi' in record.data['links']:
         object['ietf:cite-as'] = record.data['links']['doi']
-
-    if 'files' in record.data and record.data:
-
-        # they have two versions to get file objects
-        record_files = record.data['files']
-        if isinstance(record_files, list):
-            files = record_files
-        else:
-            files = record_files.get('entries', {}).values()
-
-        for file in files:
-            link = file.get('links', {}).get('self')
-            if not link:
-                continue
-
-            is_pdf = file['key'].endswith('.pdf') or '.pdf' in link
-            if is_pdf:
-                object['ietf:item'] = {
-                    "id": link,
-                    "mediaType": "application/pdf",
-                    "type": ["Article", "sorg:ScholarlyArticle"],
-                }
-                break
 
     # define full notification data structure
     data = {
