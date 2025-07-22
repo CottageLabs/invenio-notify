@@ -28,8 +28,9 @@ class TestCreateEndorsementRequestData:
         # Add DOI to record data
         record_item.data['links']['doi'] = 'https://doi.org/10.1234/test.doi'
 
-        # Call function
-        result = create_endorsement_request_data(user, record_item, reviewer)
+        # Call function with origin_id
+        origin_id = 'https://example.com/origin'
+        result = create_endorsement_request_data(user, record_item, reviewer, origin_id)
 
         # Verify basic structure
         assert result['@context'] == [
@@ -58,7 +59,7 @@ class TestCreateEndorsementRequestData:
         assert result['object']['ietf:cite-as'] == 'https://doi.org/10.1234/test.doi'
 
         # Verify origin and target
-        assert result['origin']['id'] == 'https://example.com/inbox'
+        assert result['origin']['id'] == origin_id
         assert result['origin']['inbox'] == 'https://example.com/inbox'
         assert result['origin']['type'] == 'Service'
 

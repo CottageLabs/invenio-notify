@@ -215,3 +215,9 @@ def rdm_record(db, superuser_identity, minimal_record, resource_type_v, location
     record = current_rdm_records.records_service.publish(superuser_identity, draft.id)
 
     return record
+
+
+@pytest.fixture(scope="module")
+def app_config(app_config):
+    app_config["NOTIFY_ORIGIN_ID"] = "yoooooooooooooooooooooo"
+    return app_config

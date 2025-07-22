@@ -348,8 +348,13 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
         if not can_send(endorsement_request, reviewer):
             raise BadRequestError('Reviewer not available for endorsement request')
 
+        # Get origin_id from config
+        origin_id = current_app.config.get("NOTIFY_ORIGIN_ID", None)
+        if not origin_id:
+            raise ValueError("NOTIFY_ORIGIN_ID must be set in invenio.cfg")
+
         # Send endorsement request to reviewer's inbox
-        endorsement_request_data = create_endorsement_request_data(user, record, reviewer)
+        endorsement_request_data = create_endorsement_request_data(user, record, reviewer, origin_id)
         send_to_reviewer_inbox(reviewer, endorsement_request_data)
 
         # Create endorsement request record

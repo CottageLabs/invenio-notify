@@ -7,15 +7,14 @@ from invenio_notify import constants
 from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
 
 
-def create_endorsement_request_data(user, record: RecordItem, reviewer: ReviewerModel):
+def create_endorsement_request_data(user, record: RecordItem, reviewer: ReviewerModel, origin_id: str):
     """Create endorsement request data following COAR notification structure.
     
     Args:
         user: User object making the endorsement request
         reviewer: Reviewer object containing inbox URL and other details
+        origin_id: Origin ID from configuration
     """
-
-    # KTODO which value should be used for `origin.id`? --- config
 
     # define the object structure
     object = {
@@ -45,7 +44,7 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
         "id": f"urn:uuid:{uuid.uuid4()}",
         "object": object,
         "origin": {
-            "id": invenio_url_for('inbox_api.receive_notification'),
+            "id": origin_id,
             "inbox": invenio_url_for('inbox_api.receive_notification'),
             "type": "Service"
         },
