@@ -14,7 +14,7 @@ from invenio_notify.services.schemas import ReviewerSchema
 from .basic_db_resource import BasicDbResource
 
 
-class ReviewerResource(BasicDbResource):
+class ReviewerAdminResource(BasicDbResource):
 
     def create_url_rules(self):
         """Create the URL rules for the record resource."""

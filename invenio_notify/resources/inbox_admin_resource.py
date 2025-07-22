@@ -3,7 +3,7 @@ from flask_resources import route
 from .basic_db_resource import BasicDbResource
 
 
-class NotifyInboxResource(BasicDbResource):
+class InboxAdminResource(BasicDbResource):
 
     def create_url_rules(self):
         """Create the URL rules for the record resource."""

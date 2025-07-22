@@ -40,8 +40,8 @@ reviewer_edit = "invenio_notify.views.reviewer_views:ReviewerEditView"
 invenio_notify = "invenio_notify.ext:InvenioNotify"
 
 [project.entry-points."invenio_base.api_blueprints"]
-notify_inbox_resource = "invenio_notify.blueprints:create_notify_inbox_resource_api_bp"
-reviewer_resource = "invenio_notify.blueprints:create_reviewer_resource_api_bp"
+inbox_admin_resource = "invenio_notify.blueprints:create_inbox_admin_resource_api_bp"
+reviewer_admin_resource = "invenio_notify.blueprints:create_reviewer_admin_resource_api_bp"
 inbox_api_resource = "invenio_notify.blueprints:create_inbox_api_resource_bp"
 endorsement_request = "invenio_notify.blueprints:create_endorsement_request_resource_api_bp"
 

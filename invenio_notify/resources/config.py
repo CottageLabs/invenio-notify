@@ -38,7 +38,7 @@ class BasicResourceConfig(RecordResourceConfig):
     }
 
 
-class NotifyInboxResourceConfig(BasicResourceConfig):
+class InboxAdminResourceConfig(BasicResourceConfig):
     blueprint_name = "notify_inbox"
     url_prefix = "/notify-inbox"
     # request_extra_args = {
@@ -48,7 +48,7 @@ class NotifyInboxResourceConfig(BasicResourceConfig):
 
 
 
-class ReviewerResourceConfig(BasicResourceConfig):
+class ReviewerAdminResourceConfig(BasicResourceConfig):
     blueprint_name = "reviewer"
     url_prefix = "/reviewer"
 

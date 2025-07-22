@@ -7,7 +7,7 @@ class NotifyInboxListView(AdminResourceListView):
 
     api_endpoint = "/notify-inbox"
     name = "notify-inbox"
-    resource_config = "notify_inbox_resource"
+    resource_config = "inbox_admin_resource"
     title = "Notify Inbox"
     menu_label = "Notify Inbox"
     category = _("Notify Inbox")
@@ -44,7 +44,7 @@ class NotifyInboxDetailView(AdminResourceDetailView):
     url = "/notify-inbox/<pid_value>"
     api_endpoint = "/notify-inbox"
     name = "notify-inbox-details"
-    resource_config = "notify_inbox_resource"
+    resource_config = "inbox_admin_resource"
     title = "Notify Inbox Details"
 
     display_delete = True
