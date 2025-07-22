@@ -11,7 +11,7 @@ from invenio_records_resources.resources.records.resource import (
     request_view_args,
 )
 
-from .errors import ErrorHandlersMixin
+from ..errors import ErrorHandlersMixin
 
 
 class BasicDbResource(ErrorHandlersMixin, Resource):
