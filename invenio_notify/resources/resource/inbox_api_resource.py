@@ -10,7 +10,7 @@ from coarnotify.server import COARNotifyServerError
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.utils.notify_response import response_coar_notify_receipt, create_default_msg_by_status
 from invenio_rdm_records.resources.errors import HTTPJSONException
-from .errors import ApiErrorHandlersMixin, create_error_handler_with_json, create_error_handler
+from ..errors import ApiErrorHandlersMixin, create_error_handler_with_json, create_error_handler
 
 
 def require_inbox_oauth():

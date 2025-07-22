@@ -18,6 +18,7 @@ from invenio_records_resources.services.records.results import RecordItem
 from invenio_notify import constants
 from invenio_notify.errors import SendRequestFail, BadRequestError
 from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
+from invenio_notify.utils import record_utils
 from invenio_notify.utils.endorsement_request_utils import (
     create_endorsement_request_data,
     get_available_reviewers,
@@ -26,8 +27,7 @@ from invenio_notify.utils.endorsement_request_utils import (
 )
 from invenio_notify.utils.record_utils import resolve_record_from_pid
 from invenio_rdm_records.records import RDMRecord
-from .errors import ApiErrorHandlersMixin
-from ..utils import record_utils
+from ..errors import ApiErrorHandlersMixin
 
 
 def validate_owner_id(record: RDMRecord, user_id):
