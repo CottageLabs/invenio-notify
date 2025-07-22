@@ -1,0 +1,5 @@
+line-length = 120
+
+[lint.per-file-ignores]
+"inveio_notify_tests/**/test_*.py" = ["F811"]
+"**/__init__.py" = ["F401"]
