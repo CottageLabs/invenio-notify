@@ -15,10 +15,10 @@ class TestListReviewers:
         actual_record_id = record_id or record.id
         url = f'/api/endorsement-request/reviewers/{actual_record_id}'
 
-        with patch('invenio_notify.resources.resource.g') as mock_g:
+        with patch('invenio_notify.resources.endorsement_request_resource.g') as mock_g:
             mock_g.identity = identity
             if record:
-                with patch('invenio_notify.resources.resource.resolve_record_from_pid') as mock_resolve:
+                with patch('invenio_notify.resources.endorsement_request_resource.resolve_record_from_pid') as mock_resolve:
                     mock_resolve.return_value = record._record
                     return client.get(url)
             else:
@@ -91,15 +91,15 @@ class TestSend:
         # from unittest.mock import AsyncMock, patch
 
 
-        with patch('invenio_notify.resources.resource.g') as mock_g:
+        with patch('invenio_notify.resources.endorsement_request_resource.g') as mock_g:
             mock_g.identity = identity
-            with patch('invenio_notify.resources.resource.record_utils.read_record_item') as mock_read:
+            with patch('invenio_notify.resources.endorsement_request_resource.record_utils.read_record_item') as mock_read:
                 mock_read.return_value = record
                 # mock_read.read = AsyncMock(return_value=record)
                 return client.post(url, json={"reviewer_id": reviewer_id})
 
 
-    @patch('invenio_notify.resources.resource.requests.post')
+    @patch('invenio_notify.resources.endorsement_request_resource.requests.post')
     def test_success(self, mock_post, client, rdm_record, superuser_identity, create_reviewer, db):
         """Test successful endorsement request."""
         # Create reviewer with proper configuration
@@ -129,9 +129,9 @@ class TestSend:
         """Test request without reviewer_id field."""
         url = f'/api/endorsement-request/send/{rdm_record.id}'
         
-        with patch('invenio_notify.resources.resource.g') as mock_g:
+        with patch('invenio_notify.resources.endorsement_request_resource.g') as mock_g:
             mock_g.identity = superuser_identity
-            with patch('invenio_notify.resources.resource.resolve_record_from_pid') as mock_resolve:
+            with patch('invenio_notify.resources.endorsement_request_resource.resolve_record_from_pid') as mock_resolve:
                 mock_resolve.return_value = rdm_record._record
                 response = client.post(url, json={})
         
@@ -184,7 +184,7 @@ class TestSend:
         
         assert response.status_code == 400
 
-    @patch('invenio_notify.resources.resource.requests.post')
+    @patch('invenio_notify.resources.endorsement_request_resource.requests.post')
     def test_reviewer_inbox_request_fails(self, mock_post, client, rdm_record, superuser_identity, create_reviewer, db):
         """Test handling of reviewer inbox request failure."""
         reviewer = create_reviewer(
