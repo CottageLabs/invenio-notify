@@ -11,7 +11,9 @@ from invenio_notify.errors import NotExistsError, SendRequestFail, BadRequestErr
 
 def create_description(e, description_fn=None):
     """Generate description from exception."""
-    if description_fn:
+    if isinstance(description_fn, str):
+        return description_fn
+    if callable(description_fn):
         return description_fn(e)
     if hasattr(e, 'description'):
         return e.description

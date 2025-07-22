@@ -26,10 +26,10 @@ from invenio_notify.utils.endorsement_request_utils import create_endorsement_re
     get_latest_endorsement_request, can_send
 from invenio_notify.utils.notify_response import response_coar_notify_receipt, create_default_msg_by_status
 from invenio_notify.utils.record_utils import resolve_record_from_pid
-from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.records import RDMRecord
 from invenio_rdm_records.resources.errors import HTTPJSONException
 from .errors import ErrorHandlersMixin, ApiErrorHandlersMixin, create_error_handler_with_json
+from ..utils import record_utils
 
 
 # KTODO add Admin page for Endorsement Requests
@@ -331,11 +331,13 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
 
         if not data or 'reviewer_id' not in data:
             raise ValueError('reviewer_id is required')
+        if g.identity is None or g.identity.id is None:
+            raise BadRequestError('User identity is required')
 
         reviewer_id = data['reviewer_id']
 
         reviewer = ReviewerModel.query.filter_by(id=reviewer_id).one()
-        record: RecordItem = current_rdm_records_service.read(system_identity, pid_value)
+        record: RecordItem = record_utils.read_record_item(system_identity, pid_value)
         user = User.query.get(g.identity.id)
 
         # Check if user is the record owner
