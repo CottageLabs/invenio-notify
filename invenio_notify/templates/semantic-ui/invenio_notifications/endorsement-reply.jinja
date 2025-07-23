@@ -1,6 +1,5 @@
 {% set record_title = notification.context.record_title %}
 {% set record_url = notification.context.record_url %}
-{% set endorsement_url = notification.context.endorsement_url %}
 {% set endorsement_status = notification.context.endorsement_status %}
 {% set reviewer_name = notification.context.reviewer_name %}
 {% set account_settings_link = invenio_url_for("invenio_notifications_settings.index") %}
@@ -59,11 +58,6 @@
             <a href="{{ record_url }}" class="button">{{ _("View your record")}}</a>
         </td>
     </tr>
-    <tr>
-        <td>
-            <a href="{{ endorsement_url }}" class="button">{{ _("View endorsement details")}}</a>
-        </td>
-    </tr>
     {% if endorsement_status == 'TentativeReject' %}
     <tr>
         <td style="background-color:#fff3cd;border:1px solid #ffeaa7;padding:10px;border-radius:4px">
@@ -93,7 +87,6 @@
 {% endif %}
 
 {{ _("View your record: {record_url}").format(record_url=record_url) }}
-{{ _("View endorsement details: {endorsement_url}").format(endorsement_url=endorsement_url) }}
 
 —
 {{ _("This is an auto-generated message. To manage notifications, "
@@ -129,7 +122,6 @@
 {% endif %}
 
 [{{ _("View your record") }}]({{ record_url }})
-[{{ _("View endorsement details") }}]({{ endorsement_url }})
 
 —
 {{ _("This is an auto-generated message. To manage notifications, visit your") }}
