@@ -12,15 +12,13 @@ from invenio_notify.resources import (
     EndorsementRequestResource,
     EndorsementRequestAdminResource,
 )
-from invenio_notify.services.config import (
+from invenio_notify.services import (
     EndorsementReplyServiceConfig,
     EndorsementRequestServiceConfig,
     EndorsementServiceConfig,
     NotifyInboxServiceConfig,
     ReviewerMapServiceConfig,
     ReviewerServiceConfig,
-)
-from invenio_notify.services.service import (
     EndorsementReplyService,
     EndorsementRequestService,
     EndorsementService,
