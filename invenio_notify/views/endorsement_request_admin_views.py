@@ -10,7 +10,7 @@ class EndorsementRequestListView(AdminResourceListView):
     resource_config = "endorsement_request_admin_resource"
     title = "Endorsement Requests"
     menu_label = "Endorsement Requests"
-    category = _("Notify System")
+    category = _("Notify")
     pid_path = "id"
     icon = "handshake"
 
@@ -32,9 +32,9 @@ class EndorsementRequestListView(AdminResourceListView):
 
     create_view_name = None
 
-    search_config_name = "ENDORSEMENT_REQUEST_SEARCH"
-    search_sort_config_name = "ENDORSEMENT_REQUEST_SORT_OPTIONS"
+    search_config_name = "NOTIFY_SEARCH"
 
+    search_sort_config_name = "NOTIFY_SORT_OPTIONS"
 
 class EndorsementRequestDetailView(AdminResourceDetailView):
     """Admin endorsement request detail view."""
