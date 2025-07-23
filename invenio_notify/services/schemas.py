@@ -77,7 +77,7 @@ class EndorsementRequestSchema(BaseRecordSchema):
     noti_id = fields.String(required=True)
     record_id = fields.String(required=True)
     reviewer_id = fields.Integer(required=True)
-    raw = fields.Dict(required=True)
+    raw = fields.String(required=True)
     latest_status = fields.String(required=True)
     user_id = fields.Integer(required=False)
 

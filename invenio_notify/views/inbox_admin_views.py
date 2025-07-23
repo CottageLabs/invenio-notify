@@ -12,7 +12,7 @@ class NotifyInboxListView(AdminResourceListView):
     menu_label = "Notify Inbox"
     category = _("Notify")
     pid_path = "id"
-    icon = "newspaper"
+    icon = "envelope outline"
 
     display_search = True
     display_delete = True
