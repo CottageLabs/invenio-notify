@@ -10,7 +10,7 @@ class NotifyInboxListView(AdminResourceListView):
     resource_config = "inbox_admin_resource"
     title = "Notify Inbox"
     menu_label = "Notify Inbox"
-    category = _("Notify Inbox")
+    category = _("Notify")
     pid_path = "id"
     icon = "newspaper"
 

@@ -13,7 +13,7 @@ class ReviewerListView(AdminResourceListView):
     resource_config = "reviewer_admin_resource"
     title = "Reviewers"
     menu_label = "Reviewers"
-    category = _("Notify Inbox")
+    category = _("Notify")
     pid_path = "id"
     icon = "user"
 
