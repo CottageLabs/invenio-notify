@@ -6,7 +6,7 @@ from flask import current_app
 from werkzeug.local import LocalProxy
 
 if TYPE_CHECKING:
-    from invenio_notify.services.service import (
+    from invenio_notify.services import (
         NotifyInboxService,
         ReviewerService,
         EndorsementService,
