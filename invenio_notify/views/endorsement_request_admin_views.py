@@ -6,13 +6,13 @@ class EndorsementRequestListView(AdminResourceListView):
     """Endorsement request admin list view."""
 
     api_endpoint = "/endorsement-request-admin"
-    name = "endorsement-request-admin"
+    name = "endorsement-request"
     resource_config = "endorsement_request_admin_resource"
     title = "Endorsement Requests"
     menu_label = "Endorsement Requests"
     category = _("Notify")
     pid_path = "id"
-    icon = "handshake"
+    icon = "paper plane outline"
 
     display_search = True
     display_delete = False
@@ -39,16 +39,16 @@ class EndorsementRequestListView(AdminResourceListView):
 class EndorsementRequestDetailView(AdminResourceDetailView):
     """Admin endorsement request detail view."""
 
-    url = "/endorsement-request-admin/<pid_value>"
+    url = "/endorsement-request/<pid_value>"
     api_endpoint = "/endorsement-request-admin"
-    name = "endorsement-request-admin-details"
+    name = "endorsement-request-details"
     resource_config = "endorsement_request_admin_resource"
     title = "Endorsement Request Details"
 
     display_delete = False
     display_edit = False
 
-    list_view_name = "endorsement-request-admin"
+    list_view_name = "endorsement-request"
     pid_path = "id"
 
     item_field_list = {
