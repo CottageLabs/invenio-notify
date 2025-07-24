@@ -69,78 +69,6 @@ def get_record_title(record):
         return "Unknown"
 
 
-def get_endorsement_reply_context(record: RDMRecordMetadata = None, reviewer_name="Unknown",
-                                  endorsement_status="Unknown",
-                                  receiver_email=None, user_id=None):
-    """
-    Build notification context for endorsement replies with provided parameters.
-
-    Args:
-        record: The record object (optional)
-        reviewer_name: Name of the reviewer (default: "Unknown")
-        endorsement_status: Status of the endorsement (default: "Unknown")
-        receiver_email: Email of the recipient (default: "Unknown")
-        user_id: ID of the user who should receive the notification (optional)
-
-    Returns:
-        dict: Dictionary containing record_title, record_url, endorsement_status,
-              reviewer_name, and receiver_email
-    """
-
-    record_title = "Unknown"
-    record_url = "Unknown"
-    receiver_email = get_receiver_email(receiver_email, user_id)
-
-    if record:
-        record_title = get_record_title(record)
-        record_url = get_record_url(record)
-
-    # Return data as dictionary
-    return {
-        'record_title': record_title,
-        'record_url': record_url,
-        'endorsement_status': endorsement_status,
-        'reviewer_name': reviewer_name,
-        'receiver_email': receiver_email,
-    }
-
-
-def get_endorsement_noti_context(record: RDMRecordMetadata = None, reviewer_name="Unknown",
-                                 endorsement_url="Unknown",
-                                 receiver_email=None, user_id=None):
-    """
-    Build notification context with provided parameters.
-
-    Args:
-        record: The record object (optional)
-        reviewer_name: Name of the reviewer (default: "Unknown")
-        endorsement_url: URL of the endorsement (default: "Unknown")
-        receiver_email: Email of the recipient (default: "Unknown")
-        user_id: ID of the user who should receive the notification (optional)
-
-    Returns:
-        dict: Dictionary containing record_title, record_url, endorsement_url,
-              reviewer_name, and receiver_email
-    """
-
-    record_title = "Unknown"
-    record_url = "Unknown"
-    receiver_email = get_receiver_email(receiver_email, user_id)
-
-    if record:
-        record_title = get_record_title(record)
-        record_url = get_record_url(record)
-
-    # Return data as dictionary
-    return {
-        'record_title': record_title,
-        'record_url': record_url,
-        'endorsement_url': endorsement_url,
-        'reviewer_name': reviewer_name,
-        'receiver_email': receiver_email,
-    }
-
-
 class NewEndorsementNotificationBuilder(NotificationBuilder):
     """Notification builder for record endorsement actions."""
     type = 'new-endorsement'
@@ -148,7 +76,7 @@ class NewEndorsementNotificationBuilder(NotificationBuilder):
     @classmethod
     def build(cls, record: RDMRecordMetadata = None,
               reviewer_name="Unknown", endorsement_url="Unknown",
-              receiver_email="Unknown", user_id=None):
+              receiver_email=None, user_id=None):
         """
         Build notification with the provided parameters.
 
@@ -162,16 +90,21 @@ class NewEndorsementNotificationBuilder(NotificationBuilder):
         Returns:
             Notification: A notification object with the context from the parameters
         """
-        return Notification(
-            type=cls.type,
-            context=get_endorsement_noti_context(
-                record=record,
-                reviewer_name=reviewer_name,
-                endorsement_url=endorsement_url,
-                receiver_email=receiver_email,
-                user_id=user_id
-            ),
-        )
+        record_title = "Unknown"
+        record_url = "Unknown"
+        if record:
+            record_title = get_record_title(record)
+            record_url = get_record_url(record)
+
+        context = {
+            'record_title': record_title,
+            'record_url': record_url,
+            'endorsement_url': endorsement_url,
+            'reviewer_name': reviewer_name,
+            'receiver_email': get_receiver_email(receiver_email, user_id),
+        }
+
+        return Notification(type=cls.type, context=context, )
 
     context = []
 
@@ -193,7 +126,7 @@ class EndorsementReplyNotificationBuilder(NotificationBuilder):
     @classmethod
     def build(cls, record: RDMRecordMetadata = None,
               reviewer_name="Unknown", endorsement_status="Unknown",
-              receiver_email="Unknown", user_id=None):
+              receiver_email=None, user_id=None):
         """
         Build notification with the provided parameters.
 
@@ -207,16 +140,21 @@ class EndorsementReplyNotificationBuilder(NotificationBuilder):
         Returns:
             Notification: A notification object with the context from the parameters
         """
-        return Notification(
-            type=cls.type,
-            context=get_endorsement_reply_context(
-                record=record,
-                reviewer_name=reviewer_name,
-                endorsement_status=endorsement_status,
-                receiver_email=receiver_email,
-                user_id=user_id
-            ),
-        )
+        record_title = "Unknown"
+        record_url = "Unknown"
+        if record:
+            record_title = get_record_title(record)
+            record_url = get_record_url(record)
+
+        context = {
+            'record_title': record_title,
+            'record_url': record_url,
+            'endorsement_status': endorsement_status,
+            'reviewer_name': reviewer_name,
+            'receiver_email': get_receiver_email(receiver_email, user_id),
+        }
+
+        return Notification(type=cls.type, context=context, )
 
     context = []
 

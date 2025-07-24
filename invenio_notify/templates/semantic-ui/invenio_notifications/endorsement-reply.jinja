@@ -27,23 +27,9 @@
 {%- endmacro -%}
 
 {%- block subject -%}
-{% if endorsement_status == 'Reject' %}
-{{ _("❌ Endorsement request rejected for '{record_title}'").format(
-    record_title=record_title
-) }}
-{% elif endorsement_status == 'TentativeAccept' %}
-{{ _("⏳ Endorsement request tentatively accepted for '{record_title}'").format(
-    record_title=record_title
-) }}
-{% elif endorsement_status == 'TentativeReject' %}
-{{ _("⚠️ Endorsement request needs revision for '{record_title}'").format(
-    record_title=record_title
-) }}
-{% else %}
 {{ _("📋 Endorsement request status update for '{record_title}'").format(
     record_title=record_title
 ) }}
-{% endif %}
 {%- endblock subject -%}
 
 {%- block html_body -%}
