@@ -110,7 +110,11 @@ def send_to_reviewer_inbox(reviewer, endorsement_request_data: dict):
 
 
 class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
-    """Resource for handling endorsement requests."""
+    """
+    Resource for handling endorsement requests.
+
+    Api that used by frontend landing page "Endorsement Request" section.
+    """
 
     def create_url_rules(self):
         """Create the URL rules for the endorsement request resource."""
