@@ -18,11 +18,11 @@ from invenio_records_resources.services.records.results import RecordItem
 from invenio_notify import constants
 from invenio_notify.errors import SendRequestFail, BadRequestError
 from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
-from invenio_notify.utils import record_utils
+from invenio_notify.utils import record_utils, endorsement_request_utils
 from invenio_notify.utils.endorsement_request_utils import (
     create_endorsement_request_data,
     get_available_reviewers,
-    get_latest_endorsement_request,
+    get_latest_endorsement_request_status,
     can_send
 )
 from invenio_notify.utils.record_utils import resolve_record_from_pid
@@ -144,8 +144,8 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
 
         validate_owner_id(record._record, user.id)
 
-        endorsement_request = get_latest_endorsement_request(record._record.model.id, reviewer_id, user.id)
-        if not can_send(endorsement_request, reviewer):
+        endo_status = endorsement_request_utils.get_overall_endorsement_status(record._record.model.id, reviewer_id)
+        if not can_send(endo_status, reviewer):
             raise BadRequestError('Reviewer not available for endorsement request')
 
         origin_id = current_app.config.get("NOTIFY_ORIGIN_ID", None)
@@ -178,5 +178,5 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
 
         validate_owner_id(record, user_id)
 
-        reviewers = get_available_reviewers(record.id, user_id)
+        reviewers = get_available_reviewers(record.id)
         return reviewers, 200
