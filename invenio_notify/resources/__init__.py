@@ -4,11 +4,13 @@ from .config import (
     InboxApiResourceConfig,
     EndorsementRequestResourceConfig,
     EndorsementRequestAdminResourceConfig,
+    EndorsementAdminResourceConfig,
 )
 from .resource import (
     BasicDbResource,
     EndorsementRequestAdminResource,
     EndorsementRequestResource,
+    EndorsementAdminResource,
     InboxAdminResource,
     InboxApiResource,
     ReviewerAdminResource,
@@ -22,6 +24,7 @@ __all__ = [
     "InboxApiResource",
     "EndorsementRequestResource",
     "EndorsementRequestAdminResource",
+    "EndorsementAdminResource",
 
     # Configs
     "InboxAdminResourceConfig",
@@ -29,4 +32,5 @@ __all__ = [
     "InboxApiResourceConfig",
     "EndorsementRequestResourceConfig",
     "EndorsementRequestAdminResourceConfig",
+    "EndorsementAdminResourceConfig",
 ]
