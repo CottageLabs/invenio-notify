@@ -12,6 +12,6 @@ class InboxAdminResource(BasicDbResource):
             # route("POST", routes["list"], self.create),
             route("GET", routes["item"], self.read),
             route("GET", routes["list"], self.search),
-            route("DELETE", routes["item"], self.delete),
+            route("DELETE", routes["item"], self.delete),  # KTODO fix delete fail in inbox admin page
             # route("PUT", routes["item"], self.update),
         ]
