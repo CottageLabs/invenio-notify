@@ -15,7 +15,7 @@ class EndorsementListView(AdminResourceListView):
     icon = "certificate"
 
     display_search = True
-    display_delete = False
+    display_delete = True
     display_create = False
     display_edit = False
 
@@ -46,7 +46,7 @@ class EndorsementDetailView(AdminResourceDetailView):
     resource_config = "endorsement_admin_resource"
     title = "Endorsement Details"
 
-    display_delete = False
+    display_delete = True
     display_edit = False
 
     list_view_name = "endorsement"
