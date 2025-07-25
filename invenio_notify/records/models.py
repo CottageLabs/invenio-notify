@@ -7,6 +7,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy_utils import Timestamp
 from sqlalchemy_utils.types import JSONType, UUIDType
 
+from invenio_notify import constants
 from invenio_notify.errors import NotExistsError
 from invenio_rdm_records.records.models import RDMRecordMetadata
 
@@ -286,6 +287,24 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
     """ latest status e.g 'Request Endorsement', 'Reject', 'Announce Endorsement' """
 
     replies = db.relationship("EndorsementReplyModel", back_populates="endorsement_request")
+
+    @classmethod
+    def update_latest_status_by_request_id(cls, endorsement_request_id):
+        if not endorsement_request_id:
+            return None
+
+        # Get the latest status from endorsement_reply using the endorsement_request_id
+        latest_status = (EndorsementReplyModel.query
+                         .with_entities(EndorsementReplyModel.status)
+                         .filter_by(endorsement_request_id=endorsement_request_id)
+                         .order_by(EndorsementReplyModel.created.desc())
+                         .limit(1)
+                         .scalar())
+
+        latest_status = latest_status or constants.STATUS_REQUEST_ENDORSEMENT
+
+        cls.update({'latest_status': latest_status}, endorsement_request_id)
+        return latest_status
 
 
 class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
