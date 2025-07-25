@@ -6,22 +6,24 @@ from invenio_notify.resources import (
     InboxApiResourceConfig,
     EndorsementRequestResourceConfig,
     EndorsementRequestAdminResourceConfig,
+    EndorsementAdminResourceConfig,
     InboxAdminResource,
     ReviewerAdminResource,
     InboxApiResource,
     EndorsementRequestResource,
     EndorsementRequestAdminResource,
+    EndorsementAdminResource,
 )
 from invenio_notify.services import (
     EndorsementReplyServiceConfig,
     EndorsementRequestServiceConfig,
-    EndorsementServiceConfig,
+    EndorsementAdminServiceConfig,
     NotifyInboxServiceConfig,
     ReviewerMapServiceConfig,
     ReviewerServiceConfig,
     EndorsementReplyService,
     EndorsementRequestService,
-    EndorsementService,
+    EndorsementAdminService,
     NotifyInboxService,
     ReviewerMapService,
     ReviewerService,
@@ -64,7 +66,7 @@ class InvenioNotify:
     def init_services(self, app):
         """Initialize the services for notifications."""
         self.notify_inbox_service = NotifyInboxService(config=NotifyInboxServiceConfig)
-        self.endorsement_service = EndorsementService(config=EndorsementServiceConfig)
+        self.endorsement_service = EndorsementAdminService(config=EndorsementAdminServiceConfig)
         self.reviewer_map_service = ReviewerMapService(config=ReviewerMapServiceConfig)
         self.reviewer_service = ReviewerService(config=ReviewerServiceConfig)
         self.endorsement_request_service = EndorsementRequestService(config=EndorsementRequestServiceConfig)
@@ -90,4 +92,8 @@ class InvenioNotify:
         self.endorsement_request_admin_resource = EndorsementRequestAdminResource(
             service=self.endorsement_request_service,
             config=EndorsementRequestAdminResourceConfig,
+        )
+        self.endorsement_admin_resource = EndorsementAdminResource(
+            service=self.endorsement_service,
+            config=EndorsementAdminResourceConfig,
         )
