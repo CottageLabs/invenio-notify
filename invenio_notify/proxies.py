@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from invenio_notify.services import (
         NotifyInboxService,
         ReviewerService,
-        EndorsementService,
+        EndorsementAdminService,
         EndorsementRequestService,
         EndorsementReplyService,
     )
@@ -20,7 +20,7 @@ current_reviewer_service: 'ReviewerService' = LocalProxy(  # type:ignore[assignm
     lambda: current_notify.reviewer_service
 )
 
-current_endorsement_service: 'EndorsementService' = LocalProxy( # type:ignore[assignment]
+current_endorsement_service: 'EndorsementAdminService' = LocalProxy( # type:ignore[assignment]
     lambda: current_notify.endorsement_service
 )
 

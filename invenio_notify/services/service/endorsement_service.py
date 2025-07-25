@@ -8,7 +8,7 @@ from invenio_notify.records.models import EndorsementModel
 from .base_service import BasicDbService
 
 
-class EndorsementService(BasicDbService):
+class EndorsementAdminService(BasicDbService):
     """Service for managing endorsements."""
 
     @staticmethod
