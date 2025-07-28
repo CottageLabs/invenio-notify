@@ -236,7 +236,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     """ review or endorsement """
 
     inbox_id = db.Column(db.Integer, db.ForeignKey(
-        NotifyInboxModel.id, ondelete="NO ACTION"
+        NotifyInboxModel.id, ondelete="SET NULL"
     ), nullable=True, unique=True)
     inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id], uselist=False)
 
@@ -245,6 +245,14 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
 
     reviewer_name = db.Column(db.Text, nullable=False)
     """ name of the reviewer, copy it in case the reviewer is deleted """
+
+    endorsement_reply_id = db.Column(
+        db.Integer,
+        db.ForeignKey("endorsement_reply.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    endorsement_reply = db.relationship("EndorsementReplyModel", uselist=False)
 
 
 class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
@@ -322,8 +330,8 @@ class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
 
     inbox_id = db.Column(
         db.Integer,
-        db.ForeignKey(NotifyInboxModel.id, ondelete="NO ACTION"),
-        nullable=False,
+        db.ForeignKey(NotifyInboxModel.id, ondelete="SET NULL"),
+        nullable=True,
         index=True,
         unique=True,
     )

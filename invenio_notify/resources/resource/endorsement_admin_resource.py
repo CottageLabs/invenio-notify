@@ -29,11 +29,11 @@ class EndorsementAdminResource(BasicDbResource):
     @request_view_args
     def delete(self):
         endo_id = resource_requestctx.view_args["record_id"]
-        endo_reply = (EndorsementModel.query
-                       .join(EndorsementReplyModel, EndorsementModel.inbox_id == EndorsementReplyModel.inbox_id)
-                       .filter(EndorsementModel.id == endo_id)
-                       .with_entities(EndorsementReplyModel)
-                       .first())
+        endo_reply = (EndorsementReplyModel.query
+                      .join(EndorsementModel, EndorsementReplyModel.id == EndorsementModel.endorsement_reply_id)
+                      .filter(EndorsementModel.id == endo_id)
+                      .first()
+                      )
         result = super().delete()
         if result:
             rdm_record = record_utils.get_rdm_record_by_uuid(result[0]['record_id'])
@@ -47,7 +47,6 @@ class EndorsementAdminResource(BasicDbResource):
     def find_endo_reply_by_inbox_id(cls, inbox_id):
         """Find endorsement reply by inbox_id."""
         return EndorsementReplyModel.query.filter_by(inbox_id=inbox_id).first()
-
 
 
 @unit_of_work()
