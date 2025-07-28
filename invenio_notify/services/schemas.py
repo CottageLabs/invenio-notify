@@ -21,6 +21,7 @@ class NotifyInboxSchema(BaseRecordSchema):
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
     process_date = TZDateTime(timezone=timezone.utc, format="iso", required=False)
+    process_note = fields.String(required=False)
 
 
 class ApiNotifyInboxSchema(BaseRecordSchema):
