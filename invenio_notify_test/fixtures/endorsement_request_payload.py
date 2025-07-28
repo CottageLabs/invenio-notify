@@ -1,11 +1,8 @@
 import uuid
 
 
-def payload_endorsement_request(record_id, in_reply_to=None) -> dict:
-    # KTODO how to define value of object.ietf:item.id?
+def payload_endorsement_request(record_id) -> dict:
     # KTODO remember to update value of origin.id, origin.inbox when generating request
-    if in_reply_to is None:
-        in_reply_to = uuid.uuid4()
 
     return {
         "@context": [
@@ -18,7 +15,6 @@ def payload_endorsement_request(record_id, in_reply_to=None) -> dict:
             "type": "Person"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
-        "inReplyTo": f"urn:uuid:{in_reply_to}",  # TODO why endorsement request have inReplyTo
         "object": {
             "id":  f"https://127.0.0.1:5000/records/{record_id}",
             "ietf:cite-as": "https://doi.org/10.5555/12345680",

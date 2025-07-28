@@ -36,7 +36,7 @@ def upgrade():
     )
     op.create_table('notify_inbox',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('noti_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.Column('noti_id', sa.Text(), nullable=False),
     sa.Column('raw', sa.JSON().with_variant(sqlalchemy_utils.types.json.JSONType(), 'mysql').with_variant(postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), 'postgresql').with_variant(sqlalchemy_utils.types.json.JSONType(), 'sqlite'), nullable=False),
     sa.Column('recid', sa.Text(), nullable=False),
     sa.Column('process_date', sa.DateTime(), nullable=True),
@@ -81,7 +81,7 @@ def upgrade():
     op.create_index(op.f('ix_endorsement_reviewer_id'), 'endorsement', ['reviewer_id'], unique=False)
     op.create_table('endorsement_request',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('noti_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
+    sa.Column('noti_id', sa.Text(), nullable=False),
     sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('reviewer_id', sa.Integer(), nullable=False),

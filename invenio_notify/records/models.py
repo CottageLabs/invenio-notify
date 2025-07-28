@@ -70,8 +70,7 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    # TODO somehow it can be other value than UUIDType, change it to string
-    noti_id = db.Column(UUIDType, nullable=False, unique=True)
+    noti_id = db.Column(db.Text, nullable=False, unique=True)
     """ notification id from COAR notification """
 
     raw = db.Column(JSON, nullable=False)
@@ -264,7 +263,7 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    noti_id = db.Column(UUIDType, nullable=False, unique=True)
+    noti_id = db.Column(db.Text, nullable=False, unique=True)
     """ notification id from COAR notification """
 
     record_id = db.Column(UUIDType, db.ForeignKey(

@@ -22,7 +22,6 @@ from invenio_notify.utils import record_utils, endorsement_request_utils
 from invenio_notify.utils.endorsement_request_utils import (
     create_endorsement_request_data,
     get_available_reviewers,
-    get_latest_endorsement_request_status,
     can_send
 )
 from invenio_notify.utils.record_utils import resolve_record_from_pid
@@ -58,7 +57,7 @@ def create_endorsement_request_record(endorsement_request_data, record_id, user_
         EndorsementRequestModel: The created endorsement request record
     """
     return EndorsementRequestModel.create({
-        "noti_id": endorsement_request_data["id"].replace('urn:uuid:', ''),
+        "noti_id": endorsement_request_data["id"],
         "record_id": record_id,
         "user_id": user_id,
         "reviewer_id": reviewer_id,
