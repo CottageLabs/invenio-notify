@@ -150,7 +150,7 @@ def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
 
 @unit_of_work()
 def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadata], inbox_id, notification_raw,
-                              reviewer: ReviewerModel, uow=None):
+                              reviewer: ReviewerModel, endo_reply_id: Optional[int] = None, uow=None):
     """
     Create a new endorsement record using the endorsement service.
 
@@ -196,6 +196,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
         'inbox_id': inbox_id,
         'result_url': review_url,
         'reviewer_name': reviewer.name,
+        'endorsement_reply_id': endo_reply_id,
     }
 
     # Get reviewer name for notification
@@ -252,6 +253,7 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
 def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
                                   notification_raw: dict,
                                   reviewer: ReviewerModel,
+                                  endo_reply_id: Optional[int] = None,
                                   uow=None, ):
     """
     Process endorsement review for a single inbox record.
@@ -275,7 +277,8 @@ def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
         record.model,
         inbox_record.id,
         notification_raw,
-        reviewer
+        reviewer,
+        endo_reply_id
     )
 
     log.info(f"Created endorsement record: {endorsement._record.id}")
@@ -381,9 +384,10 @@ def inbox_processing():
             continue
 
         try:
-            handle_endorsement_reply(inbox_record, notification_raw)
+            reply = handle_endorsement_reply(inbox_record, notification_raw)
             if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
-                handle_endorsement_and_review(inbox_record, notification_raw, reviewer)
+                endo_reply_id = reply.id if reply else None
+                handle_endorsement_and_review(inbox_record, notification_raw, reviewer, endo_reply_id)
 
             # Mark inbox as processed after successful reply creation
             mark_as_processed(inbox_record)
