@@ -1,11 +1,11 @@
 """Test endorsement indexing functionality."""
 
-from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_search import current_search_client
 
 from invenio_notify.constants import TYPE_ENDORSEMENT, TYPE_REVIEW
 from invenio_notify.records.models import EndorsementModel, ReviewerModel
-from invenio_notify_test.conftest import prepare_test_rdm_record
+from invenio_notify_test.fixtures.record_fixture import prepare_test_rdm_record
+from invenio_rdm_records.proxies import current_rdm_records_service
 
 
 def test_record_indexing_with_endorsements(db, superuser_identity, minimal_record, 

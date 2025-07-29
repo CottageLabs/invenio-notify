@@ -7,6 +7,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy_utils import Timestamp
 from sqlalchemy_utils.types import JSONType, UUIDType
 
+from invenio_notify import constants
 from invenio_notify.errors import NotExistsError
 from invenio_rdm_records.records.models import RDMRecordMetadata
 
@@ -69,6 +70,7 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    # TODO somehow it can be other value than UUIDType, change it to string
     noti_id = db.Column(UUIDType, nullable=False, unique=True)
     """ notification id from COAR notification """
 
@@ -234,7 +236,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     """ review or endorsement """
 
     inbox_id = db.Column(db.Integer, db.ForeignKey(
-        NotifyInboxModel.id, ondelete="NO ACTION"
+        NotifyInboxModel.id, ondelete="SET NULL"
     ), nullable=True, unique=True)
     inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id], uselist=False)
 
@@ -243,6 +245,14 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
 
     reviewer_name = db.Column(db.Text, nullable=False)
     """ name of the reviewer, copy it in case the reviewer is deleted """
+
+    endorsement_reply_id = db.Column(
+        db.Integer,
+        db.ForeignKey("endorsement_reply.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    endorsement_reply = db.relationship("EndorsementReplyModel", uselist=False)
 
 
 class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
@@ -286,6 +296,24 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
 
     replies = db.relationship("EndorsementReplyModel", back_populates="endorsement_request")
 
+    @classmethod
+    def update_latest_status_by_request_id(cls, endorsement_request_id):
+        if not endorsement_request_id:
+            return None
+
+        # Get the latest status from endorsement_reply using the endorsement_request_id
+        latest_status = (EndorsementReplyModel.query
+                         .with_entities(EndorsementReplyModel.status)
+                         .filter_by(endorsement_request_id=endorsement_request_id)
+                         .order_by(EndorsementReplyModel.created.desc())
+                         .limit(1)
+                         .scalar())
+
+        latest_status = latest_status or constants.STATUS_REQUEST_ENDORSEMENT
+
+        cls.update({'latest_status': latest_status}, endorsement_request_id)
+        return latest_status
+
 
 class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
     __tablename__ = "endorsement_reply"
@@ -302,8 +330,8 @@ class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
 
     inbox_id = db.Column(
         db.Integer,
-        db.ForeignKey(NotifyInboxModel.id, ondelete="NO ACTION"),
-        nullable=False,
+        db.ForeignKey(NotifyInboxModel.id, ondelete="SET NULL"),
+        nullable=True,
         index=True,
         unique=True,
     )

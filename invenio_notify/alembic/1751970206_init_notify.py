@@ -101,13 +101,13 @@ def upgrade():
     op.create_table('endorsement_reply',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('endorsement_request_id', sa.Integer(), nullable=False),
-    sa.Column('inbox_id', sa.Integer(), nullable=False),
+    sa.Column('inbox_id', sa.Integer(), nullable=True),
     sa.Column('status', sa.Text(), nullable=False),
     sa.Column('message', sa.Text(), nullable=True),
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('updated', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['endorsement_request_id'], ['endorsement_request.id'], name=op.f('fk_endorsement_reply_endorsement_request_id_endorsement_request'), ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['inbox_id'], ['notify_inbox.id'], name=op.f('fk_endorsement_reply_inbox_id_notify_inbox'), ondelete='NO ACTION'),
+    sa.ForeignKeyConstraint(['inbox_id'], ['notify_inbox.id'], name=op.f('fk_endorsement_reply_inbox_id_notify_inbox'), ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_endorsement_reply'))
     )
     op.create_index(op.f('ix_endorsement_reply_endorsement_request_id'), 'endorsement_reply', ['endorsement_request_id'], unique=False)
