@@ -1,6 +1,11 @@
 import uuid
 
 
+def generate_noti_id():
+    """Generate a properly formatted URN UUID string."""
+    return f"urn:uuid:{uuid.uuid4()}"
+
+
 def payload_review(record_id, in_reply_to=None) -> dict:
     """Create notification data with a real record ID."""
 
@@ -43,7 +48,7 @@ def payload_review(record_id, in_reply_to=None) -> dict:
     }
 
     if in_reply_to:
-        data["inReplyTo"] = f"urn:uuid:{in_reply_to}"
+        data["inReplyTo"] = in_reply_to
     return data
 
 
@@ -87,13 +92,13 @@ def payload_endorsement_resp(record_id, in_reply_to=None) -> dict:
     }
     
     if in_reply_to:
-        data["inReplyTo"] = f"urn:uuid:{in_reply_to}"
+        data["inReplyTo"] = in_reply_to
     return data
 
 
 def payload_tentative_accept(record_id, in_reply_to=None) -> dict:
     if in_reply_to is None:
-        in_reply_to = uuid.uuid4()
+        in_reply_to = generate_noti_id()
     
     return {
         "@context": [
@@ -106,14 +111,14 @@ def payload_tentative_accept(record_id, in_reply_to=None) -> dict:
             "type": "Service"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
-        "inReplyTo": f"urn:uuid:{in_reply_to}",
+        "inReplyTo": in_reply_to,
         "object": {
             "actor": {
                 "id": "https://orcid.org/0000-0002-1825-0097",
                 "name": "Josiah Carberry",
                 "type": "Person"
             },
-            "id": f"urn:uuid:{in_reply_to}",
+            "id": in_reply_to,
             "object": {
                 "id": f"https://127.0.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
@@ -159,7 +164,7 @@ def payload_tentative_accept(record_id, in_reply_to=None) -> dict:
 
 def payload_reject(record_id, in_reply_to=None) -> dict:
     if in_reply_to is None:
-        in_reply_to = uuid.uuid4()
+        in_reply_to = generate_noti_id()
     
     return {
         "@context": [
@@ -172,14 +177,14 @@ def payload_reject(record_id, in_reply_to=None) -> dict:
             "type": "Service"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
-        "inReplyTo": f"urn:uuid:{in_reply_to}",
+        "inReplyTo": in_reply_to,
         "object": {
             "actor": {
                 "id": "https://orcid.org/0000-0002-1825-0097",
                 "name": "Josiah Carberry",
                 "type": "Person"
             },
-            "id": f"urn:uuid:{in_reply_to}",
+            "id": in_reply_to,
             "object": {
                 "id": f"https://127.0.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
@@ -225,7 +230,7 @@ def payload_reject(record_id, in_reply_to=None) -> dict:
 
 def payload_tentative_reject(record_id, in_reply_to=None) -> dict:
     if in_reply_to is None:
-        in_reply_to = uuid.uuid4()
+        in_reply_to = generate_noti_id()
     
     return {
         "@context": [
@@ -238,14 +243,14 @@ def payload_tentative_reject(record_id, in_reply_to=None) -> dict:
             "type": "Service"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
-        "inReplyTo": f"urn:uuid:{in_reply_to}",
+        "inReplyTo": in_reply_to,
         "object": {
             "actor": {
                 "id": "https://orcid.org/0000-0002-1825-0097",
                 "name": "Josiah Carberry",
                 "type": "Person"
             },
-            "id": f"urn:uuid:{in_reply_to}",
+            "id": in_reply_to,
             "object": {
                 "id": f"https://127.0.0.1:5000/records/{record_id}",
                 "ietf:cite-as": "https://doi.org/10.5555/12345680",
