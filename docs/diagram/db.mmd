@@ -16,6 +16,7 @@ erDiagram
     NotifyInboxModel ||--|| EndorsementReplyModel : references
     
     EndorsementRequestModel ||--o{ EndorsementReplyModel : has
+    EndorsementReplyModel ||--o| EndorsementModel : references
     
     User {
         int id PK
@@ -64,6 +65,7 @@ erDiagram
         int inbox_id FK
         text result_url
         text reviewer_name
+        int endorsement_reply_id FK
         timestamp created
         timestamp updated
     }

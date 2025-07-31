@@ -1,9 +1,10 @@
 import marshmallow as ma
-from flask_resources import JSONDeserializer, RequestBodyParser
+from flask_resources import JSONDeserializer, RequestBodyParser, ResourceConfig, ResponseHandler, JSONSerializer
 from invenio_records_resources.resources import (
     RecordResourceConfig,
     SearchRequestArgsSchema,
 )
+from invenio_records_resources.services.base.config import ConfiguratorMixin
 
 
 class BasicSearchRequestArgsSchema(SearchRequestArgsSchema):
@@ -12,7 +13,7 @@ class BasicSearchRequestArgsSchema(SearchRequestArgsSchema):
     sort_direction = ma.fields.Str()
 
 
-class BasicResourceConfig(RecordResourceConfig):
+class BasicAdminResourceConfig(RecordResourceConfig):
     """Common configuration for all resource configs."""
 
     routes = {
@@ -37,7 +38,7 @@ class BasicResourceConfig(RecordResourceConfig):
     }
 
 
-class NotifyInboxResourceConfig(BasicResourceConfig):
+class InboxAdminResourceConfig(BasicAdminResourceConfig):
     blueprint_name = "notify_inbox"
     url_prefix = "/notify-inbox"
     # request_extra_args = {
@@ -47,11 +48,11 @@ class NotifyInboxResourceConfig(BasicResourceConfig):
 
 
 
-class ReviewerResourceConfig(BasicResourceConfig):
+class ReviewerAdminResourceConfig(BasicAdminResourceConfig):
     blueprint_name = "reviewer"
     url_prefix = "/reviewer"
 
-    routes = BasicResourceConfig.routes
+    routes = BasicAdminResourceConfig.routes
     # Updated route names for better consistency
     routes['member'] = "/<record_id>/member"
     routes['members'] = "/<record_id>/members"
@@ -61,4 +62,33 @@ class InboxApiResourceConfig(RecordResourceConfig):
     """Configuration for the inbox API resource."""
     blueprint_name = "inbox_api"
     url_prefix = ""  # No prefix needed as route is defined directly
+
+
+class EndorsementRequestResourceConfig(ResourceConfig, ConfiguratorMixin):
+    """Configuration for the inbox API resource."""
+    blueprint_name = "endorsement_request"
+    url_prefix = "/endorsement-request"
+
+    routes = {
+        'send': '/send/<path:pid_value>',
+        'reviewers': '/reviewers/<path:pid_value>',
+    }
+
+    request_view_args = {
+        "pid_value": ma.fields.Str(),
+    }
+
+    response_handler = {"application/json": ResponseHandler(JSONSerializer())}
+
+
+class EndorsementRequestAdminResourceConfig(BasicAdminResourceConfig):
+    """Configuration for the endorsement request admin resource."""
+    blueprint_name = "endorsement_request_admin"
+    url_prefix = "/endorsement-request-admin"
+
+
+class EndorsementAdminResourceConfig(BasicAdminResourceConfig):
+    """Configuration for the endorsement admin resource."""
+    blueprint_name = "endorsement_admin"
+    url_prefix = "/endorsement-admin"
 

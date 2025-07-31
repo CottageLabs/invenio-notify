@@ -10,10 +10,10 @@ from invenio_administration.views.base import (
 class ReviewerListView(AdminResourceListView):
     api_endpoint = "/reviewer"
     name = "reviewer"
-    resource_config = "reviewer_resource"
+    resource_config = "reviewer_admin_resource"
     title = "Reviewers"
     menu_label = "Reviewers"
-    category = _("Notify Inbox")
+    category = _("Notify")
     pid_path = "id"
     icon = "user"
 
@@ -45,7 +45,7 @@ class ReviewerDetailView(AdminResourceDetailView):
     url = "/reviewer/<pid_value>"
     api_endpoint = "/reviewer"
     name = "reviewer-details"
-    resource_config = "reviewer_resource"
+    resource_config = "reviewer_admin_resource"
     title = "Reviewer Details"
 
     display_delete = True
@@ -101,7 +101,7 @@ class ReviewerCreateView(AdminResourceCreateView):
 
     name = "reviewer_create"
     url = "/reviewer/create"
-    resource_config = "reviewer_resource"
+    resource_config = "reviewer_admin_resource"
     api_endpoint = "/reviewer"
     title = "Create Reviewer"
 
@@ -117,7 +117,7 @@ class ReviewerEditView(AdminResourceEditView):
 
     name = "reviewer_edit"
     url = "/reviewer/<pid_value>/edit"
-    resource_config = "reviewer_resource"
+    resource_config = "reviewer_admin_resource"
     pid_path = "id"
     api_endpoint = "/reviewer"
     title = "Edit Reviewer"

@@ -12,6 +12,21 @@ class NotExistsError(Exception):
 
 class COARProcessFail(Exception):
 
-    def __init__(self, status, msg):
+    def __init__(self, status, description):
         self.status = status
-        self.msg = msg
+        self.description = description
+
+
+class SendRequestFail(Exception):
+    """Send request fail exception."""
+
+    def __init__(self, description, status=None):
+        self.status = status
+        self.description = description
+
+
+class BadRequestError(Exception):
+    """ General error if you can 400 from error handler. """
+
+    def __init__(self, description):
+        self.description = description

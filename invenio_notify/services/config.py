@@ -55,7 +55,7 @@ class NotifyInboxServiceConfig(RecordServiceConfig):
     links_search = pagination_links("{+api}/notify-inbox{?args*}")
 
 
-class EndorsementServiceConfig(RecordServiceConfig):
+class EndorsementAdminServiceConfig(RecordServiceConfig):
     result_list_cls = BasicDbModelRecordList
     record_cls = EndorsementModel
     schema = EndorsementSchema
@@ -64,7 +64,7 @@ class EndorsementServiceConfig(RecordServiceConfig):
     search = DefaultSearchOptions
 
     links_item = {
-        "self": EndorsementLink("{+api}/endorsement/{id}"),
+        "self": EndorsementLink("{+api}/endorsement-admin/{id}"),
     }
 
 

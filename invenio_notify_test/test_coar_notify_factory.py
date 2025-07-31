@@ -1,22 +1,23 @@
 import pytest
+
 from coarnotify.factory import COARNotifyFactory
-from invenio_notify_test.fixtures.inbox_fixture import (
-    create_inbox_payload__review,
-    create_inbox_payload__endorsement_request,
-    create_inbox_payload__endorsement_resp,
-    create_inbox_payload__tentative_accept,
-    create_inbox_payload__reject,
-    create_inbox_payload__tentative_reject
+from invenio_notify_test.fixtures.endorsement_request_payload import payload_endorsement_request
+from invenio_notify_test.fixtures.inbox_payload import (
+    payload_review,
+    payload_endorsement_resp,
+    payload_tentative_accept,
+    payload_reject,
+    payload_tentative_reject
 )
 
 
 @pytest.mark.parametrize("payload_func", [
-    create_inbox_payload__review,
-    create_inbox_payload__endorsement_request,
-    create_inbox_payload__endorsement_resp,
-    create_inbox_payload__tentative_accept,
-    create_inbox_payload__reject,
-    create_inbox_payload__tentative_reject
+    payload_review,
+    payload_endorsement_request,
+    payload_endorsement_resp,
+    payload_tentative_accept,
+    payload_reject,
+    payload_tentative_reject
 ], ids=[
     "review",
     "endorsement_request", 
@@ -26,7 +27,7 @@ from invenio_notify_test.fixtures.inbox_fixture import (
     "tentative_reject"
 ])
 def test_payload_type_compatibility(payload_func):
-    """Test that create_inbox_payload__ function works with COARNotifyFactory."""
+    """Test that payload_ functions work with COARNotifyFactory."""
     record_id = 'test-record'
     
     raw_payload = payload_func(record_id)
