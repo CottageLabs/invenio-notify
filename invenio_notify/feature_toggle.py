@@ -2,17 +2,19 @@ from functools import wraps
 
 from flask import Blueprint
 
+from .constants import CONFIG_NOTIFY_PHASE_1_ENABLED, CONFIG_NOTIFY_PHASE_2_ENABLED
+
 
 def is_phase_1_enabled(app=None):
     from flask import current_app
     target_app = app or current_app
-    return target_app.config.get("NOTIFY_PHASE_1_ENABLED", False)
+    return target_app.config.get(CONFIG_NOTIFY_PHASE_1_ENABLED, False)
 
 
 def is_phase_2_enabled(app=None):
     from flask import current_app
     target_app = app or current_app
-    return is_phase_1_enabled(app) and target_app.config.get("NOTIFY_PHASE_2_ENABLED", False)
+    return is_phase_1_enabled(app) and target_app.config.get(CONFIG_NOTIFY_PHASE_2_ENABLED, False)
 
 
 class PhaseBlueprintEnable:

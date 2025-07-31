@@ -9,6 +9,7 @@ from invenio_files_rest.models import Location
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
 
+from invenio_notify.constants import CONFIG_NOTIFY_PHASE_1_ENABLED, CONFIG_NOTIFY_PHASE_2_ENABLED
 from invenio_notify_test.builders.inbox_test_data_builder import *  # noqa
 from invenio_notify_test.fixtures.endorsement_request_fixture import *  # noqa
 from invenio_notify_test.fixtures.inbox_fixture import *  # noqa
@@ -220,4 +221,6 @@ def rdm_record(db, superuser_identity, minimal_record, resource_type_v, location
 @pytest.fixture(scope="module")
 def app_config(app_config):
     app_config["NOTIFY_ORIGIN_ID"] = "yoooooooooooooooooooooo"
+    app_config[CONFIG_NOTIFY_PHASE_1_ENABLED] = True
+    app_config[CONFIG_NOTIFY_PHASE_2_ENABLED] = True
     return app_config
