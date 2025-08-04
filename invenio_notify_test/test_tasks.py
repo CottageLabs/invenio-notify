@@ -116,12 +116,12 @@ def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_
     ]
 
 
-def test_inbox_processing__success__endorsement_with_endorsement_request(db, rdm_record,
-                                                                    inbox_test_data_builder):
+def test_inbox_processing__success__endorsement_with_endorsement_request(db, rdm_record, inbox_test_data_builder):
     """
     Test that rejection notifications create endorsement replies without endorsements.
 
     Case setting:
+    - Success case
     - Have an Endorsement request
     - type: endorsement response
     """
@@ -150,12 +150,12 @@ def test_inbox_processing__success__endorsement_with_endorsement_request(db, rdm
     assert EndorsementReplyModel.query.count() == 1
 
 
-def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record,
-                                                                    inbox_test_data_builder):
+def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_record, inbox_test_data_builder):
     """
     Test that rejection notifications create endorsement replies without endorsements.
 
     Case setting:
+    - Success case
     - Have an Endorsement request
     - type: reject
     """
@@ -184,12 +184,12 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
     assert EndorsementReplyModel.query.count() == 1
 
 
-def test_inbox_processing__fail__reject_without_endorsement_request(db, rdm_record,
-                                                                       inbox_test_data_builder):
+def test_inbox_processing__fail__reject_without_endorsement_request(db, rdm_record, inbox_test_data_builder):
     """
     Test that rejection notifications create endorsement replies without endorsements.
 
     Case setting:
+    - Fail case
     - NO related Endorsement request
     - type: reject
     """
@@ -212,7 +212,7 @@ def test_inbox_processing__fail__reject_without_endorsement_request(db, rdm_reco
 
 def test_inbox_processing__fail__record_not_found(db, superuser_identity, create_inbox, create_reviewer,
                                                   inbox_test_data_builder):
-    """Test inbox processing when the record is not found."""
+    """Test inbox processing when the "record" is not found."""
 
     recid = 'r1'
     notification_data = payload_review(recid)
@@ -225,7 +225,7 @@ def test_inbox_processing__fail__record_not_found(db, superuser_identity, create
 
 
 def test_inbox_processing__fail__reviewer_not_found(db, rdm_record, inbox_test_data_builder):
-    """Test inbox processing when the reviewer is not found."""
+    """Test inbox processing when the "reviewer" is not found."""
     recid = rdm_record.id
     notification_data = payload_review(recid)
 
