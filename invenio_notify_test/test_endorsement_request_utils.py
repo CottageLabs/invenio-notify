@@ -1,6 +1,8 @@
 import uuid
+from copy import deepcopy
 from unittest.mock import patch
 
+from coarnotify.factory import COARNotifyFactory
 from invenio_notify.utils.endorsement_request_utils import create_endorsement_request_data
 
 
@@ -20,7 +22,7 @@ class TestCreateEndorsementRequestData:
         user = superuser
         record_item = rdm_record  # rdm_record fixture already returns RecordItem
         reviewer = create_reviewer(
-            actor_id='test-reviewer',
+            actor_id='https://fake.dev.abc/test-reviewer',
             name='Test Reviewer',
             inbox_url='https://reviewer.example.com/inbox'
         )
@@ -66,3 +68,6 @@ class TestCreateEndorsementRequestData:
         assert result['target']['id'] == reviewer.actor_id
         assert result['target']['inbox'] == reviewer.inbox_url
         assert result['target']['type'] == 'Service'
+
+        # test coar validation
+        COARNotifyFactory.get_by_object(deepcopy(result)).to_jsonld()

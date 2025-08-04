@@ -2,7 +2,6 @@ import uuid
 
 
 def payload_endorsement_request(record_id) -> dict:
-    # KTODO remember to update value of origin.id, origin.inbox when generating request
 
     return {
         "@context": [
