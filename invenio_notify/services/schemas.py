@@ -8,7 +8,6 @@ from marshmallow_utils.fields import TZDateTime
 def create_current_utc_datetime():
     return datetime.now(timezone.utc)
 
-# TODO remove duplicate created, updated fields
 
 class NotifyInboxSchema(BaseRecordSchema):
     noti_id = fields.String(required=True)
@@ -16,9 +15,6 @@ class NotifyInboxSchema(BaseRecordSchema):
     recid = fields.String(required=True)
 
     user_id = fields.Integer(required=True)
-
-    created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
-    updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
     process_date = TZDateTime(timezone=timezone.utc, format="iso", required=False)
     process_note = fields.String(required=False)
@@ -45,9 +41,6 @@ class ReviewerMapSchema(BaseRecordSchema):
     user_id = fields.Integer(required=True)
     reviewer_id = fields.Integer(required=True)
 
-    created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
-    updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
-
 
 class UserSchema(Schema):
     id = fields.Integer(required=True)
@@ -60,9 +53,6 @@ class ReviewerSchema(BaseRecordSchema):
     inbox_url = fields.String(required=False, allow_none=True)
     inbox_api_token = fields.String(required=False, allow_none=True)
     description = fields.String(required=False)
-
-    created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
-    updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
     members = fields.List(fields.Nested(UserSchema), required=False, dump_only=True)
 
@@ -83,14 +73,8 @@ class EndorsementRequestSchema(BaseRecordSchema):
     latest_status = fields.String(required=True)
     user_id = fields.Integer(required=False)
 
-    created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
-    updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
-
 
 class EndorsementReplySchema(BaseRecordSchema):
     endorsement_request_id = fields.Integer(required=True)
     inbox_id = fields.Integer(required=True)
     status = fields.String(required=True)
-
-    created = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
-    updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
