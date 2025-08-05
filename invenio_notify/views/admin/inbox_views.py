@@ -1,7 +1,7 @@
 from flask_babel import lazy_gettext as _
 from invenio_administration.views.base import AdminResourceListView, AdminResourceDetailView
 
-from ..feature_toggle import Phase1AdminDisabledMixin
+from invenio_notify.feature_toggle import Phase1AdminDisabledMixin
 
 
 class NotifyInboxListView(Phase1AdminDisabledMixin, AdminResourceListView):
