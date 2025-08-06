@@ -7,7 +7,12 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
 ]
-dependencies = []
+dependencies = [
+    "invenio-administration>=3.0.0,<4.0.0",
+    "invenio-jobs>=3.0.0,<4.0.0",
+    "invenio-rdm-records>=18.4.0,<19.0.0",
+    "invenio-records-resources>=7.0.0,<8.0.0",
+]
 
 [project.optional-dependencies]
 test = [
