@@ -10,19 +10,10 @@ Welcome to invenio-notify's documentation!
     :maxdepth: 2
     :caption: Concepts
 
-    concepts/index
-
-
-
-
-Yooooooooooo
-=================
-
-.. toctree::
-    :maxdepth: 2
-    :caption: Yoooooo
-
-    concepts/index.rst
+    concepts/overall
+    concepts/db
+    concepts/endpoints
+    links
 
 
 
@@ -32,13 +23,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-
-
-.. py:function:: enumerate(sequence[, start=0])
-
-   Return an iterator that yields tuples of an index and an item of the
-   *sequence*. (And so on.)
-
-
-.. image:: _static/mmd/db.png

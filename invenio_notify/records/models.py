@@ -66,23 +66,26 @@ class DbOperationMixin:
 
 
 class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
+    """
+    Stores all valid COAR notifications from the inbox endpoint.
+    """
     __tablename__ = "notify_inbox"
 
     id = db.Column(db.Integer, primary_key=True)
 
     noti_id = db.Column(db.Text, nullable=False, unique=True)
-    """ notification id from COAR notification """
+    """ Notification ID from the COAR notification """
 
     raw = db.Column(JSON, nullable=False)
-    """ Coar notification data as json string """
+    """ COAR notification data as a JSON string """
 
     recid = db.Column(db.Text, nullable=False)
-    """ record id (recid e.g. p97a0-c4p20 ) instead of uuid of record """
+    """ Record ID (recid e.g. p97a0-c4p20) instead of UUID of the record """
 
     process_date = db.Column(db.DateTime, nullable=True)
 
-    process_note = db.Column(db.Text, nullable=True, )
-    """ additional note (such as error message) after processed """
+    process_note = db.Column(db.Text, nullable=True)
+    """ An additional note (such as error message) after processing """
 
     user_id = db.Column(
         db.Integer(),
@@ -93,7 +96,7 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     user = db.relationship(
         "User", backref=db.backref("inbox_messages", cascade="all, delete-orphan")
     )
-    """ user id of the sender """
+    """ User ID of the sender """
 
     @classmethod
     def unprocessed_records(cls) -> Iterable["NotifyInboxModel"]:
@@ -102,11 +105,7 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
 
 class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
-    """
-    used to store mapping between user and actor id
-
-    prevent user to send notification with different actor id
-    """
+    """ Used to store reviewer membership mappings. """
 
     __tablename__ = "reviewer_map"
 
@@ -147,11 +146,16 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
 
     @classmethod
     def find_review_id_by_user_id(cls, user_id):
-        """ find list of reviewer_id by user_id """
+        """ Find a list of reviewer IDs by user ID. """
         return [r[0] for r in db.session.query(cls.reviewer_id).filter(cls.user_id == user_id).all()]
 
 
 class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
+    """
+    An organization that provides a review service, e.g. PCI, COAR, etc.
+
+    If inbox_url, inbox_api_token is set, it will allow Record owners to send endorsement requests.
+    """
     __tablename__ = "reviewer"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -159,7 +163,7 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
     name = db.Column(db.Text, nullable=False)
 
     actor_id = db.Column(db.Text, nullable=True, unique=True)
-    """ id that used in COAR notification (json) """
+    """ ID that is used in COAR notification (JSON) """
 
     inbox_url = db.Column(db.Text, nullable=True)
 
@@ -211,6 +215,12 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
 
 
 class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
+    """
+    Endorsement data for the record
+
+    Both Review and Endorsement records from Reviewer will be stored here.
+    """
+
     __tablename__ = "endorsement"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -220,7 +230,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     ), index=True, nullable=True, )
 
     record = db.relationship(RDMRecordMetadata, foreign_keys=[record_id])
-    """ id of the record, id that save in postgres instead of recid that used in json and /records  """
+    """ ID of the record, ID that is saved in PostgreSQL instead of recid that is used in JSON and /records """
 
     reviewer_id = db.Column(
         db.Integer,
@@ -228,7 +238,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
         nullable=True,
         index=True,
     )
-    """ id of Review service provider (e.g. id of PCI) """
+    """ ID of review service provider (e.g. ID of PCI) """
     reviewer = db.relationship("ReviewerModel", back_populates="endorsements")
 
     review_type = db.Column(db.Text, nullable=True)
@@ -240,10 +250,10 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     inbox = db.relationship(NotifyInboxModel, foreign_keys=[inbox_id], uselist=False)
 
     result_url = db.Column(db.Text, nullable=False)
-    """ url of review results """
+    """ URL of review results """
 
     reviewer_name = db.Column(db.Text, nullable=False)
-    """ name of the reviewer, copy it in case the reviewer is deleted """
+    """ Name of the reviewer; copied in case the reviewer is deleted """
 
     endorsement_reply_id = db.Column(
         db.Integer,
@@ -256,7 +266,8 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
 
 class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
     """
-    This model stores records created by record owners who want to send endorsement requests to reviewers.
+    Endorsement Request that is sent by record owners to reviewers.
+
     It serves as an outbox of our repository system for COAR endorsement notifications.
     """
     __tablename__ = "endorsement_request"
@@ -264,12 +275,12 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
     id = db.Column(db.Integer, primary_key=True)
 
     noti_id = db.Column(db.Text, nullable=False, unique=True)
-    """ notification id from COAR notification """
+    """ Notification ID from the COAR notification """
 
     record_id = db.Column(UUIDType, db.ForeignKey(
         RDMRecordMetadata.id, ondelete="NO ACTION",
     ), index=True, nullable=False)
-    """ record uuid that binded to version """
+    """ Record UUID that is bound to a version """
 
     user_id = db.Column(
         db.Integer(),
@@ -277,7 +288,7 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
         nullable=False,
         index=True,
     )
-    """ user id of the sender """
+    """ User ID of the sender """
 
     reviewer_id = db.Column(
         db.Integer,
@@ -288,10 +299,10 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
     reviewer = db.relationship("ReviewerModel")
 
     raw = db.Column(JSON, nullable=False)
-    """ raw notification data as json """
+    """ Raw notification data as JSON """
 
     latest_status = db.Column(db.Text, nullable=False)
-    """ latest status e.g 'Request Endorsement', 'Reject', 'Announce Endorsement' """
+    """ Latest status, e.g., 'Request Endorsement', 'Reject', 'Announce Endorsement' """
 
     replies = db.relationship("EndorsementReplyModel", back_populates="endorsement_request")
 
@@ -315,6 +326,13 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
 
 
 class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
+    """
+    Stores replies to EndorsementRequestModel.
+
+    Only stores records where a notification is `inReplyTo` a notification from EndorsementRequestModel.
+    Notifications that are not a reply to an endorsement request will not be stored here.
+    """
+
     __tablename__ = "endorsement_reply"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -337,7 +355,7 @@ class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
     inbox = db.relationship(NotifyInboxModel, uselist=False)
 
     status = db.Column(db.Text, nullable=False)
-    """ status e.g 'Request Endorsement', 'Reject', 'Announce Endorsement' """
+    """ Status, e.g., 'Request Endorsement', 'Reject', 'Announce Endorsement' """
 
     message = db.Column(db.Text, nullable=True)
-    """ message of the reply, can be empty if no message """
+    """ Message of the reply, can be empty """

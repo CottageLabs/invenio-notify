@@ -24,6 +24,8 @@ test = [
 dev = [
     'sphinx~=8.1',
     'ruff~=0.12',
+    'sphinx-autodoc-typehints~=3.2',
+    'sphinx-autobuild~=2024.10.3',
 ]
 
 [[project.authors]]
