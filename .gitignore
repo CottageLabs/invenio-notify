@@ -30,3 +30,11 @@ node_modules
 
 # Claude
 .mcp.json
+
+
+# Documentation
+docs_sphinx_output/
+
+### Generated diagram files
+docs_sphinx/_static/mmd/*.png
+
