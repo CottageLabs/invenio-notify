@@ -68,7 +68,19 @@ process_mermaid_files() {
         
         log_info "Processing: $(basename "$file")"
         
-        if mmdc -i "$file" -o "$output_file" -t default --quiet; then
+        # Determine diagram type and use appropriate settings
+        local diagram_type=$(head -n 10 "$file" | grep -E "^(sequenceDiagram|erDiagram|graph|flowchart)" | head -n 1)
+        local mmdc_options="-t default --quiet"
+        
+        # Enhanced options for sequence diagrams
+        if [[ "$diagram_type" =~ sequenceDiagram ]]; then
+            mmdc_options="-t default -w 1200 -H 800 --backgroundColor white --scale 2 --quiet"
+        # Enhanced options for ER diagrams  
+        elif [[ "$diagram_type" =~ erDiagram ]]; then
+            mmdc_options="-t default -w 1400 -H 1000 --backgroundColor white --scale 2 --quiet"
+        fi
+        
+        if mmdc -i "$file" -o "$output_file" $mmdc_options; then
             success_count=$((success_count + 1))
             log_info "Generated: $(basename "$output_file")"
         else
