@@ -1,3 +1,5 @@
+.. include:: ../_static/_links.rst
+
 Notify Workflow
 ===================
 
@@ -25,8 +27,7 @@ Flow Process
    Reviewer also can send Review or Endorsement notifications to a record without owner requesting it.
 
 .. seealso::
-   For detailed PCI (Reviewer) workflow and possible reply status, see the
-   `PCI Endorsement workflow <https://coar-notify.net/catalogue/workflows/repository-pci/>`_.
+   For detailed PCI (Reviewer) workflow and possible reply status, see the |pci-workflow|_.
 
 
 Workflow Diagram
