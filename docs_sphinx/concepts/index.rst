@@ -6,7 +6,7 @@ Concepts
     :caption: Concepts
 
     index.rst
-    overall.rst
+    notify_workflow.rst
     db.rst
     endpoints.rst
 

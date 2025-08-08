@@ -2,14 +2,14 @@ Notify Workflow
 ===================
 
 Actors
-~~~~~~~~~~~~~~
+--------------
 
 - **Reviewer** - External peer review service that evaluates and endorses scholarly records
 - **Repository** - The Invenio-based repository system that hosts and manages scholarly records  
 - **Record owner** - User who owns a record in repository and requests peer review
 
 Flow Process
-~~~~~~~~~~~~
+------------
 
 1. **Record owner** submits a request to **Reviewer** for peer review
 2. **Reviewer** sends responses to the **Repository's** inbox endpoints
@@ -24,12 +24,13 @@ Flow Process
 .. note::
    Reviewer also can send Review or Endorsement notifications to a record without owner requesting it.
 
-.. note::
-   For detailed workflow documentation, see the `COAR Notify Repository-PCI Workflow <https://coar-notify.net/catalogue/workflows/repository-pci/>`_.
+.. seealso::
+   For detailed PCI (Reviewer) workflow and possible reply status, see the
+   `PCI Endorsement workflow <https://coar-notify.net/catalogue/workflows/repository-pci/>`_.
 
 
 Workflow Diagram
-~~~~~~~~~~~~~~~~
+----------------
 
 .. image:: /_static/mmd/notify_workflow.png
    :alt: Invenio-Notify Workflow Sequence Diagram
@@ -38,3 +39,9 @@ Workflow Diagram
 
 .. note::
    For the source diagram, see ``docs/diagram/notify_workflow.mmd``
+
+
+
+Testing Guide for Notify Workflow
+----------------------------------------
+TODO

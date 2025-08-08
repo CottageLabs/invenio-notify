@@ -10,10 +10,12 @@ Welcome to invenio-notify's documentation!
     :maxdepth: 2
     :caption: Concepts
 
-    concepts/overall
+    how_to_run
+    concepts/notify_workflow
     concepts/db
-    concepts/endpoints
+    endpoints
     links
+
 
 
 
