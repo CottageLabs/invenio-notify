@@ -8,3 +8,8 @@ body {
 span.caption-text {
     font-size: 1.6em;
 }
+
+li {
+    font-size: 0.9em;
+    margin-bottom: 0.5em;
+}

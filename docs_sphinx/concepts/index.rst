@@ -8,6 +8,6 @@ Concepts
     index.rst
     notify_workflow.rst
     db.rst
-    endpoints.rst
+    inbox_api.rst
 
 

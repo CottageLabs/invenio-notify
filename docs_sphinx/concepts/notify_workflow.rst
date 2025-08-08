@@ -41,8 +41,3 @@ Workflow Diagram
 .. note::
    For the source diagram, see ``docs/diagram/notify_workflow.mmd``
 
-
-
-Testing Guide for Notify Workflow
-----------------------------------------
-TODO

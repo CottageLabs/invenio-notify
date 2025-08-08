@@ -13,7 +13,7 @@ Welcome to invenio-notify's documentation!
     how_to_run
     concepts/notify_workflow
     concepts/db
-    endpoints
+    inbox_api
     links
 
 
