@@ -22,21 +22,11 @@ Endpoint Details
 Authentication
 --------------
 
-This endpoint requires OAuth2 authentication with the ``notify:inbox`` scope. 
+This endpoint requires OAuth2 authentication token with the ``notify:inbox`` scope.
 
-Creating an Access Token
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-To create an access token:
-
-1. Navigate to **Security → Applications** page in your Invenio instance
-2. Click the **"New token"** button
-3. In the scopes selection, select **notify:inbox**
-4. Click **"Create"** button
-
-.. tip::
-   Copy the token immediately - it is displayed only once and cannot be retrieved later from 
-   the website.
+.. seealso::
+   
+   For detailed instructions on creating an access token, see :ref:`create-api-access-token` in the How-to guide.
 
 Using the Token
 ^^^^^^^^^^^^^^^

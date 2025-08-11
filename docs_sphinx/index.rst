@@ -10,10 +10,10 @@ Welcome to invenio-notify's documentation!
     :maxdepth: 2
     :caption: Concepts
 
-    how_to_run
     concepts/notify_workflow
     concepts/db
     inbox_api
+    how_to
     links
 
 
