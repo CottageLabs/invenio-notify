@@ -10,6 +10,7 @@ from invenio_notifications.services.uow import NotificationOp
 from invenio_pidstore.errors import PIDDoesNotExistError
 
 from coarnotify.factory import COARNotifyFactory
+from invenio_db import db
 from invenio_notify import constants
 from invenio_notify.constants import SUPPORTED_TYPES
 from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder, EndorsementReplyNotificationBuilder
@@ -26,13 +27,13 @@ log = logging.getLogger(__name__)
 def get_record_by_id(record_id) -> RDMRecordMetadata:
     """
     Get RDMRecordMetadata by record ID.
-    
+
     Args:
         record_id: The record uuid
-        
+
     Returns:
         RDMRecordMetadata: The record metadata object
-        
+
     Raises:
         DataNotFound: If record is not found
     """
@@ -51,7 +52,7 @@ def get_user_id_by_record(record: RDMRecordMetadata) -> int:
         
     Returns:
         int: The user_id of the record owner
-        
+
     Raises:
         DataNotFound: If record is None, parent not found, or user_id not found
     """
@@ -283,8 +284,12 @@ def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
 
     log.info(f"Created endorsement record: {endorsement._record.id}")
 
-    # Indexing the record will add the endorsement data via EndorsementsDumperExt
-    current_rdm_records_service.indexer.index(record)
+    record_ids = [row[0] for row in db.session.query(RDMRecordMetadata.id).filter_by(parent_id=record.parent.id).all()]
+
+    # Iterate over all RDMRecordMetadata records with this parent_id
+    for record_id in record_ids:
+        # Indexing the record will add the endorsement data via EndorsementsDumperExt
+        current_rdm_records_service.indexer.index_by_id(record_id)
 
 
 @unit_of_work()

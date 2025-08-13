@@ -64,7 +64,6 @@ def upgrade():
     op.create_table('endorsement',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
-    sa.Column('parent_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
     sa.Column('reviewer_id', sa.Integer(), nullable=True),
     sa.Column('review_type', sa.Text(), nullable=True),
     sa.Column('inbox_id', sa.Integer(), nullable=True),
@@ -74,13 +73,11 @@ def upgrade():
     sa.Column('updated', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['inbox_id'], ['notify_inbox.id'], name=op.f('fk_endorsement_inbox_id_notify_inbox'), ondelete='NO ACTION'),
     sa.ForeignKeyConstraint(['record_id'], ['rdm_records_metadata.id'], name=op.f('fk_endorsement_record_id_rdm_records_metadata'), ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['parent_id'], ['rdm_parents_metadata.id'], name=op.f('fk_endorsement_parent_id_rdm_parents_metadata'), ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['reviewer_id'], ['reviewer.id'], name=op.f('fk_endorsement_reviewer_id_reviewer'), ondelete='NO ACTION'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_endorsement')),
     sa.UniqueConstraint('inbox_id', name=op.f('uq_endorsement_inbox_id'))
     )
     op.create_index(op.f('ix_endorsement_record_id'), 'endorsement', ['record_id'], unique=False)
-    op.create_index(op.f('ix_endorsement_parent_id'), 'endorsement', ['parent_id'], unique=False)
     op.create_index(op.f('ix_endorsement_reviewer_id'), 'endorsement', ['reviewer_id'], unique=False)
     op.create_table('endorsement_request',
     sa.Column('id', sa.Integer(), nullable=False),

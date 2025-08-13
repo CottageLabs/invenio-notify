@@ -9,7 +9,7 @@ from sqlalchemy_utils.types import JSONType, UUIDType
 
 from invenio_notify import constants
 from invenio_notify.errors import NotExistsError
-from invenio_rdm_records.records.models import RDMRecordMetadata, RDMParentMetadata
+from invenio_rdm_records.records.models import RDMRecordMetadata
 
 JSON = (
     db.JSON()
@@ -218,10 +218,6 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
 
     record_id = db.Column(UUIDType, db.ForeignKey(
         RDMRecordMetadata.id, ondelete="CASCADE",
-    ), index=True, nullable=True, )
-
-    parent_id = db.Column(UUIDType, db.ForeignKey(
-        RDMParentMetadata.id, ondelete="CASCADE",
     ), index=True, nullable=True, )
 
     record = db.relationship(RDMRecordMetadata, foreign_keys=[record_id])
