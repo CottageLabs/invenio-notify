@@ -211,7 +211,7 @@ def run():
     from invenio_notify.dummy_reviewer import dummy_pci_app
     p = os.path.abspath(dummy_pci_app.__file__)
     print('****************************************')
-    print("You have to run following command manual:")
+    print("You have to run the following command manually:")
     print(f'python {p}')
     print('****************************************')
 
