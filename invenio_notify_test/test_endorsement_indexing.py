@@ -73,6 +73,7 @@ def test_record_indexing_with_endorsements(db, superuser_identity, minimal_recor
     # Verify the endorsement list item structure
     endorsement_item = endorsement_data['endorsement_list'][0]
     assert 'created' in endorsement_item
+    assert 'index' in endorsement_item
     assert 'url' in endorsement_item
     assert endorsement_item['url'] == 'https://test-reviewer.example.com/endorsement/123'
 

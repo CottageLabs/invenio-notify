@@ -108,6 +108,7 @@ def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_
             'reviewer_name': test_data.reviewer.name,
             'review_list': [{
                 'created': endorsement.created.isoformat(),
+                'index': 1,
                 'url': endorsement.result_url,
             }]
         }

@@ -150,7 +150,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     assert EndorsementModel.query.count() == 4
 
     # Test get_endorsement_info
-    endorsement_info = service.get_endorsement_info(record_id)
+    endorsement_info = service.get_endorsement_info(record.parent.id)
 
     # Verify the structure and content of the result
     assert isinstance(endorsement_info, list)
@@ -167,9 +167,11 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     assert len(sorted_info[0]['endorsement_list']) == 1
     assert sorted_info[0]['endorsement_list'][0]['url'] == 'https://example.com/endorsement1'
     assert 'created' in sorted_info[0]['endorsement_list'][0]
+    assert 'index' in sorted_info[0]['endorsement_list'][0]
     assert len(sorted_info[0]['review_list']) == 1
     assert sorted_info[0]['review_list'][0]['url'] == 'https://example.com/review1'
     assert 'created' in sorted_info[0]['review_list'][0]
+    assert 'index' in sorted_info[0]['review_list'][0]
 
     # Check second reviewer's endorsement info
     assert sorted_info[1]['reviewer_id'] == reviewer2.id
