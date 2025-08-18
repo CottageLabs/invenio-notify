@@ -1,24 +1,22 @@
 from typing import List, Dict
 
 import regex
+from flask import current_app
+from flask import g
+from invenio_accounts.models import User
+from invenio_db import db
+from invenio_db.uow import unit_of_work
+from invenio_records_resources.services import RecordService
+from invenio_records_resources.services.base import LinksTemplate
+from invenio_records_resources.services.base.utils import map_search_params
+from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
+
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import (
     COARNotifyReceipt,
     COARNotifyServer,
     COARNotifyServiceBinding,
 )
-from flask import current_app
-from flask import g
-from invenio_accounts.models import User
-from invenio_db import db
-from invenio_db.uow import unit_of_work
-from invenio_rdm_records.proxies import current_rdm_records_service
-from invenio_rdm_records.services import RDMRecordService
-from invenio_records_resources.services import RecordService
-from invenio_records_resources.services.base import LinksTemplate
-from invenio_records_resources.services.base.utils import map_search_params
-from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
-
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
@@ -31,8 +29,36 @@ from invenio_notify.records.models import (
 from invenio_notify.tasks import get_notification_type
 from invenio_notify.utils import user_utils, reviewer_utils
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
+from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.services import RDMRecordService
 
 re_url_record_id = regex.compile(r'/records/(.*?)$')
+
+
+def get_record_id_from_notification(raw: dict) -> str:
+    """Extract record ID from notification data.
+    
+    Args:
+        raw (dict): Raw notification data
+        
+    Returns:
+        str: Record ID extracted from notification
+        
+    Raises:
+        COARProcessFail: If no record URL is found
+    """
+    # Try to get record URL from different locations based on notification type
+    record_url = None
+    if raw.get('context', {}).get('id'):
+        record_url = raw['context']['id']
+    elif raw.get('object', {}).get('object', {}).get('id'):
+        record_url = raw['object']['object']['id']
+    
+    if not record_url:
+        current_app.logger.error('No record URL found in notification')
+        raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'No record URL found')
+    
+    return get_recid_by_record_url(record_url)
 
 
 class BasicDbService(RecordService):
@@ -166,7 +192,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         current_app.logger.debug('called notification_received')
 
         raw = notification.to_jsonld()
-        recid = get_recid_by_record_url(raw['context']['id'])
+        recid = get_record_id_from_notification(raw)
 
         # Extract notification ID from the raw notification
         noti_id = raw.get('id')
@@ -407,51 +433,7 @@ class ReviewerService(BasicDbService):
 
 
 class EndorsementRequestService(BasicDbService):
-    """Service for managing endorsement requests."""
-
-    # KTODO consider extracting common search logic to a base class
-    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
-        if filter_maker is None:
-            def filter_maker(query_param):
-                filters = []
-                if query_param:
-                    filters.extend([
-                        self.record_cls.record_id == query_param,
-                    ])
-                return filters
-
-        return super().search(identity, params, search_preference, expand, filter_maker, **kwargs)
-
-    @unit_of_work()
-    def create(self, identity, data, raise_errors=True, uow=None):
-        # KTODO default value should be status type of coar_notify constants
-        data['latest_status'] = data.get('latest_status', 'Request Endorsement')
-        if data.get('user_id') is None:
-            data['user_id'] = identity.id
-        # Convert UUID to string if needed for schema validation
-        if 'record_id' in data and hasattr(data['record_id'], '__str__'):
-            data['record_id'] = str(data['record_id'])
-        if 'noti_id' in data and hasattr(data['noti_id'], '__str__'):
-            data['noti_id'] = str(data['noti_id'])
-        return super().create(identity, data, raise_errors=raise_errors, uow=uow)
-
-    @unit_of_work()
-    def update_status(self, identity, id, status, uow=None):
-        """Update the latest status of an endorsement request."""
-
-        # KTODO do we need this function
-
-        self.require_permission(identity, "update")
-
-        record = self.record_cls.get(id)
-        self.record_cls.update({'latest_status': status}, id)
-
-        return self.result_item(
-            self,
-            identity,
-            record,
-            links_tpl=self.links_item_tpl,
-        )
+    """ Endorsement Request Service, no use for now """
 
 
 class EndorsementReplyService(BasicDbService):

@@ -69,6 +69,7 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
+    # TODO somehow it can be other value than UUIDType, change it to string
     noti_id = db.Column(UUIDType, nullable=False, unique=True)
     """ notification id from COAR notification """
 

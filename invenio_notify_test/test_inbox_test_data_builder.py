@@ -1,5 +1,5 @@
 from invenio_notify_test.builders.inbox_test_data_builder import inbox_test_data_builder
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox_payload__reject
+from invenio_notify_test.fixtures.inbox_payload import payload_reject
 from invenio_rdm_records.proxies import current_rdm_records
 
 
@@ -8,7 +8,7 @@ def test_inbox_test_data_builder(db, rdm_record, superuser_identity, inbox_test_
     recid = rdm_record.id
     
     # Create test notification data
-    notification_data = create_inbox_payload__reject(recid)
+    notification_data = payload_reject(recid)
     
     # Use the builder
     builder = (inbox_test_data_builder(rdm_record.id, notification_data, superuser_identity)
@@ -37,7 +37,7 @@ def test_inbox_test_data_builder(db, rdm_record, superuser_identity, inbox_test_
 def test_inbox_test_data_builder_usage_example(db, rdm_record, superuser_identity, inbox_test_data_builder):
     """Example showing how to use the InboxTestDataBuilder like in the original test."""
     recid = rdm_record.id
-    notification_data = create_inbox_payload__reject(recid)
+    notification_data = payload_reject(recid)
 
     
     # NEW pattern - AFTER using builder:

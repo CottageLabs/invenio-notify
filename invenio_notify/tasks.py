@@ -91,6 +91,9 @@ def get_notification_type(notification_raw: dict) -> str | None:
         str | None: The first supported type found, or None if no supported type exists
     """
     noti_types = notification_raw.get('type', [])
+    if isinstance(noti_types, str):
+        noti_types = [noti_types]
+
     for t in SUPPORTED_TYPES:
         if t in noti_types:
             return t
@@ -231,7 +234,11 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
         return None
 
 
-def handle_endorsement_and_review(inbox_record: NotifyInboxModel, notification_raw: dict, reviewer: ReviewerModel):
+@unit_of_work()
+def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
+                                  notification_raw: dict,
+                                  reviewer: ReviewerModel,
+                                  uow=None,):
     """
     Process endorsement review for a single inbox record.
     
@@ -263,8 +270,9 @@ def handle_endorsement_and_review(inbox_record: NotifyInboxModel, notification_r
     current_rdm_records_service.indexer.index(record)
 
 
-def handle_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: dict) -> Optional[
-    EndorsementReplyModel]:
+@unit_of_work()
+def handle_endorsement_reply(inbox_record: NotifyInboxModel,
+                             notification_raw: dict, uow=None) -> Optional[EndorsementReplyModel]:
     """
     Process endorsement reply for a single inbox record.
     Creates a new EndorsementReplyModel record.
@@ -287,7 +295,7 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: d
     endorsement_request = EndorsementRequestModel.query.filter_by(noti_id=noti_id).first()
     if not endorsement_request:
         log.debug(f"Endorsement request with noti_id {noti_id} not found")
-        return
+        raise DataNotFound(f"Endorsement request not found for notification id[{inbox_record.id}], noti_id[{noti_id}]")
 
     # Extract status from notification type
     noti_type = get_notification_type(notification_raw)
@@ -297,16 +305,18 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel, notification_raw: d
     message = notification_raw.get('object', {}).get('summary', None)
 
     # Create the endorsement reply record
-    reply_data = {
+    reply = EndorsementReplyModel.create({
         'endorsement_request_id': endorsement_request.id,
         'inbox_id': inbox_record.id,
         'status': noti_type,
         'message': message
-    }
-
-    reply = EndorsementReplyModel.create(reply_data)
+    })
     log.info(f"Created endorsement reply record: {reply.id}")
 
+    # Update endorsement_request.latest_status
+    endorsement_request.latest_status = noti_type
+
+    # KTODO notification when save
     return reply
 
 

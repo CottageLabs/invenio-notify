@@ -8,7 +8,7 @@ from marshmallow_utils.fields import TZDateTime
 def create_current_utc_datetime():
     return datetime.now(timezone.utc)
 
-# KTODO remove duplicate created, updated fields
+# TODO remove duplicate created, updated fields
 
 class NotifyInboxSchema(BaseRecordSchema):
     noti_id = fields.String(required=True)

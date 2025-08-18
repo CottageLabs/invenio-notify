@@ -9,6 +9,9 @@ TYPE_TENTATIVE_REJECT = 'TentativeReject'
 SUPPORTED_TYPES = [TYPE_REVIEW, TYPE_ENDORSEMENT, TYPE_TENTATIVE_ACCEPT, TYPE_REJECT, TYPE_TENTATIVE_REJECT]
 """ List of supported notification types that can be processed by the notify  """
 
+# Status constants
+STATUS_REQUEST_ENDORSEMENT = 'Request Endorsement'
+
 
 
 STATUS_NOT_ACCEPTED = 422
