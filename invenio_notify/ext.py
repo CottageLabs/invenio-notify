@@ -1,28 +1,29 @@
 from invenio_notify import config, cli
 from invenio_notify.blueprints import blueprint
-from invenio_notify.resources.config import (
-    NotifyInboxResourceConfig,
-    ReviewerResourceConfig,
-    InboxApiResourceConfig, EndorsementRequestResourceConfig,
-)
-from invenio_notify.resources.resource import (
-    NotifyInboxResource,
-    ReviewerResource,
+from invenio_notify.resources import (
+    InboxAdminResourceConfig,
+    ReviewerAdminResourceConfig,
+    InboxApiResourceConfig,
+    EndorsementRequestResourceConfig,
+    EndorsementRequestAdminResourceConfig,
+    EndorsementAdminResourceConfig,
+    InboxAdminResource,
+    ReviewerAdminResource,
     InboxApiResource,
     EndorsementRequestResource,
+    EndorsementRequestAdminResource,
+    EndorsementAdminResource,
 )
-from invenio_notify.services.config import (
+from invenio_notify.services import (
     EndorsementReplyServiceConfig,
     EndorsementRequestServiceConfig,
-    EndorsementServiceConfig,
+    EndorsementAdminServiceConfig,
     NotifyInboxServiceConfig,
     ReviewerMapServiceConfig,
     ReviewerServiceConfig,
-)
-from invenio_notify.services.service import (
     EndorsementReplyService,
     EndorsementRequestService,
-    EndorsementService,
+    EndorsementAdminService,
     NotifyInboxService,
     ReviewerMapService,
     ReviewerService,
@@ -56,15 +57,16 @@ class InvenioNotify:
             if k.startswith("NOTIFY_"):
                 app.config.setdefault(k, getattr(config, k))
 
-        from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder
+        from invenio_notify.notifications import builders
         app.config['NOTIFICATIONS_BUILDERS'] = app.config.get('NOTIFICATIONS_BUILDERS', {}) | {
-            b.type: b for b in [NewEndorsementNotificationBuilder, ]
+            b.type: b for b in [builders.NewEndorsementNotificationBuilder,
+                                builders.EndorsementReplyNotificationBuilder]
         }
 
     def init_services(self, app):
         """Initialize the services for notifications."""
         self.notify_inbox_service = NotifyInboxService(config=NotifyInboxServiceConfig)
-        self.endorsement_service = EndorsementService(config=EndorsementServiceConfig)
+        self.endorsement_service = EndorsementAdminService(config=EndorsementAdminServiceConfig)
         self.reviewer_map_service = ReviewerMapService(config=ReviewerMapServiceConfig)
         self.reviewer_service = ReviewerService(config=ReviewerServiceConfig)
         self.endorsement_request_service = EndorsementRequestService(config=EndorsementRequestServiceConfig)
@@ -72,13 +74,13 @@ class InvenioNotify:
 
     def init_resources(self, app):
         """Initialize the resources for notifications."""
-        self.notify_inbox_resource = NotifyInboxResource(
+        self.inbox_admin_resource = InboxAdminResource(
             service=self.notify_inbox_service,
-            config=NotifyInboxResourceConfig,
+            config=InboxAdminResourceConfig,
         )
-        self.reviewer_resource = ReviewerResource(
+        self.reviewer_admin_resource = ReviewerAdminResource(
             service=self.reviewer_service,
-            config=ReviewerResourceConfig,
+            config=ReviewerAdminResourceConfig,
         )
         self.inbox_api_resource = InboxApiResource(
             service=self.notify_inbox_service,
@@ -86,4 +88,12 @@ class InvenioNotify:
         )
         self.endorsement_request_resource = EndorsementRequestResource(
             config=EndorsementRequestResourceConfig.build(app),
+        )
+        self.endorsement_request_admin_resource = EndorsementRequestAdminResource(
+            service=self.endorsement_request_service,
+            config=EndorsementRequestAdminResourceConfig,
+        )
+        self.endorsement_admin_resource = EndorsementAdminResource(
+            service=self.endorsement_service,
+            config=EndorsementAdminResourceConfig,
         )

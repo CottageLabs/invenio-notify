@@ -21,6 +21,7 @@ class NotifyInboxSchema(BaseRecordSchema):
     updated = TZDateTime(timezone=timezone.utc, format="iso", dump_only=True)
 
     process_date = TZDateTime(timezone=timezone.utc, format="iso", required=False)
+    process_note = fields.String(required=False)
 
 
 class ApiNotifyInboxSchema(BaseRecordSchema):
@@ -37,6 +38,7 @@ class EndorsementSchema(BaseRecordSchema):
     inbox_id = fields.Integer(required=True)
     result_url = fields.String(required=True)
     reviewer_name = fields.String(required=True)
+    endorsement_reply_id = fields.Integer(required=False, allow_none=True)
 
 
 class ReviewerMapSchema(BaseRecordSchema):
@@ -77,7 +79,7 @@ class EndorsementRequestSchema(BaseRecordSchema):
     noti_id = fields.String(required=True)
     record_id = fields.String(required=True)
     reviewer_id = fields.Integer(required=True)
-    raw = fields.Dict(required=True)
+    raw = fields.String(required=True)
     latest_status = fields.String(required=True)
     user_id = fields.Integer(required=False)
 

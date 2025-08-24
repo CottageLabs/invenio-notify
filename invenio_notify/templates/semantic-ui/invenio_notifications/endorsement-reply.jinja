@@ -1,0 +1,115 @@
+{% set record_title = notification.context.record_title %}
+{% set record_url = notification.context.record_url %}
+{% set endorsement_status = notification.context.endorsement_status %}
+{% set reviewer_name = notification.context.reviewer_name %}
+{% set account_settings_link = invenio_url_for("invenio_notifications_settings.index") %}
+
+{%- macro get_status_message(status, record_title, reviewer_name) -%}
+{%- if status == 'Reject' -%}
+{{ _("Your endorsement request for '{record_title}' has been rejected by '{reviewer_name}'.").format(
+    record_title=record_title, reviewer_name=reviewer_name
+) }}
+{%- elif status == 'TentativeAccept' -%}
+{{ _("Your endorsement request for '{record_title}' has been tentatively accepted by '{reviewer_name}'.").format(
+    record_title=record_title, reviewer_name=reviewer_name
+) }}
+{%- elif status == 'TentativeReject' -%}
+{{ _("Your endorsement request for '{record_title}' needs revision. "
+   "Please update your request and resubmit for review by '{reviewer_name}'.").format(
+    record_title=record_title, reviewer_name=reviewer_name
+) }}
+{%- else -%}
+{{ _("Your endorsement request for '{record_title}' status has been updated to "
+   "'{endorsement_status}' by '{reviewer_name}'.").format(
+    record_title=record_title, endorsement_status=status, reviewer_name=reviewer_name
+) }}
+{%- endif -%}
+{%- endmacro -%}
+
+{%- block subject -%}
+{{ _("📋 Endorsement request status update for '{record_title}'").format(
+    record_title=record_title
+) }}
+{%- endblock subject -%}
+
+{%- block html_body -%}
+<table style="font-family:'Lato',Helvetica,Arial,sans-serif;border-spacing:15px">
+    <tr>
+        <td>
+            {{ get_status_message(endorsement_status, record_title, reviewer_name) }}
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <a href="{{ record_url }}" class="button">{{ _("View your record")}}</a>
+        </td>
+    </tr>
+    {% if endorsement_status == 'TentativeReject' %}
+    <tr>
+        <td style="background-color:#fff3cd;border:1px solid #ffeaa7;padding:10px;border-radius:4px">
+            <strong>{{ _("Action Required:") }}</strong>
+            {{ _("Please review the feedback, update your endorsement request, "
+               "and resubmit for consideration.") }}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td><strong>————</strong></td>
+    </tr>
+    <tr>
+        <td style="font-size:smaller">
+            {{ _("This is an auto-generated message. To manage notifications, visit your") }}
+            <a href="{{ account_settings_link }}">{{ _("account settings") }}</a>.
+        </td>
+    </tr>
+</table>
+{%- endblock html_body %}
+
+{%- block plain_body -%}
+{{ get_status_message(endorsement_status, record_title, reviewer_name) }}
+{% if endorsement_status == 'TentativeReject' %}
+{{ _("ACTION REQUIRED: Please review the feedback, update your endorsement request, "
+   "and resubmit for consideration.") }}
+{% endif %}
+
+{{ _("View your record: {record_url}").format(record_url=record_url) }}
+
+—
+{{ _("This is an auto-generated message. To manage notifications, "
+   "visit your account settings at:") }}
+{{ account_settings_link }}
+{%- endblock plain_body %}
+
+{# Markdown for Slack/Mattermost/chat #}
+{%- block md_body -%}
+{% if endorsement_status == 'Reject' %}
+    {{ _("Your endorsement request for *{record_title}* has been **rejected** by *{reviewer_name}*.").format(
+        record_title=record_title, reviewer_name=reviewer_name
+    ) }}
+{% elif endorsement_status == 'TentativeAccept' %}
+    {{ _("Your endorsement request for *{record_title}* has been **tentatively accepted** "
+       "by *{reviewer_name}*.").format(
+        record_title=record_title, reviewer_name=reviewer_name
+    ) }}
+{% elif endorsement_status == 'TentativeReject' %}
+    {{ _("Your endorsement request for *{record_title}* **needs revision**. "
+       "Please update your request and resubmit for review by *{reviewer_name}*.").format(
+        record_title=record_title, reviewer_name=reviewer_name
+    ) }}
+
+    **{{ _("ACTION REQUIRED") }}:**
+    {{ _("Please review the feedback, update your endorsement request, "
+       "and resubmit for consideration.") }}
+{% else %}
+    {{ _("Your endorsement request for *{record_title}* status has been updated to "
+       "**{endorsement_status}** by *{reviewer_name}*.").format(
+        record_title=record_title, endorsement_status=endorsement_status, reviewer_name=reviewer_name
+    ) }}
+{% endif %}
+
+[{{ _("View your record") }}]({{ record_url }})
+
+—
+{{ _("This is an auto-generated message. To manage notifications, visit your") }}
+[{{ _("account settings") }}]({{ account_settings_link }}).
+{%- endblock md_body %}

@@ -13,7 +13,7 @@ class BasicSearchRequestArgsSchema(SearchRequestArgsSchema):
     sort_direction = ma.fields.Str()
 
 
-class BasicResourceConfig(RecordResourceConfig):
+class BasicAdminResourceConfig(RecordResourceConfig):
     """Common configuration for all resource configs."""
 
     routes = {
@@ -38,7 +38,7 @@ class BasicResourceConfig(RecordResourceConfig):
     }
 
 
-class NotifyInboxResourceConfig(BasicResourceConfig):
+class InboxAdminResourceConfig(BasicAdminResourceConfig):
     blueprint_name = "notify_inbox"
     url_prefix = "/notify-inbox"
     # request_extra_args = {
@@ -48,11 +48,11 @@ class NotifyInboxResourceConfig(BasicResourceConfig):
 
 
 
-class ReviewerResourceConfig(BasicResourceConfig):
+class ReviewerAdminResourceConfig(BasicAdminResourceConfig):
     blueprint_name = "reviewer"
     url_prefix = "/reviewer"
 
-    routes = BasicResourceConfig.routes
+    routes = BasicAdminResourceConfig.routes
     # Updated route names for better consistency
     routes['member'] = "/<record_id>/member"
     routes['members'] = "/<record_id>/members"
@@ -79,4 +79,16 @@ class EndorsementRequestResourceConfig(ResourceConfig, ConfiguratorMixin):
     }
 
     response_handler = {"application/json": ResponseHandler(JSONSerializer())}
+
+
+class EndorsementRequestAdminResourceConfig(BasicAdminResourceConfig):
+    """Configuration for the endorsement request admin resource."""
+    blueprint_name = "endorsement_request_admin"
+    url_prefix = "/endorsement-request-admin"
+
+
+class EndorsementAdminResourceConfig(BasicAdminResourceConfig):
+    """Configuration for the endorsement admin resource."""
+    blueprint_name = "endorsement_admin"
+    url_prefix = "/endorsement-admin"
 

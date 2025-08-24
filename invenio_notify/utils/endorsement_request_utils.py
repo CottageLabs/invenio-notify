@@ -4,7 +4,7 @@ from invenio_base import invenio_url_for
 from invenio_records_resources.services.records.results import RecordItem
 
 from invenio_notify import constants
-from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
+from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel, EndorsementModel
 
 
 def create_endorsement_request_data(user, record: RecordItem, reviewer: ReviewerModel, origin_id: str):
@@ -64,7 +64,21 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
     return data
 
 
-def get_available_reviewers(record_id, user_id):
+def get_overall_endorsement_status(record_id, reviewer_id):
+    # First check if there's an actual endorsement
+    status = get_latest_endorsement_status(record_id, reviewer_id)
+    if status:
+        return status
+
+    # If no endorsement, check endorsement request status
+    status = get_latest_endorsement_request_status(record_id, reviewer_id)
+    if status:
+        return status
+
+    return None
+
+
+def get_available_reviewers(record_id):
     """Get list of available reviewers with their endorsement request status.
     
     Args:
@@ -79,41 +93,53 @@ def get_available_reviewers(record_id, user_id):
     reviewers = []
 
     for reviewer in all_reviewers:
-        endorsement_request = get_latest_endorsement_request(record_id, reviewer.id, user_id)
+        endo_staus = get_overall_endorsement_status(record_id, reviewer.id)
 
         # Set status based on endorsement request
-        if endorsement_request:
-            status = endorsement_request.latest_status
-        else:
-            status = 'available'
-
-        available = can_send(endorsement_request, reviewer)
+        available = can_send(endo_staus, reviewer)
 
         reviewers.append({
             "reviewer_id": reviewer.id,
             "reviewer_name": reviewer.name,
-            "status": status,
+            "status": endo_staus or 'available',
             'available': available,
         })
 
     return reviewers
 
 
-def get_latest_endorsement_request(record_id, reviewer_id, user_id):
-    endorsement_request = EndorsementRequestModel.query.filter_by(
-        record_id=record_id,
-        reviewer_id=reviewer_id,
-        user_id=user_id
-    ).order_by(EndorsementRequestModel.created.desc()).first()
-    return endorsement_request
+def get_latest_endorsement_request_status(record_id, reviewer_id):
+    status = (
+        EndorsementRequestModel.query.filter_by(
+            record_id=record_id,
+            reviewer_id=reviewer_id,
+        )
+        .order_by(EndorsementRequestModel.created.desc())
+        .with_entities(EndorsementRequestModel.latest_status)
+        .limit(1)
+        .scalar())
+    return status
 
 
-def can_send(endorsement_request, reviewer):
+def get_latest_endorsement_status(record_id, reviewer_id):
+    status = (
+        EndorsementModel.query.filter_by(
+            record_id=record_id,
+            reviewer_id=reviewer_id,
+        )
+        .order_by(EndorsementModel.created.desc())
+        .with_entities(EndorsementModel.review_type)
+        .limit(1)
+        .scalar())
+    return status
+
+
+def can_send(endo_status, reviewer):
     if not reviewer or not reviewer.inbox_url or not reviewer.inbox_api_token:
         return False
 
     available = (
-            not endorsement_request or
-            endorsement_request.latest_status == constants.TYPE_TENTATIVE_REJECT
+            not endo_status or
+            endo_status == constants.TYPE_TENTATIVE_REJECT
     )
     return available

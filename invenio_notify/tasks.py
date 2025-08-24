@@ -12,7 +12,7 @@ from invenio_pidstore.errors import PIDDoesNotExistError
 from coarnotify.factory import COARNotifyFactory
 from invenio_notify import constants
 from invenio_notify.constants import SUPPORTED_TYPES
-from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder
+from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder, EndorsementReplyNotificationBuilder
 from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
 from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
@@ -23,7 +23,26 @@ from invenio_rdm_records.records.models import RDMRecordMetadata, RDMParentMetad
 log = logging.getLogger(__name__)
 
 
-def get_user_id_by_record(record) -> Optional[int]:
+def get_record_by_id(record_id) -> RDMRecordMetadata:
+    """
+    Get RDMRecordMetadata by record ID.
+    
+    Args:
+        record_id: The record uuid
+        
+    Returns:
+        RDMRecordMetadata: The record metadata object
+        
+    Raises:
+        DataNotFound: If record is not found
+    """
+    record = RDMRecordMetadata.query.filter_by(id=record_id).first()
+    if not record:
+        raise DataNotFound(f"Record with ID {record_id} not found")
+    return record
+
+
+def get_user_id_by_record(record: RDMRecordMetadata) -> int:
     """
     Get the user_id of the record owner by record object.
     
@@ -31,11 +50,14 @@ def get_user_id_by_record(record) -> Optional[int]:
         record: The RDMRecordMetadata object
         
     Returns:
-        Optional[int]: The user_id of the record owner, or None if not found
+        int: The user_id of the record owner
+        
+    Raises:
+        DataNotFound: If record is None, parent not found, or user_id not found
     """
     if not record:
         log.warning("Record object is None")
-        return None
+        raise DataNotFound("User ID not found for record")
 
     parent_id = record.parent_id
 
@@ -43,7 +65,7 @@ def get_user_id_by_record(record) -> Optional[int]:
     parent = RDMParentMetadata.query.filter_by(id=parent_id).first()
     if not parent:
         log.warning(f"Parent record with id {parent_id} not found")
-        return None
+        raise DataNotFound("User ID not found for record")
 
     # Extract user_id from parent JSON: access.owned_by.user
     access_data = parent.json.get('access', {})
@@ -52,7 +74,7 @@ def get_user_id_by_record(record) -> Optional[int]:
 
     if user_id is None:
         log.warning(f"Owner user_id not found in parent {parent_id} for record {record.id}")
-        return None
+        raise DataNotFound("User ID not found for record")
 
     return int(user_id)
 
@@ -128,7 +150,7 @@ def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
 
 @unit_of_work()
 def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadata], inbox_id, notification_raw,
-                              reviewer: ReviewerModel, uow=None):
+                              reviewer: ReviewerModel, endo_reply_id: Optional[int] = None, uow=None):
     """
     Create a new endorsement record using the endorsement service.
 
@@ -155,8 +177,8 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
 
     # Handle both string record_id and RDMRecordMetadata object
     if isinstance(record_item, str):
-        record_id = record_item
         record = None  # Will be queried only if needed for endorsement type
+        record_id = record_item
     else:
         # record_item is RDMRecordMetadata object
         record = record_item
@@ -174,6 +196,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
         'inbox_id': inbox_id,
         'result_url': review_url,
         'reviewer_name': reviewer.name,
+        'endorsement_reply_id': endo_reply_id,
     }
 
     # Get reviewer name for notification
@@ -181,22 +204,14 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
 
     if reviewer_type == constants.TYPE_ENDORSEMENT:
         # Get the record if we don't have it yet
-        if record is None:
-            record = RDMRecordMetadata.query.filter_by(id=record_id).first()
-            if not record:
-                raise DataNotFound(f"Record with ID {record_id} not found")
-
-        record_owner_user_id = get_user_id_by_record(record)
-        if record_owner_user_id is None:
-            raise DataNotFound(f"User ID not found for record {record_id}")
-
+        record = record or get_record_by_id(record_id)
         uow.register(
             NotificationOp(
                 NewEndorsementNotificationBuilder.build(
                     record=record,
                     reviewer_name=reviewer_name,
                     endorsement_url=review_url,
-                    user_id=record_owner_user_id,
+                    user_id=get_user_id_by_record(record),
                 ),
             )
         )
@@ -238,7 +253,8 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
 def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
                                   notification_raw: dict,
                                   reviewer: ReviewerModel,
-                                  uow=None,):
+                                  endo_reply_id: Optional[int] = None,
+                                  uow=None, ):
     """
     Process endorsement review for a single inbox record.
     
@@ -261,7 +277,8 @@ def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
         record.model,
         inbox_record.id,
         notification_raw,
-        reviewer
+        reviewer,
+        endo_reply_id
     )
 
     log.info(f"Created endorsement record: {endorsement._record.id}")
@@ -305,6 +322,20 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
     message = notification_raw.get('object', {}).get('summary', None)
 
     # Create the endorsement reply record
+    if noti_type not in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
+        record = get_record_by_id(endorsement_request.record_id)
+        record_owner_user_id = get_user_id_by_record(record)
+        reviewer_name = endorsement_request.reviewer.name
+        uow.register(
+            NotificationOp(
+                EndorsementReplyNotificationBuilder.build(
+                    record=record,
+                    reviewer_name=reviewer_name,
+                    user_id=record_owner_user_id,
+                    endorsement_status=noti_type,
+                ),
+            )
+        )
     reply = EndorsementReplyModel.create({
         'endorsement_request_id': endorsement_request.id,
         'inbox_id': inbox_record.id,
@@ -316,7 +347,6 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
     # Update endorsement_request.latest_status
     endorsement_request.latest_status = noti_type
 
-    # KTODO notification when save
     return reply
 
 
@@ -354,9 +384,10 @@ def inbox_processing():
             continue
 
         try:
-            handle_endorsement_reply(inbox_record, notification_raw)
+            reply = handle_endorsement_reply(inbox_record, notification_raw)
             if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
-                handle_endorsement_and_review(inbox_record, notification_raw, reviewer)
+                endo_reply_id = reply.id if reply else None
+                handle_endorsement_and_review(inbox_record, notification_raw, reviewer, endo_reply_id)
 
             # Mark inbox as processed after successful reply creation
             mark_as_processed(inbox_record)
