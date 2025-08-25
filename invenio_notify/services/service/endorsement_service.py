@@ -2,10 +2,11 @@ from typing import List, Dict
 
 from flask import current_app
 from invenio_db import db
+from sqlalchemy.orm import selectinload
 
-from invenio_rdm_records.records.models import RDMRecordMetadata
 from invenio_notify import constants
 from invenio_notify.records.models import EndorsementModel
+from invenio_rdm_records.records.models import RDMRecordMetadata
 from .base_service import BasicDbService
 
 
