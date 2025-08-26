@@ -38,7 +38,7 @@ class InvenioNotify:
             self.init_app(app)
 
             # set logger level to debug
-            log_level = app.config.get('LOGGING_GENERAL_LEVEL')
+            log_level = app.config.get('NOTIFY_LOG_LEVEL')
             if log_level:
                 app.logger.setLevel(log_level)
 
@@ -60,7 +60,7 @@ class InvenioNotify:
         from invenio_notify.notifications import builders
         app.config['NOTIFICATIONS_BUILDERS'] = app.config.get('NOTIFICATIONS_BUILDERS', {}) | {
             b.type: b for b in [builders.NewEndorsementNotificationBuilder,
-                                builders.EndorsementReplyNotificationBuilder]
+                                builders.EndorsementUpdateNotificationBuilder]
         }
 
     def init_services(self, app):

@@ -5,7 +5,11 @@
 {% set account_settings_link = invenio_url_for("invenio_notifications_settings.index") %}
 
 {%- macro get_status_message(status, record_title, reviewer_name) -%}
-{%- if status == 'Reject' -%}
+{%- if status == 'coar-notify:ReviewAction' -%}
+{{ _("Your record '{record_title}' has received a peer review notification from '{reviewer_name}'.").format(
+    record_title=record_title, reviewer_name=reviewer_name
+) }}
+{%- elif status == 'Reject' -%}
 {{ _("Your endorsement request for '{record_title}' has been rejected by '{reviewer_name}'.").format(
     record_title=record_title, reviewer_name=reviewer_name
 ) }}
@@ -27,9 +31,11 @@
 {%- endmacro -%}
 
 {%- block subject -%}
-{{ _("📋 Endorsement request status update for '{record_title}'").format(
-    record_title=record_title
-) }}
+{%- if endorsement_status == 'coar-notify:ReviewAction' -%}
+{{ _("🔎 Review notification for '{record_title}'").format(record_title=record_title) }}
+{%- else -%}
+{{ _("📋 Endorsement request status update for '{record_title}'").format(record_title=record_title) }}
+{%- endif -%}
 {%- endblock subject -%}
 
 {%- block html_body -%}
@@ -82,7 +88,11 @@
 
 {# Markdown for Slack/Mattermost/chat #}
 {%- block md_body -%}
-{% if endorsement_status == 'Reject' %}
+{% if endorsement_status == 'coar-notify:ReviewAction' %}
+    {{ _("Your record *{record_title}* has received a peer review notification from *{reviewer_name}*.").format(
+        record_title=record_title, reviewer_name=reviewer_name
+    ) }}
+{% elif endorsement_status == 'Reject' %}
     {{ _("Your endorsement request for *{record_title}* has been **rejected** by *{reviewer_name}*.").format(
         record_title=record_title, reviewer_name=reviewer_name
     ) }}
