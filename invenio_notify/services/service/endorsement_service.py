@@ -29,15 +29,12 @@ class EndorsementAdminService(BasicDbService):
         if not parent_id:
             return []
 
-        # Get all child record IDs for this parent
-        child_record_ids = [row[0] for row in
-                            db.session.query(RDMRecordMetadata.id).filter_by(parent_id=parent_id).all()]
-
-        # Query endorsements for any of the child records
+        # Get all endorsements for this parent's children
         endorsements = (
             db.session.query(EndorsementModel)
+            .join(RDMRecordMetadata, EndorsementModel.record_id == RDMRecordMetadata.id)
             .options(selectinload(EndorsementModel.record))
-            .filter(EndorsementModel.record_id.in_(child_record_ids))
+            .filter(RDMRecordMetadata.parent_id == parent_id)
             .all()
         )
 
