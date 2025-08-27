@@ -102,7 +102,7 @@ class DummyPCIBackend:
         record_id = context_id.split('/')[-1] if context_id else '1'
 
         # Get the notification ID to reply to
-        in_reply_to = last_notification.get('id', '').replace('urn:uuid:', '')
+        in_reply_to = last_notification.get('id', '')
 
         # Create payload based on type
         payload_functions = {

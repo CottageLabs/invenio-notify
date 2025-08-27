@@ -308,7 +308,7 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
     """
 
     # Extract noti_id from inReplyTo field
-    noti_id = notification_raw.get('inReplyTo', '').replace('urn:uuid:', '')
+    noti_id = notification_raw.get('inReplyTo', '')
     if not noti_id:
         log.debug(f"Notification {inbox_record.id} does not have inReplyTo field")
         return

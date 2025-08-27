@@ -5,6 +5,7 @@ from invenio_notify import constants
 from invenio_notify.records.models import NotifyInboxModel, EndorsementModel, EndorsementRequestModel, \
     EndorsementReplyModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
+from invenio_notify_test.fixtures import inbox_payload
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
 from invenio_notify_test.fixtures.inbox_payload import payload_endorsement_resp
 from invenio_notify_test.fixtures.inbox_payload import payload_review, \
@@ -127,7 +128,7 @@ def test_inbox_processing__success__endorsement_with_endorsement_request(db, rdm
     recid = rdm_record.id
 
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
-    notification_data = payload_endorsement_resp(recid, in_reply_to=uuid.uuid4())
+    notification_data = payload_endorsement_resp(recid, in_reply_to=inbox_payload.generate_noti_id())
 
     # Use builder to create test data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
