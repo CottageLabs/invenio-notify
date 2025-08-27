@@ -2,9 +2,11 @@ from typing import List, Dict
 
 from flask import current_app
 from invenio_db import db
+from sqlalchemy.orm import selectinload
 
 from invenio_notify import constants
 from invenio_notify.records.models import EndorsementModel
+from invenio_rdm_records.records.models import RDMRecordMetadata
 from .base_service import BasicDbService
 
 
@@ -12,24 +14,27 @@ class EndorsementAdminService(BasicDbService):
     """Service for managing endorsements."""
 
     @staticmethod
-    def get_endorsement_info(record_id) -> List[Dict]:
-        """Get the endorsement information for a record by its ID.
+    def get_endorsement_info(parent_id) -> List[Dict]:
+        """Get the endorsement information for a record by its parent ID.
         Note: This method is not actually called in this module, it is called in
         InvenioRDMRecords by the EndorsementsDumperExt and as a backup for the
         Endorsements system field getter.
 
         Args:
-            record_id: The UUID of the record
+            parent_id: The UUID of the record
             
         Returns:
             list: A list of dictionaries containing endorsement information
         """
-        if not record_id:
+        if not parent_id:
             return []
 
+        # Get all endorsements for this parent's children
         endorsements = (
             db.session.query(EndorsementModel)
-            .filter(EndorsementModel.record_id == record_id)
+            .join(RDMRecordMetadata, EndorsementModel.record_id == RDMRecordMetadata.id)
+            .options(selectinload(EndorsementModel.record))
+            .filter(RDMRecordMetadata.parent_id == parent_id)
             .all()
         )
 
@@ -61,13 +66,15 @@ class EndorsementAdminService(BasicDbService):
             for e in data['endorsements']:
                 sub_endorsement_list.append({
                     'created': e.created.isoformat(),
-                    'url': e.result_url
+                    'url': e.result_url,
+                    'index': e.record.index
                 })
 
-            for e in data['reviews']:
+            for r in data['reviews']:
                 sub_review_list.append({
-                    'created': e.created.isoformat(),
-                    'url': e.result_url
+                    'created': r.created.isoformat(),
+                    'url': r.result_url,
+                    'index': r.record.index
                 })
 
             _endorsements = data['reviews'] + data['endorsements']
