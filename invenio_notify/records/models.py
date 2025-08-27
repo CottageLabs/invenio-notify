@@ -2,7 +2,6 @@ from typing import Iterable
 
 from invenio_accounts.models import User
 from invenio_db import db
-from sqlalchemy import or_
 from sqlalchemy.dialects import postgresql
 from sqlalchemy_utils import Timestamp
 from sqlalchemy_utils.types import JSONType, UUIDType
@@ -49,12 +48,56 @@ class DbOperationMixin:
     @classmethod
     def search(cls, search_params=None, filters=None):
         query = db.session.query(cls)
+        
+        # Apply search filters
         if filters:
-            results = query.filter(or_(*filters))
-        else:
-            results = query.filter()
+            for filter_condition in filters:
+                query = query.filter(filter_condition)
+        
+        # Apply sorting if specified
+        if search_params and "sort" in search_params:
+            sort_fields = search_params["sort"]
+            sort_direction_func = search_params.get("sort_direction")
+            
+            # Handle sort_fields as list (from map_search_params)
+            if isinstance(sort_fields, list) and sort_fields:
+                sort_field = sort_fields[0]  # Use first field for sorting
+            elif isinstance(sort_fields, str):
+                sort_field = sort_fields
+            else:
+                sort_field = None
+            
+            if sort_field:
+                # Handle minus-prefixed sort fields (e.g., "-created" for descending)
+                if sort_field.startswith('-'):
+                    actual_field = sort_field[1:]  # Remove minus prefix
+                    is_descending = True
+                else:
+                    actual_field = sort_field
+                    is_descending = False
+                
+                if hasattr(cls, actual_field):
+                    column = getattr(cls, actual_field)
+                    
+                    # Apply sorting direction
+                    if is_descending:
+                        query = query.order_by(column.desc())
+                    elif callable(sort_direction_func):
+                        # Use the SQLAlchemy function if provided
+                        query = query.order_by(sort_direction_func(column))
+                    else:
+                        query = query.order_by(column.asc())
+        
+        # Apply pagination if specified
+        if search_params:
+            page = search_params.get("page", 1)
+            size = search_params.get("size", 25)
+            
+            # Calculate offset
+            offset = (page - 1) * size
+            query = query.offset(offset).limit(size)
 
-        return results
+        return query
 
     @classmethod
     def update(cls, data, id):

@@ -10,6 +10,7 @@ notify = WebpackThemeBundle(
         "semantic-ui": dict(
             entry={
                 "invenio-administration-reviewer-search": "./js/invenio_notify/src/administration/reviewer/index.js",
+                "invenio-notify-administration-search": "./js/invenio_notify/src/administration/notification/index.js",
             },
             dependencies={
                 "@babel/runtime": "^7.9.0",

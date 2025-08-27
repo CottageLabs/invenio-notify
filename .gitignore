@@ -18,7 +18,8 @@ __pycache__/
 .idea/vcs.xml
 .idea/misc.xml
 
-_playground
+build/
+dist/
 
 
 # IDE

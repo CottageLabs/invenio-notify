@@ -1,0 +1,50 @@
+{#
+  Template for NotifyInboxListView administration search page.
+  Extends base Invenio administration search template with custom JavaScript.
+#}
+
+{% extends "invenio_administration/search.html" %}
+
+{%- block javascript %}
+  {{ super() }}
+  {# Include custom JavaScript bundle for notification search functionality #}
+  {{ webpack['invenio-notify-administration-search.js'] }}
+{%- endblock javascript %}
+
+{%- block search_app %}
+  <div id="invenio-search-config" 
+       data-title='{{ title | tojson }}'
+       data-resource-name='{{ resource_name | tojson }}'
+       data-invenio-search-config='{{ search_config() | tojson }}'
+       data-fields='{{ fields | tojson }}'
+       data-display-search='{{ display_search | tojson }}'
+       data-display-read='{{ display_read | tojson }}'
+       data-display-edit='{{ display_edit | tojson }}'
+       data-display-delete='{{ display_delete | tojson }}'
+       data-resource-schema='{{ resource_schema | tojson }}'
+       data-actions='{{ actions | tojson }}'
+       data-api-endpoint='{{ api_endpoint }}'
+       data-pid-path='{{ pid_path | tojson }}'
+       data-create-endpoint='{{ create_ui_endpoint }}'
+       data-list-endpoint='{{ list_ui_endpoint }}'
+       data-detail-view-name="{{ detail_view_name | tojson }}"
+       {# Custom data attributes for notification-specific functionality #}
+       data-notify-admin-record-url-pattern="administration/records?q=id:{recid}"
+       data-notify-enable-record-links="true">
+    
+    {# Search interface will be rendered here by React components #}
+    <div class="ui active centered inline loader" style="margin: 2em 0;">
+      <div class="text">{{ _('Loading notifications...') }}</div>
+    </div>
+  </div>
+{%- endblock search_app %}
+
+{%- block admin_page_content %}
+  {{ super() }}
+  
+  {# Additional content specific to notification administration #}
+  <div class="ui info message" style="margin-top: 1rem;">
+    <div class="header">{{ _('Notification Administration') }}</div>
+    <p>{{ _('Manage notification inbox items. Click on Record ID links to view the associated records in the administration interface.') }}</p>
+  </div>
+{%- endblock admin_page_content %}

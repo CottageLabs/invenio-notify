@@ -35,6 +35,64 @@ from invenio_notify.services.schemas import (
 )
 
 
+class NotifyInboxSearchOptions(DefaultSearchOptions):
+    """Search options specific to NotifyInbox."""
+    
+    sort_default = "created"
+    sort_options = {
+        # Ascending options
+        "id": dict(
+            title=_("ID (Ascending)"),
+            fields=["id"],
+        ),
+        "created": dict(
+            title=_("Created (Newest First)"),
+            fields=["created"],
+        ),
+        "updated": dict(
+            title=_("Updated (Newest First)"),
+            fields=["updated"],
+        ),
+        "process_date": dict(
+            title=_("Process Date (Newest First)"),
+            fields=["process_date"],
+        ),
+        "recid": dict(
+            title=_("Record ID (A-Z)"),
+            fields=["recid"],
+        ),
+        "user_id": dict(
+            title=_("User ID (Ascending)"),
+            fields=["user_id"],
+        ),
+        # Descending options (with minus prefix)
+        "-id": dict(
+            title=_("ID (Descending)"),
+            fields=["-id"],
+        ),
+        "-created": dict(
+            title=_("Created (Oldest First)"),
+            fields=["-created"],
+        ),
+        "-updated": dict(
+            title=_("Updated (Oldest First)"),
+            fields=["-updated"],
+        ),
+        "-process_date": dict(
+            title=_("Process Date (Oldest First)"),
+            fields=["-process_date"],
+        ),
+        "-recid": dict(
+            title=_("Record ID (Z-A)"),
+            fields=["-recid"],
+        ),
+        "-user_id": dict(
+            title=_("User ID (Descending)"),
+            fields=["-user_id"],
+        ),
+    }
+
+
 class NotifyInboxServiceConfig(RecordServiceConfig):
     """Service factory configuration."""
 
@@ -46,7 +104,7 @@ class NotifyInboxServiceConfig(RecordServiceConfig):
     permission_policy_cls = NotifyInboxPermissionPolicy
 
     # Search configuration
-    search = DefaultSearchOptions
+    search = NotifyInboxSearchOptions
 
     # # links configuration
     links_item = {
