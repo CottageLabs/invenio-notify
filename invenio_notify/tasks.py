@@ -13,7 +13,8 @@ from coarnotify.factory import COARNotifyFactory
 from invenio_db import db
 from invenio_notify import constants
 from invenio_notify.constants import SUPPORTED_TYPES
-from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder, EndorsementReplyNotificationBuilder
+from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder, \
+    EndorsementUpdateNotificationBuilder
 from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
 from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
@@ -41,6 +42,22 @@ def get_record_by_id(record_id) -> RDMRecordMetadata:
     if not record:
         raise DataNotFound(f"Record with ID {record_id} not found")
     return record
+
+
+def create_endorsement_update_notification(record_id: str, reviewer_name: str,
+                                           noti_type: str, uow) -> None:
+    record = get_record_by_id(record_id)
+    record_owner_user_id = get_user_id_by_record(record)
+    uow.register(
+        NotificationOp(
+            EndorsementUpdateNotificationBuilder.build(
+                record=record,
+                reviewer_name=reviewer_name,
+                user_id=record_owner_user_id,
+                endorsement_status=noti_type,
+            ),
+        )
+    )
 
 
 def get_user_id_by_record(record: RDMRecordMetadata) -> int:
@@ -216,6 +233,14 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
                 ),
             )
         )
+    elif reviewer_type == constants.TYPE_REVIEW:
+        create_endorsement_update_notification(
+            record_id,
+            reviewer_name,
+            reviewer_type,
+            uow
+        )
+
 
     # Create the endorsement record
     return endorsement_service.create(identity, endorsement_data, uow=uow)
@@ -328,19 +353,14 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
 
     # Create the endorsement reply record
     if noti_type not in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
-        record = get_record_by_id(endorsement_request.record_id)
-        record_owner_user_id = get_user_id_by_record(record)
-        reviewer_name = endorsement_request.reviewer.name
-        uow.register(
-            NotificationOp(
-                EndorsementReplyNotificationBuilder.build(
-                    record=record,
-                    reviewer_name=reviewer_name,
-                    user_id=record_owner_user_id,
-                    endorsement_status=noti_type,
-                ),
-            )
+        # Review's notification will be sent when endorsement record is created
+        create_endorsement_update_notification(
+            endorsement_request.record_id,
+            endorsement_request.reviewer.name,
+            noti_type,
+            uow
         )
+
     reply = EndorsementReplyModel.create({
         'endorsement_request_id': endorsement_request.id,
         'inbox_id': inbox_record.id,

@@ -119,9 +119,9 @@ class NewEndorsementNotificationBuilder(NotificationBuilder):
     ]
 
 
-class EndorsementReplyNotificationBuilder(NotificationBuilder):
+class EndorsementUpdateNotificationBuilder(NotificationBuilder):
     """Notification builder for endorsement reply actions."""
-    type = 'endorsement-reply'
+    type = 'endorsement-update'
 
     @classmethod
     def build(cls, record: RDMRecordMetadata = None,
