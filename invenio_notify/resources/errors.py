@@ -57,7 +57,7 @@ class ApiErrorHandlersMixin(ErrorHandlersMixin):
     error_handlers = {
         **ErrorHandlersMixin.error_handlers,
         SendRequestFail: create_error_handler_with_json(400),
-        PIDDoesNotExistError: create_error_handler_with_json(404),
-        sqlalchemy.orm.exc.NoResultFound: create_error_handler_with_json(404, 'Data not found.'),
+        PIDDoesNotExistError: create_error_handler_with_json(404, 'Record not found'),
+        sqlalchemy.orm.exc.NoResultFound: create_error_handler_with_json(404, 'Data not found'),
         BadRequestError: create_error_handler_with_json(400),
     }

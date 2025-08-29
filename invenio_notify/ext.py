@@ -1,4 +1,4 @@
-from invenio_notify import config, cli
+from invenio_notify import config, cli, feature_toggle
 from invenio_notify.blueprints import blueprint
 from invenio_notify.resources import (
     InboxAdminResourceConfig,
@@ -74,6 +74,14 @@ class InvenioNotify:
 
     def init_resources(self, app):
         """Initialize the resources for notifications."""
+
+        if feature_toggle.is_phase_1_enabled(app):
+            self.inbox_api_resource = InboxApiResource(
+                service=self.notify_inbox_service,
+                config=InboxApiResourceConfig,
+            )
+
+
         self.inbox_admin_resource = InboxAdminResource(
             service=self.notify_inbox_service,
             config=InboxAdminResourceConfig,
@@ -82,18 +90,15 @@ class InvenioNotify:
             service=self.reviewer_service,
             config=ReviewerAdminResourceConfig,
         )
-        self.inbox_api_resource = InboxApiResource(
-            service=self.notify_inbox_service,
-            config=InboxApiResourceConfig,
+        self.endorsement_admin_resource = EndorsementAdminResource(
+            service=self.endorsement_service,
+            config=EndorsementAdminResourceConfig,
         )
+
         self.endorsement_request_resource = EndorsementRequestResource(
             config=EndorsementRequestResourceConfig.build(app),
         )
         self.endorsement_request_admin_resource = EndorsementRequestAdminResource(
             service=self.endorsement_request_service,
             config=EndorsementRequestAdminResourceConfig,
-        )
-        self.endorsement_admin_resource = EndorsementAdminResource(
-            service=self.endorsement_service,
-            config=EndorsementAdminResourceConfig,
         )
