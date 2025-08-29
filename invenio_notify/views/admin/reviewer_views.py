@@ -36,9 +36,9 @@ class ReviewerListView(Phase1AdminDisabledMixin, AdminResourceListView):
 
     create_view_name = "reviewer_create"
 
-    search_config_name = "NOTIFY_SEARCH"
+    search_config_name = "NOTIFY_REVIEWER_SEARCH"
 
-    search_sort_config_name = "NOTIFY_SORT_OPTIONS"
+    search_sort_config_name = "NOTIFY_REVIEWER_SORT_OPTIONS"
 
     template = "invenio_notify/administration/reviewer_search.html"
 

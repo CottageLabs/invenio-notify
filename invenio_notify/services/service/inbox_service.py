@@ -18,6 +18,7 @@ from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services import RDMRecordService
 from .base_service import BasicDbService
+from sqlalchemy import or_, cast, String
 
 
 def get_record_id_from_notification(raw: dict) -> str:
@@ -46,6 +47,29 @@ def get_record_id_from_notification(raw: dict) -> str:
 
 
 class NotifyInboxService(BasicDbService):
+
+    def _create_search_filters(self, query_param):
+        """Create search filters based on the query parameter."""
+        filters = []
+        if query_param and query_param.strip():
+            search_term = f"%{query_param.strip()}%"
+            model = self.record_cls
+
+            # Search across multiple fields
+            search_conditions = [
+                model.noti_id.cast(String).ilike(search_term),  # Search in notification ID
+                model.recid.ilike(search_term),  # Search in record ID
+                model.process_note.ilike(search_term),  # Search in process notes
+                cast(model.raw, String).ilike(search_term),  # Search in raw JSON data
+            ]
+
+            filters.append(or_(*search_conditions))
+
+        return filters
+
+    def search(self, identity, params=None, search_preference=None, expand=False, filter_maker=None, **kwargs):
+        return super().search(identity, params, search_preference, expand, filter_maker=self._create_search_filters,
+                              **kwargs)
 
     def receive_notification(self, notification_raw: dict) -> COARNotifyReceipt:
         server = COARNotifyServer(InboxCOARBinding())
