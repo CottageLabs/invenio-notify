@@ -41,15 +41,6 @@ class NotifyInboxListView(Phase1AdminDisabledMixin, AdminResourceListView):
     search_config_name = "NOTIFY_INBOX_SEARCH"
 
     search_sort_config_name = "NOTIFY_INBOX_SORT_OPTIONS"
-    
-    def get_context(self, **kwargs):
-        """Add custom context for notification administration."""
-        ctx = super().get_context(**kwargs)
-        
-        # Add detail view name for proper linking
-        ctx["detail_view_name"] = "notify-inbox-details"
-        
-        return ctx
 
 
 class NotifyInboxDetailView(Phase1AdminDisabledMixin, AdminResourceDetailView):
