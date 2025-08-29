@@ -1,7 +1,7 @@
 from flask_babel import lazy_gettext as _
 from invenio_administration.views.base import AdminResourceListView, AdminResourceDetailView
 
-from ..feature_toggle import Phase2AdminDisabledMixin
+from invenio_notify.feature_toggle import Phase2AdminDisabledMixin
 
 
 class EndorsementRequestListView(Phase2AdminDisabledMixin, AdminResourceListView):

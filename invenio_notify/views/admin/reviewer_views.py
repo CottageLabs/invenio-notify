@@ -6,7 +6,7 @@ from invenio_administration.views.base import (
     AdminResourceEditView
 )
 
-from ..feature_toggle import Phase1AdminDisabledMixin
+from invenio_notify.feature_toggle import Phase1AdminDisabledMixin
 
 
 class ReviewerListView(Phase1AdminDisabledMixin, AdminResourceListView):

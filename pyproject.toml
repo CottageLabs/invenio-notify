@@ -7,13 +7,25 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
 ]
-dependencies = []
+dependencies = [
+    "invenio-administration>=3.0.0,<4.0.0",
+    "invenio-jobs>=3.0.0,<4.0.0",
+    "invenio-rdm-records>=18.4.0,<19.0.0",
+    "invenio-records-resources>=7.0.0,<8.0.0",
+]
 
 [project.optional-dependencies]
 test = [
     "pytest~=7.1",
     "pytest-invenio~=3.0",
     "pytest-black~=0.6.0",
+]
+
+dev = [
+    'sphinx~=8.1',
+    'ruff~=0.12',
+    'sphinx-autodoc-typehints~=3.2',
+    'sphinx-autobuild~=2024.10.3',
 ]
 
 [[project.authors]]
@@ -29,16 +41,16 @@ build-backend = "setuptools.build_meta"
 coarnotify_action = "invenio_notify.permissions:coarnotify_action"
 
 [project.entry-points."invenio_administration.views"]
-notify_inbox_list = "invenio_notify.views.inbox_admin_views:NotifyInboxListView"
-notify_inbox_detail = "invenio_notify.views.inbox_admin_views:NotifyInboxDetailView"
-reviewer_list = "invenio_notify.views.reviewer_views:ReviewerListView"
-reviewer_detail = "invenio_notify.views.reviewer_views:ReviewerDetailView"
-reviewer_create = "invenio_notify.views.reviewer_views:ReviewerCreateView"
-reviewer_edit = "invenio_notify.views.reviewer_views:ReviewerEditView"
-endorsement_request_list = "invenio_notify.views.endorsement_request_admin_views:EndorsementRequestListView"
-endorsement_request_detail = "invenio_notify.views.endorsement_request_admin_views:EndorsementRequestDetailView"
-endorsement_list = "invenio_notify.views.endorsement_admin_views:EndorsementListView"
-endorsement_detail = "invenio_notify.views.endorsement_admin_views:EndorsementDetailView"
+notify_inbox_list = "invenio_notify.views.admin.inbox_views:NotifyInboxListView"
+notify_inbox_detail = "invenio_notify.views.admin.inbox_views:NotifyInboxDetailView"
+reviewer_list = "invenio_notify.views.admin.reviewer_views:ReviewerListView"
+reviewer_detail = "invenio_notify.views.admin.reviewer_views:ReviewerDetailView"
+reviewer_create = "invenio_notify.views.admin.reviewer_views:ReviewerCreateView"
+reviewer_edit = "invenio_notify.views.admin.reviewer_views:ReviewerEditView"
+endorsement_request_list = "invenio_notify.views.admin.endorsement_request_views:EndorsementRequestListView"
+endorsement_request_detail = "invenio_notify.views.admin.endorsement_request_views:EndorsementRequestDetailView"
+endorsement_list = "invenio_notify.views.admin.endorsement_views:EndorsementListView"
+endorsement_detail = "invenio_notify.views.admin.endorsement_views:EndorsementDetailView"
 
 [project.entry-points."invenio_base.api_apps"]
 invenio_notify = "invenio_notify.ext:InvenioNotify"

@@ -1,0 +1,15 @@
+:root {
+    --fonts-sans-serif: system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+body {
+    font-family: var(--fonts-sans-serif);
+}
+
+span.caption-text {
+    font-size: 1.6em;
+}
+
+li {
+    font-size: 0.9em;
+    margin-bottom: 0.5em;
+}

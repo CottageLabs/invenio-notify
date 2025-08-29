@@ -1,0 +1,19 @@
+---
+title: Invenio-Notify Workflow
+---
+sequenceDiagram
+    participant RO as 👤 Record Owner
+    participant R as 🏛️ Repository (Invenio notify)
+    participant Rev as 🔍 Reviewer (e.g. PCI)
+    participant BJ as ⚙️ Background Job
+    participant DB as 🗄️ Database
+
+    RO->>Rev: Send request for review (http)
+    Rev->>R: Send endorsement notification to inbox (http)
+    R->>DB: Save notification in Inbox
+    Note over BJ: Scheduled/async job triggered
+    BJ->>BJ: Process inbox notifications
+    BJ->>DB: Fetch notifications from Inbox
+    BJ->>DB: Save valid notifications in Endorsement
+    DB->>R: Provide Endorsement data
+    R->>RO: Display updated record with Endorsement

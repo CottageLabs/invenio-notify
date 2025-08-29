@@ -7,17 +7,23 @@ from invenio_notify import constants
 from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel, EndorsementModel
 
 
-def create_endorsement_request_data(user, record: RecordItem, reviewer: ReviewerModel, origin_id: str):
+def create_endorsement_request_data(user, record: RecordItem, reviewer: ReviewerModel, origin_id=None):
     """Create endorsement request data following COAR notification structure.
     
     Args:
         user: User object making the endorsement request
         reviewer: Reviewer object containing inbox URL and other details
-        origin_id: Origin ID from configuration
+        origin_id: Origin ID from configuration (optional, will be retrieved from config if not provided)
     """
 
+    if origin_id is None:
+        from flask import current_app
+        origin_id = current_app.config.get("NOTIFY_ORIGIN_ID", None)
+        if not origin_id:
+            raise ValueError("NOTIFY_ORIGIN_ID must be set in invenio.cfg")
+
     # define the object structure
-    object = {
+    noti_obj = {
         "id": record.data["links"]["self_html"],
         "type": ["Page", "sorg:AboutPage"],
         "ietf:item": {
@@ -28,7 +34,7 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
     }
 
     if 'doi' in record.data['links']:
-        object['ietf:cite-as'] = record.data['links']['doi']
+        noti_obj['ietf:cite-as'] = record.data['links']['doi']
 
     # define full notification data structure
     data = {
@@ -42,7 +48,7 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
             "type": "Person"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
-        "object": object,
+        "object": noti_obj,
         "origin": {
             "id": origin_id,
             "inbox": invenio_url_for('inbox_api.receive_notification'),
@@ -59,8 +65,6 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
         ]
     }
 
-    import pprint
-    pprint.pprint(data)
     return data
 
 
