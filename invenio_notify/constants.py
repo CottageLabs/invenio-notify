@@ -25,3 +25,6 @@ KEY_INBOX_REVIEW_URL = 'ietf:cite-as'
 # Feature toggle configuration keys
 CONFIG_NOTIFY_PHASE_1_ENABLED = 'NOTIFY_PHASE_1_ENABLED'
 CONFIG_NOTIFY_PHASE_2_ENABLED = 'NOTIFY_PHASE_2_ENABLED'
+
+# Toggle DOI check for notifications
+NOTIFY_CHECK_DOI = 'NOTIFY_CHECK_DOI'
