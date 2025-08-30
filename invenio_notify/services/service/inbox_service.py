@@ -2,6 +2,7 @@ from flask import current_app
 from flask import g
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
+from idutils import is_doi, normalize_doi
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import (
@@ -23,13 +24,13 @@ from sqlalchemy import or_, cast, String
 
 def get_record_id_from_notification(raw: dict) -> str:
     """Extract record ID from notification data.
-    
+
     Args:
         raw (dict): Raw notification data
-        
+
     Returns:
         str: Record ID extracted from notification
-        
+
     Raises:
         COARProcessFail: If no record URL is found
     """
@@ -38,11 +39,53 @@ def get_record_id_from_notification(raw: dict) -> str:
         record_url = raw['context']['id']
     elif raw.get('object', {}).get('object', {}).get('id'):
         record_url = raw['object']['object']['id']
-    
+
     if not record_url:
         current_app.logger.error('No record URL found in notification')
         raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'No record URL found')
-    
+
+    # Check if record_url is possibly a DOI
+    if current_app.config.get(constants.NOTIFY_CHECK_DOI, False) and is_doi(record_url):
+        current_app.logger.info(f'Record URL appears to be a DOI: {record_url}')
+        
+        # Extract the normalized DOI from the URI
+        normalized_doi = normalize_doi(record_url)
+        current_app.logger.debug(f'Normalized DOI: {normalized_doi}')
+        
+        # Search for records with this DOI in their metadata
+        records_service: RDMRecordService = current_rdm_records_service
+        try:
+            # Try multiple search patterns for DOI fields using both original and normalized DOI
+            search_queries = [
+                f'metadata.identifiers.identifier:"{normalized_doi}"',  # Normalized DOI in identifiers
+                f'pids.doi.identifier:"{normalized_doi}"',              # Normalized DOI in PIDs
+                f'metadata.doi:"{normalized_doi}"',                     # Normalized DOI direct field
+            ]
+
+            search_results = None
+            for query in search_queries:
+                try:
+                    search_results = records_service.search(
+                        g.identity,
+                        params={'q': query}
+                    )
+                    if search_results.total > 0:
+                        current_app.logger.info(
+                            f'Found {search_results.total} record(s) with DOI {record_url} using query: {query}')
+                        for hit in search_results.hits:
+                            current_app.logger.debug(f'Found record with ID: {hit["id"]}')
+                            return hit["id"]
+                        break  # Stop searching once we find matches
+                except Exception as query_error:
+                    current_app.logger.debug(f'Search query failed: {query} - {query_error}')
+                    continue
+
+            if not search_results or search_results.total == 0:
+                current_app.logger.warning(f'No records found with DOI: {record_url}')
+
+        except Exception as e:
+            current_app.logger.error(f'Failed to search for records with DOI {record_url}: {e}')
+
     return get_recid_by_record_url(record_url)
 
 
