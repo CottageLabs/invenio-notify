@@ -2,58 +2,60 @@ from functools import wraps
 
 from flask import Blueprint
 
-from .constants import CONFIG_NOTIFY_PHASE_1_ENABLED, CONFIG_NOTIFY_PHASE_2_ENABLED
+from .constants import NOTIFY_PCI_ENDORSEMENT, NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT
 
 
-def is_phase_1_enabled(app=None):
-    from flask import current_app
-    target_app = app or current_app
-    return target_app.config.get(CONFIG_NOTIFY_PHASE_1_ENABLED, False)
+def is_pci_endorsement_enabled(app=None):
+    if app is None:
+        from flask import current_app
+        app = current_app
+    return app.config.get(NOTIFY_PCI_ENDORSEMENT, False)
 
 
-def is_phase_2_enabled(app=None):
-    from flask import current_app
-    target_app = app or current_app
-    return is_phase_1_enabled(app) and target_app.config.get(CONFIG_NOTIFY_PHASE_2_ENABLED, False)
+def is_pci_announcement_of_endorsement_enabled(app=None):
+    if app is None:
+        from flask import current_app
+        app = current_app
+    return is_pci_endorsement_enabled(app) and app.config.get(NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT, False)
 
 
-class PhaseBlueprintEnable:
-    """Class-based decorator to enable/disable blueprint registration based on phase settings."""
+class NotifyFeatureBlueprintEnable:
+    """Class-based decorator to enable/disable blueprint registration based on feature settings."""
 
-    def __init__(self, phase_check_func):
-        """Initialize with the phase checking function."""
-        self.phase_check_func = phase_check_func
+    def __init__(self, feature_check_func):
+        """Initialize with the feature checking function."""
+        self.feature_check_func = feature_check_func
 
     def __call__(self, func):
         """Make the class callable as a decorator."""
 
         @wraps(func)
         def wrapper(app):
-            if not self.phase_check_func(app=app):
+            if not self.feature_check_func(app=app):
                 return Blueprint(f'empty_blueprint_{func.__name__}', __name__)
             return func(app)
 
         return wrapper
 
 
-# Create instances for each phase
-phase_1_blueprint_enable = PhaseBlueprintEnable(is_phase_1_enabled)
-phase_2_blueprint_enable = PhaseBlueprintEnable(is_phase_2_enabled)
+# Create instances for each feature
+pci_endorsement_blueprint_enable = NotifyFeatureBlueprintEnable(is_pci_endorsement_enabled)
+pci_announcement_of_endorsement_enable = NotifyFeatureBlueprintEnable(is_pci_announcement_of_endorsement_enabled)
 
 
-class Phase1AdminDisabledMixin:
+class PCIEndorsementAdminDisabledMixin:
     """Mixin class for admin views to determine if they should be disabled."""
 
     @staticmethod
     def disabled():
         """Determine if the view should be disabled."""
-        return not is_phase_1_enabled()
+        return not is_pci_endorsement_enabled()
 
 
-class Phase2AdminDisabledMixin:
+class PCIAnnouncementOfEndorsementAdminDisabledMixin:
     """Mixin class for admin views to determine if they should be disabled."""
 
     @staticmethod
     def disabled():
         """Determine if the view should be disabled."""
-        return not is_phase_2_enabled()
+        return not is_pci_announcement_of_endorsement_enabled()

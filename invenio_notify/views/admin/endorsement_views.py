@@ -1,10 +1,10 @@
 from flask_babel import lazy_gettext as _
 from invenio_administration.views.base import AdminResourceListView, AdminResourceDetailView
 
-from invenio_notify.feature_toggle import Phase1AdminDisabledMixin
+from invenio_notify.feature_toggle import PCIEndorsementAdminDisabledMixin
 
 
-class EndorsementListView(Phase1AdminDisabledMixin, AdminResourceListView):
+class EndorsementListView(PCIEndorsementAdminDisabledMixin, AdminResourceListView):
     """Endorsement admin list view."""
 
     api_endpoint = "/endorsement-admin"
@@ -39,7 +39,7 @@ class EndorsementListView(Phase1AdminDisabledMixin, AdminResourceListView):
     search_sort_config_name = "NOTIFY_SORT_OPTIONS"
 
 
-class EndorsementDetailView(Phase1AdminDisabledMixin, AdminResourceDetailView):
+class EndorsementDetailView(PCIEndorsementAdminDisabledMixin, AdminResourceDetailView):
     """Admin endorsement detail view."""
 
     url = "/endorsement/<pid_value>"

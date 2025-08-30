@@ -6,10 +6,10 @@ from invenio_administration.views.base import (
     AdminResourceEditView
 )
 
-from invenio_notify.feature_toggle import Phase1AdminDisabledMixin
+from invenio_notify.feature_toggle import PCIEndorsementAdminDisabledMixin
 
 
-class ReviewerListView(Phase1AdminDisabledMixin, AdminResourceListView):
+class ReviewerListView(PCIEndorsementAdminDisabledMixin, AdminResourceListView):
     api_endpoint = "/reviewer"
     name = "reviewer"
     resource_config = "reviewer_admin_resource"
@@ -43,7 +43,7 @@ class ReviewerListView(Phase1AdminDisabledMixin, AdminResourceListView):
     template = "invenio_notify/administration/reviewer_search.html"
 
 
-class ReviewerDetailView(Phase1AdminDisabledMixin, AdminResourceDetailView):
+class ReviewerDetailView(PCIEndorsementAdminDisabledMixin, AdminResourceDetailView):
     url = "/reviewer/<pid_value>"
     api_endpoint = "/reviewer"
     name = "reviewer-details"
@@ -98,7 +98,7 @@ reviewer_form_fields = {
 }
 
 
-class ReviewerCreateView(Phase1AdminDisabledMixin, AdminResourceCreateView):
+class ReviewerCreateView(PCIEndorsementAdminDisabledMixin, AdminResourceCreateView):
     """Configuration for Reviewer create view."""
 
     name = "reviewer_create"
@@ -114,7 +114,7 @@ class ReviewerCreateView(Phase1AdminDisabledMixin, AdminResourceCreateView):
     }
 
 
-class ReviewerEditView(Phase1AdminDisabledMixin, AdminResourceEditView):
+class ReviewerEditView(PCIEndorsementAdminDisabledMixin, AdminResourceEditView):
     """Configuration for Reviewer edit view."""
 
     name = "reviewer_edit"
