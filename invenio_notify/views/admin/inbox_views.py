@@ -1,10 +1,10 @@
 from flask_babel import lazy_gettext as _
 from invenio_administration.views.base import AdminResourceListView, AdminResourceDetailView
 
-from invenio_notify.feature_toggle import Phase1AdminDisabledMixin
+from invenio_notify.feature_toggle import PCIEndorsementAdminDisabledMixin
 
 
-class NotifyInboxListView(Phase1AdminDisabledMixin, AdminResourceListView):
+class NotifyInboxListView(PCIEndorsementAdminDisabledMixin, AdminResourceListView):
     """Search admin view."""
     
     # Use custom template for notification search
@@ -43,7 +43,7 @@ class NotifyInboxListView(Phase1AdminDisabledMixin, AdminResourceListView):
     search_sort_config_name = "NOTIFY_INBOX_SORT_OPTIONS"
 
 
-class NotifyInboxDetailView(Phase1AdminDisabledMixin, AdminResourceDetailView):
+class NotifyInboxDetailView(PCIEndorsementAdminDisabledMixin, AdminResourceDetailView):
     """Admin notify inbox detail view."""
 
     url = "/notify-inbox/<pid_value>"
