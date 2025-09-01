@@ -128,4 +128,172 @@ NOTIFY_REVIEWER_SORT_OPTIONS = {
     ),
 }
 
+NOTIFY_ENDORSEMENT_SEARCH = {
+    "facets": [],
+    "sort": [
+        "id",
+        "-id", 
+        "record_id",
+        "-record_id",
+        "reviewer_id",
+        "-reviewer_id",
+        "reviewer_name",
+        "-reviewer_name",
+        "review_type",
+        "-review_type",
+        "created",
+        "-created",
+        "updated",
+        "-updated",
+    ],
+}
+
+NOTIFY_ENDORSEMENT_SORT_OPTIONS = {
+    "id": dict(
+        title=_("ID (Ascending)"),
+        fields=["id"],
+    ),
+    "-id": dict(
+        title=_("ID (Descending)"),
+        fields=["-id"],
+    ),
+    "record_id": dict(
+        title=_("Record ID (A-Z)"),
+        fields=["record_id"],
+    ),
+    "-record_id": dict(
+        title=_("Record ID (Z-A)"),
+        fields=["-record_id"],
+    ),
+    "reviewer_id": dict(
+        title=_("Reviewer ID (Ascending)"),
+        fields=["reviewer_id"],
+    ),
+    "-reviewer_id": dict(
+        title=_("Reviewer ID (Descending)"),
+        fields=["-reviewer_id"],
+    ),
+    "reviewer_name": dict(
+        title=_("Reviewer Name (A-Z)"),
+        fields=["reviewer_name"],
+    ),
+    "-reviewer_name": dict(
+        title=_("Reviewer Name (Z-A)"),
+        fields=["-reviewer_name"],
+    ),
+    "review_type": dict(
+        title=_("Review Type (A-Z)"),
+        fields=["review_type"],
+    ),
+    "-review_type": dict(
+        title=_("Review Type (Z-A)"),
+        fields=["-review_type"],
+    ),
+    "created": dict(
+        title=_("Created (Newest First)"),
+        fields=["created"],
+    ),
+    "-created": dict(
+        title=_("Created (Oldest First)"),
+        fields=["-created"],
+    ),
+    "updated": dict(
+        title=_("Updated (Newest First)"),
+        fields=["updated"],
+    ),
+    "-updated": dict(
+        title=_("Updated (Oldest First)"),
+        fields=["-updated"],
+    ),
+}
+
+NOTIFY_ENDORSEMENT_REQUEST_SEARCH = {
+    "facets": [],
+    "sort": [
+        "id",
+        "-id",
+        "noti_id",
+        "-noti_id",
+        "record_id",
+        "-record_id",
+        "user_id",
+        "-user_id",
+        "reviewer_id",
+        "-reviewer_id",
+        "latest_status",
+        "-latest_status",
+        "created",
+        "-created",
+        "updated",
+        "-updated",
+    ],
+}
+
+NOTIFY_ENDORSEMENT_REQUEST_SORT_OPTIONS = {
+    "id": dict(
+        title=_("ID (Ascending)"),
+        fields=["id"],
+    ),
+    "-id": dict(
+        title=_("ID (Descending)"),
+        fields=["-id"],
+    ),
+    "noti_id": dict(
+        title=_("Notification ID (Ascending)"),
+        fields=["noti_id"],
+    ),
+    "-noti_id": dict(
+        title=_("Notification ID (Descending)"),
+        fields=["-noti_id"],
+    ),
+    "record_id": dict(
+        title=_("Record ID (A-Z)"),
+        fields=["record_id"],
+    ),
+    "-record_id": dict(
+        title=_("Record ID (Z-A)"),
+        fields=["-record_id"],
+    ),
+    "user_id": dict(
+        title=_("User ID (Ascending)"),
+        fields=["user_id"],
+    ),
+    "-user_id": dict(
+        title=_("User ID (Descending)"),
+        fields=["-user_id"],
+    ),
+    "reviewer_id": dict(
+        title=_("Reviewer ID (Ascending)"),
+        fields=["reviewer_id"],
+    ),
+    "-reviewer_id": dict(
+        title=_("Reviewer ID (Descending)"),
+        fields=["-reviewer_id"],
+    ),
+    "latest_status": dict(
+        title=_("Latest Status (A-Z)"),
+        fields=["latest_status"],
+    ),
+    "-latest_status": dict(
+        title=_("Latest Status (Z-A)"),
+        fields=["-latest_status"],
+    ),
+    "created": dict(
+        title=_("Created (Newest First)"),
+        fields=["created"],
+    ),
+    "-created": dict(
+        title=_("Created (Oldest First)"),
+        fields=["-created"],
+    ),
+    "updated": dict(
+        title=_("Updated (Newest First)"),
+        fields=["updated"],
+    ),
+    "-updated": dict(
+        title=_("Updated (Oldest First)"),
+        fields=["-updated"],
+    ),
+}
+
 
