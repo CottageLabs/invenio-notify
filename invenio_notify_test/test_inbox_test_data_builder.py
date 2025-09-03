@@ -26,12 +26,12 @@ def test_inbox_test_data_builder(db, rdm_record, superuser_identity, inbox_test_
     record = current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id)
     assert builder.endorsement_request.record_id == record.id
     assert builder.endorsement_request.reviewer_id == builder.reviewer.id
-    assert builder.endorsement_request.noti_id == notification_data['inReplyTo']
+    assert builder.endorsement_request.notification_id == notification_data['inReplyTo']
     
     assert builder.inbox is not None
     assert builder.inbox.recid == recid
     assert builder.inbox.raw == notification_data
-    assert builder.inbox.noti_id == notification_data.get('id')
+    assert builder.inbox.notification_id == notification_data.get('id')
 
 
 def test_inbox_test_data_builder_usage_example(db, rdm_record, superuser_identity, inbox_test_data_builder):
@@ -55,6 +55,6 @@ def test_inbox_test_data_builder_usage_example(db, rdm_record, superuser_identit
     # Verify they match the original pattern
     assert reviewer.actor_id == notification_data['actor']['id']
     assert endorsement_request.reviewer_id == reviewer.id
-    assert endorsement_request.noti_id == notification_data['inReplyTo']
+    assert endorsement_request.notification_id == notification_data['inReplyTo']
     assert inbox.recid == recid
     assert inbox.raw == notification_data

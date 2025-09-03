@@ -26,7 +26,7 @@ class NotifyInboxListView(PCIEndorsementAdminDisabledMixin, AdminResourceListVie
 
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
-        "noti_id": {"text": _("Notification ID"), "order": 2, "width": 3},
+        "notification_id": {"text": _("Notification ID"), "order": 2, "width": 3},
         "raw": {"text": _("Raw"), "order": 3, "width": 5},
         "recid": {"text": _("Record ID"), "order": 4, "width": 1, "link_template": "admin_record_link"},
         "user_id": {"text": _("User ID"), "order": 5, "width": 1},
@@ -60,7 +60,7 @@ class NotifyInboxDetailView(PCIEndorsementAdminDisabledMixin, AdminResourceDetai
 
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
-        "noti_id": {"text": _("Notification ID"), "order": 2, "width": 2},
+        "notification_id": {"text": _("Notification ID"), "order": 2, "width": 2},
         "raw": {"text": _("Raw"), "order": 3, "width": 6},
         "recid": {"text": _("Record ID"), "order": 4, "width": 1},
         "user_id": {"text": _("User ID"), "order": 5, "width": 1},

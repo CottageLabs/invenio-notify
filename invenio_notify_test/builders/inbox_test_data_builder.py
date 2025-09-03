@@ -51,8 +51,8 @@ def inbox_test_data_builder(
             reviewer_utils.add_member_to_reviewer(self.reviewer.id, self.user_identity.id)
             return self
 
-        def create_endorsement_request(self, noti_id=None):
-            """Create an endorsement request with noti_id from notification_data."""
+        def create_endorsement_request(self, notification_id=None):
+            """Create an endorsement request with notification_id from notification_data."""
             if self.reviewer is None:
                 raise ValueError("Reviewer must be created first")
 
@@ -61,12 +61,12 @@ def inbox_test_data_builder(
             # Resolve record to get its UUID
             record = current_rdm_records.records_service.record_cls.pid.resolve(self.recid)
 
-            # Create endorsement request with noti_id from inReplyTo
+            # Create endorsement request with notification_id from inReplyTo
             self.endorsement_request = self._create_endorsement_request_fixture(
                 record_id=record.id,
                 reviewer_id=self.reviewer.id,
                 user_id=self.user_identity.id,
-                noti_id=noti_id or self.notification_data['inReplyTo']
+                notification_id=notification_id or self.notification_data['inReplyTo']
             )
             return self
 

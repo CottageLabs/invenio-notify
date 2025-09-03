@@ -128,7 +128,7 @@ def test_inbox_processing__success__endorsement_with_endorsement_request(db, rdm
     recid = rdm_record.id
 
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
-    notification_data = payload_endorsement_resp(recid, in_reply_to=inbox_payload.generate_noti_id())
+    notification_data = payload_endorsement_resp(recid, in_reply_to=inbox_payload.generate_notification_id())
 
     # Use builder to create test data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
@@ -198,11 +198,11 @@ def test_inbox_processing__fail__reject_without_endorsement_request(db, rdm_reco
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
     notification_data = payload_reject(recid)
 
-    # Even endorsement request is created, but noti_id does not match with new notification data
+    # Even endorsement request is created, but notification_id does not match with new notification data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
                  .create_reviewer()
                  .add_member_to_reviewer()
-                 .create_endorsement_request(noti_id=uuid.uuid4())
+                 .create_endorsement_request(notification_id=uuid.uuid4())
                  .create_inbox())
 
     assert_inbox_processing_failed(test_data.inbox,

@@ -23,7 +23,7 @@ class EndorsementRequestListView(PCIAnnouncementOfEndorsementAdminDisabledMixin,
 
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
-        "noti_id": {"text": _("Notification ID"), "order": 2, "width": 2},
+        "notification_id": {"text": _("Notification ID"), "order": 2, "width": 2},
         "record_id": {"text": _("Record ID"), "order": 3, "width": 2},
         "user_id": {"text": _("User ID"), "order": 4, "width": 1},
         "reviewer_id": {"text": _("Reviewer ID"), "order": 5, "width": 1},
@@ -55,7 +55,7 @@ class EndorsementRequestDetailView(PCIAnnouncementOfEndorsementAdminDisabledMixi
 
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
-        "noti_id": {"text": _("Notification ID"), "order": 2, "width": 2},
+        "notification_id": {"text": _("Notification ID"), "order": 2, "width": 2},
         "record_id": {"text": _("Record ID"), "order": 3, "width": 2},
         "user_id": {"text": _("User ID"), "order": 4, "width": 1},
         "reviewer_id": {"text": _("Reviewer ID"), "order": 5, "width": 1},
