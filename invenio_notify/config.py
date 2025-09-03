@@ -212,8 +212,8 @@ NOTIFY_ENDORSEMENT_REQUEST_SEARCH = {
     "sort": [
         "id",
         "-id",
-        "noti_id",
-        "-noti_id",
+        "notification_id",
+        "-notification_id",
         "record_id",
         "-record_id",
         "user_id",
@@ -238,13 +238,13 @@ NOTIFY_ENDORSEMENT_REQUEST_SORT_OPTIONS = {
         title=_("ID (Descending)"),
         fields=["-id"],
     ),
-    "noti_id": dict(
+    "notification_id": dict(
         title=_("Notification ID (Ascending)"),
-        fields=["noti_id"],
+        fields=["notification_id"],
     ),
-    "-noti_id": dict(
+    "-notification_id": dict(
         title=_("Notification ID (Descending)"),
-        fields=["-noti_id"],
+        fields=["-notification_id"],
     ),
     "record_id": dict(
         title=_("Record ID (A-Z)"),

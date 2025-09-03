@@ -95,7 +95,7 @@ def test_inbox__actor_id_mismatch(client, rdm_record, user_reviewer_setup):
 
 
 
-def test_inbox__duplicate_noti_id(client, rdm_record, user_reviewer_setup):
+def test_inbox__duplicate_notification_id(client, rdm_record, user_reviewer_setup):
     notify_review_data = payload_review(rdm_record.id)
     token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'])
 
@@ -104,7 +104,7 @@ def test_inbox__duplicate_noti_id(client, rdm_record, user_reviewer_setup):
     assert response1.status_code == 202
     assert response1.json['message'] == 'Accepted'
 
-    # Send the same notification second time - should fail due to duplicate noti_id
+    # Send the same notification second time - should fail due to duplicate notification_id
     response2 = send_inbox(client, token, notify_review_data)
     assert response2.status_code == 400
     assert response2.json['message'] == 'Failed to create inbox record'

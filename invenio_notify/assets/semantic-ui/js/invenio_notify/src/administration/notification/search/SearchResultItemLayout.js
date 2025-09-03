@@ -72,8 +72,8 @@ class SearchResultItemComponent extends Component {
           </a>
         </Table.Cell>
         
-        <Table.Cell key={`notification-noti_id-${result.id}`} data-label={i18next.t("Notification ID")}>
-          {result.noti_id}
+        <Table.Cell key={`notification-notification_id-${result.id}`} data-label={i18next.t("Notification ID")}>
+          {result.notification_id}
         </Table.Cell>
         
         <Table.Cell key={`notification-raw-${result.id}`} data-label={i18next.t("Raw")} className="eight wide">

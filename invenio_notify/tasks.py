@@ -332,17 +332,17 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
         bool: True if processing was successful, False otherwise
     """
 
-    # Extract noti_id from inReplyTo field
-    noti_id = notification_raw.get('inReplyTo', '')
-    if not noti_id:
+    # Extract notification_id from inReplyTo field
+    notification_id = notification_raw.get('inReplyTo', '')
+    if not notification_id:
         log.debug(f"Notification {inbox_record.id} does not have inReplyTo field")
         return
 
-    # Find the endorsement request using noti_id instead of reviewer_id
-    endorsement_request = EndorsementRequestModel.query.filter_by(noti_id=noti_id).first()
+    # Find the endorsement request using notification_id instead of reviewer_id
+    endorsement_request = EndorsementRequestModel.query.filter_by(notification_id=notification_id).first()
     if not endorsement_request:
-        log.debug(f"Endorsement request with noti_id {noti_id} not found")
-        raise DataNotFound(f"Endorsement request not found for notification id[{inbox_record.id}], noti_id[{noti_id}]")
+        log.debug(f"Endorsement request with notification_id {notification_id} not found")
+        raise DataNotFound(f"Endorsement request not found for notification id[{inbox_record.id}], notification_id[{notification_id}]")
 
     # Extract status from notification type
     noti_type = get_notification_type(notification_raw)

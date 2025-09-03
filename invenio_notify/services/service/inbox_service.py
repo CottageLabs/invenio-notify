@@ -57,7 +57,7 @@ class NotifyInboxService(BasicDbService):
 
             # Search across multiple fields
             search_conditions = [
-                model.noti_id.cast(String).ilike(search_term),  # Search in notification ID
+                model.notification_id.cast(String).ilike(search_term),  # Search in notification ID
                 model.recid.ilike(search_term),  # Search in record ID
                 model.process_note.ilike(search_term),  # Search in process notes
                 cast(model.raw, String).ilike(search_term),  # Search in raw JSON data
@@ -86,11 +86,11 @@ class NotifyInboxService(BasicDbService):
     def create(self, identity, data, raise_errors=True, uow=None):
         data['user_id'] = identity.id
 
-        if 'noti_id' not in data and 'raw' in data:
+        if 'notification_id' not in data and 'raw' in data:
             raw = data['raw']
-            noti_id = raw.get('id')
-            if noti_id:
-                data['noti_id'] = noti_id
+            notification_id = raw.get('id')
+            if notification_id:
+                data['notification_id'] = notification_id
             else:
                 current_app.logger.error('Missing notification ID in raw data')
                 raise ValueError('Missing notification ID in raw data')
@@ -112,8 +112,8 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         raw = notification.to_jsonld()
         recid = get_record_id_from_notification(raw)
 
-        noti_id = raw.get('id')
-        if not noti_id:
+        notification_id = raw.get('id')
+        if not notification_id:
             current_app.logger.error('Missing notification ID in COAR notification')
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'Missing notification ID')
 
@@ -131,7 +131,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
 
         current_app.logger.debug(f'client input raw: {raw}')
         try:
-            current_inbox_service.create(g.identity, {"noti_id": noti_id, "raw": raw, 'recid': recid})
+            current_inbox_service.create(g.identity, {"notification_id": notification_id, "raw": raw, 'recid': recid})
         except Exception as e:
             current_app.logger.error(f'Failed to create inbox record: {e}')
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, f'Failed to create inbox record')

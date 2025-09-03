@@ -10,7 +10,7 @@ def create_current_utc_datetime():
 
 
 class NotifyInboxSchema(BaseRecordSchema):
-    noti_id = fields.String(required=True)
+    notification_id = fields.String(required=True)
     raw = fields.String(required=True)  # admin page UI does not support dict yet
     recid = fields.String(required=True)
 
@@ -21,7 +21,7 @@ class NotifyInboxSchema(BaseRecordSchema):
 
 
 class ApiNotifyInboxSchema(BaseRecordSchema):
-    noti_id = fields.String(required=True)
+    notification_id = fields.String(required=True)
     raw = fields.Dict(required=True)  # raw for api must be a dict
     recid = fields.String(required=True)
     user_id = fields.Integer(required=True)
@@ -66,7 +66,7 @@ class DelMemberSchema(BaseRecordSchema):
 
 
 class EndorsementRequestSchema(BaseRecordSchema):
-    noti_id = fields.String(required=True)
+    notification_id = fields.String(required=True)
     record_id = fields.String(required=True)
     reviewer_id = fields.Integer(required=True)
     raw = fields.String(required=True)

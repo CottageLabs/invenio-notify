@@ -27,9 +27,9 @@ def test_service_create(test_app, superuser_identity):
     })
     result_dict = result.to_dict()
     assert result_dict['recid'] == record_id
-    # noti_id should now store the full notification ID including 'urn:uuid:' prefix
-    expected_noti_id = raw_payload['id']
-    assert result_dict['noti_id'] == expected_noti_id
+    # notification_id should now store the full notification ID including 'urn:uuid:' prefix
+    expected_notification_id = raw_payload['id']
+    assert result_dict['notification_id'] == expected_notification_id
     assert 'links' in result_dict
     assert NotifyInboxModel.query.count() == 1
 

@@ -36,7 +36,7 @@ def upgrade():
     )
     op.create_table('notify_inbox',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('noti_id', sa.Text(), nullable=False),
+    sa.Column('notification_id', sa.Text(), nullable=False),
     sa.Column('raw', sa.JSON().with_variant(sqlalchemy_utils.types.json.JSONType(), 'mysql').with_variant(postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), 'postgresql').with_variant(sqlalchemy_utils.types.json.JSONType(), 'sqlite'), nullable=False),
     sa.Column('recid', sa.Text(), nullable=False),
     sa.Column('process_date', sa.DateTime(), nullable=True),
@@ -46,7 +46,7 @@ def upgrade():
     sa.Column('updated', sa.DateTime(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['accounts_user.id'], name=op.f('fk_notify_inbox_user_id_accounts_user'), ondelete='NO ACTION'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_notify_inbox')),
-    sa.UniqueConstraint('noti_id', name=op.f('uq_notify_inbox_noti_id'))
+    sa.UniqueConstraint('notification_id', name=op.f('uq_notify_inbox_notification_id'))
     )
     op.create_index(op.f('ix_notify_inbox_user_id'), 'notify_inbox', ['user_id'], unique=False)
     op.create_table('reviewer_map',
@@ -81,7 +81,7 @@ def upgrade():
     op.create_index(op.f('ix_endorsement_reviewer_id'), 'endorsement', ['reviewer_id'], unique=False)
     op.create_table('endorsement_request',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('noti_id', sa.Text(), nullable=False),
+    sa.Column('notification_id', sa.Text(), nullable=False),
     sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('reviewer_id', sa.Integer(), nullable=False),
@@ -93,7 +93,7 @@ def upgrade():
     sa.ForeignKeyConstraint(['reviewer_id'], ['reviewer.id'], name=op.f('fk_endorsement_request_reviewer_id_reviewer'), ondelete='NO ACTION'),
     sa.ForeignKeyConstraint(['user_id'], ['accounts_user.id'], name=op.f('fk_endorsement_request_user_id_accounts_user'), ondelete='NO ACTION'),
     sa.PrimaryKeyConstraint('id', name=op.f('pk_endorsement_request')),
-    sa.UniqueConstraint('noti_id', name=op.f('uq_endorsement_request_noti_id'))
+    sa.UniqueConstraint('notification_id', name=op.f('uq_endorsement_request_notification_id'))
     )
     op.create_index(op.f('ix_endorsement_request_record_id'), 'endorsement_request', ['record_id'], unique=False)
     op.create_index(op.f('ix_endorsement_request_reviewer_id'), 'endorsement_request', ['reviewer_id'], unique=False)

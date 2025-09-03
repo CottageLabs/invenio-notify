@@ -116,7 +116,7 @@ class NotifyInboxModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    noti_id = db.Column(db.Text, nullable=False, unique=True)
+    notification_id = db.Column(db.Text, nullable=False, unique=True)
     """ Notification ID from the COAR notification """
 
     raw = db.Column(JSON, nullable=False)
@@ -317,7 +317,7 @@ class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    noti_id = db.Column(db.Text, nullable=False, unique=True)
+    notification_id = db.Column(db.Text, nullable=False, unique=True)
     """ Notification ID from the COAR notification """
 
     record_id = db.Column(UUIDType, db.ForeignKey(
