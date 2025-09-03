@@ -7,8 +7,8 @@ from invenio_notify.records.models import (
     EndorsementReplyModel,
     EndorsementRequestModel,
     NotifyInboxModel,
-    ReviewerMapModel,
-    ReviewerModel,
+    ActorMapModel,
+    ActorModel,
 )
 from invenio_notify.services.config_utils import DefaultSearchOptions
 from invenio_notify.services.links import (
@@ -142,7 +142,7 @@ class ReviewerMapSearchOptions(DefaultSearchOptions):
 
 class ReviewerMapServiceConfig(RecordServiceConfig):
     result_list_cls = BasicDbModelRecordList
-    record_cls = ReviewerMapModel
+    record_cls = ActorMapModel
     schema = ReviewerMapSchema
 
     permission_policy_cls = AdminPermissionPolicy
@@ -159,7 +159,7 @@ class ReviewerMapServiceConfig(RecordServiceConfig):
 
 class ReviewerServiceConfig(RecordServiceConfig):
     result_list_cls = BasicDbModelRecordList
-    record_cls = ReviewerModel
+    record_cls = ActorModel
     schema = ReviewerSchema
     schema_add_member = AddMemberSchema
     schema_del_member = DelMemberSchema

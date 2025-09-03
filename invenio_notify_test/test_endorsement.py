@@ -19,7 +19,7 @@ def test_model_create(db, superuser_identity, minimal_record, create_reviewer):
     reviewer = create_reviewer()
     data = dict(
         record_id=(record.id),
-        reviewer_id=reviewer.id,
+        actor_id=reviewer.id,
         review_type='endorsement',
         result_url='https://fake.url',
         reviewer_name=reviewer.name,
@@ -46,7 +46,7 @@ def test_service_create(db, superuser_identity, minimal_record, test_app, create
     reviewer_id = create_reviewer().id
     create_endorsement(
         record_id=record_id,
-        reviewer_id=reviewer_id,
+        actor_id=reviewer_id,
         inbox_id=inbox.id
     )
 
@@ -115,7 +115,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     inbox1 = create_inbox(record_id='r1')
     create_endorsement(
         record_id=record_id,
-        reviewer_id=reviewer1.id,
+        actor_id=reviewer1.id,
         inbox_id=inbox1.id,
         review_type=constants.TYPE_ENDORSEMENT,
         result_url='https://example.com/endorsement1'
@@ -124,7 +124,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     inbox2 = create_inbox(record_id='r2')
     create_endorsement(
         record_id=record_id,
-        reviewer_id=reviewer1.id,
+        actor_id=reviewer1.id,
         inbox_id=inbox2.id,
         review_type=constants.TYPE_REVIEW,
         result_url='https://example.com/review1'
@@ -134,14 +134,14 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     inbox3 = create_inbox(record_id='r3')
     create_endorsement(
         record_id=str(not_related_record.id),
-        reviewer_id=reviewer1.id,
+        actor_id=reviewer1.id,
         inbox_id=inbox3.id
     )
 
     inbox4 = create_inbox(record_id='r4')
     create_endorsement(
         record_id=record_id,
-        reviewer_id=reviewer2.id,
+        actor_id=reviewer2.id,
         inbox_id=inbox4.id,
         result_url='https://example.com/endorsement2'
     )

@@ -17,7 +17,7 @@ from invenio_records_resources.services.records.results import RecordItem
 
 from invenio_notify import constants
 from invenio_notify.errors import SendRequestFail, BadRequestError
-from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel
+from invenio_notify.records.models import ActorModel, EndorsementRequestModel
 from invenio_notify.utils import record_utils, endorsement_request_utils
 from invenio_notify.utils.endorsement_request_utils import (
     create_endorsement_request_data,
@@ -70,7 +70,7 @@ def send_to_reviewer_inbox(reviewer, endorsement_request_data: dict):
     """Send endorsement request to reviewer's inbox.
     
     Args:
-        reviewer: ReviewerModel instance
+        reviewer: ActorModel instance
         endorsement_request_data: Dictionary containing endorsement request data
         
     Returns:
@@ -137,7 +137,7 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
 
         reviewer_id = data['reviewer_id']
 
-        reviewer = ReviewerModel.query.filter_by(id=reviewer_id).one()
+        reviewer = ActorModel.query.filter_by(id=reviewer_id).one()
         record: RecordItem = record_utils.read_record_item(system_identity, pid_value)
         user = User.query.get(g.identity.id)
 

@@ -105,8 +105,8 @@ def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_
             'endorsement_count': 0,
             'endorsement_list': [],
             'review_count': 1,
-            'reviewer_id': test_data.reviewer.id,
-            'reviewer_name': test_data.reviewer.name,
+            'reviewer_id': test_data.actor.id,
+            'reviewer_name': test_data.actor.name,
             'review_list': [{
                 'created': endorsement.created.isoformat(),
                 'index': 1,

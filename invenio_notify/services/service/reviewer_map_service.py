@@ -9,7 +9,7 @@ class ReviewerMapService(BasicDbService):
                 filters = []
                 if query_param:
                     filters.extend([
-                        self.record_cls.reviewer_id == query_param,
+                        self.record_cls.actor_id == query_param,
                     ])
                 return filters
 

@@ -23,7 +23,7 @@ def test_service_create(superuser_identity, create_reviewer, create_inbox, creat
     
     # Create dependencies
     reviewer = create_reviewer()
-    request = create_endorsement_request(reviewer_id=reviewer.id)
+    request = create_endorsement_request(actor_id=reviewer.id)
     inbox = create_inbox()
     
     data = {
@@ -48,7 +48,7 @@ def test_service_create_without_endorsement(superuser_identity, create_reviewer,
     
     # Create dependencies
     reviewer = create_reviewer()
-    request = create_endorsement_request(reviewer_id=reviewer.id)
+    request = create_endorsement_request(actor_id=reviewer.id)
     inbox = create_inbox()
     
     data = {

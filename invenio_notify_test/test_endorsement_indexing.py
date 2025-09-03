@@ -3,7 +3,7 @@
 from invenio_search import current_search_client
 
 from invenio_notify.constants import TYPE_ENDORSEMENT, TYPE_REVIEW
-from invenio_notify.records.models import EndorsementModel, ReviewerModel
+from invenio_notify.records.models import EndorsementModel, ActorModel
 from invenio_notify_test.fixtures.record_fixture import prepare_test_rdm_record
 from invenio_rdm_records.proxies import current_rdm_records_service
 
@@ -15,7 +15,7 @@ def test_record_indexing_with_endorsements(db, superuser_identity, minimal_recor
     record = prepare_test_rdm_record(db, minimal_record)
     
     # Create a reviewer
-    reviewer = ReviewerModel.create({
+    reviewer = ActorModel.create({
         'name': 'Test Reviewer Service',
         'actor_id': 'test-reviewer-123'
     })
@@ -86,7 +86,7 @@ def test_record_indexing_with_mixed_endorsements_and_reviews(db, superuser_ident
     record = prepare_test_rdm_record(db, minimal_record)
     
     # Create a reviewer
-    reviewer = ReviewerModel.create({
+    reviewer = ActorModel.create({
         'name': 'Mixed Review Service',
         'actor_id': 'mixed-reviewer-456'
     })
@@ -149,12 +149,12 @@ def test_record_indexing_with_multiple_reviewers(db, superuser_identity, minimal
     record = prepare_test_rdm_record(db, minimal_record)
     
     # Create two reviewers
-    reviewer1 = ReviewerModel.create({
+    reviewer1 = ActorModel.create({
         'name': 'First Reviewer Service',
         'actor_id': 'first-reviewer-789'
     })
     
-    reviewer2 = ReviewerModel.create({
+    reviewer2 = ActorModel.create({
         'name': 'Second Reviewer Service', 
         'actor_id': 'second-reviewer-789'
     })

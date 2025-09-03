@@ -4,10 +4,10 @@ from invenio_base import invenio_url_for
 from invenio_records_resources.services.records.results import RecordItem
 
 from invenio_notify import constants
-from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel, EndorsementModel
+from invenio_notify.records.models import ActorModel, EndorsementRequestModel, EndorsementModel
 
 
-def create_endorsement_request_data(user, record: RecordItem, reviewer: ReviewerModel, origin_id=None):
+def create_endorsement_request_data(user, record: RecordItem, reviewer: ActorModel, origin_id=None):
     """Create endorsement request data following COAR notification structure.
     
     Args:
@@ -93,7 +93,7 @@ def get_available_reviewers(record_id):
         list: List of reviewer dictionaries with id, name, and status
     """
 
-    all_reviewers = ReviewerModel.query.all()
+    all_reviewers = ActorModel.query.all()
     reviewers = []
 
     for reviewer in all_reviewers:
@@ -116,7 +116,7 @@ def get_latest_endorsement_request_status(record_id, reviewer_id):
     status = (
         EndorsementRequestModel.query.filter_by(
             record_id=record_id,
-            reviewer_id=reviewer_id,
+            actor_id=reviewer_id,
         )
         .order_by(EndorsementRequestModel.created.desc())
         .with_entities(EndorsementRequestModel.latest_status)
@@ -129,7 +129,7 @@ def get_latest_endorsement_status(record_id, reviewer_id):
     status = (
         EndorsementModel.query.filter_by(
             record_id=record_id,
-            reviewer_id=reviewer_id,
+            actor_id=reviewer_id,
         )
         .order_by(EndorsementModel.created.desc())
         .with_entities(EndorsementModel.review_type)

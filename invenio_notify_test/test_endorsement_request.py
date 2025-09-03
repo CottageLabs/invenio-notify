@@ -11,7 +11,7 @@ def test_model_create(create_endorsement_request, superuser_identity):
     request = create_endorsement_request()
     assert request.id is not None
     assert request.record_id is not None
-    assert request.reviewer_id is not None
+    assert request.actor_id is not None
     assert request.user_id == superuser_identity.id
     assert request.raw == {'test': 'data'}
     assert request.latest_status == "Request Endorsement"

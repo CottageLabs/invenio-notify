@@ -43,7 +43,7 @@ class EndorsementAdminService(BasicDbService):
 
         reviewer_endorsements = {}
         for endorsement in endorsements:
-            reviewer_id = endorsement.reviewer_id
+            reviewer_id = endorsement.actor_id
             if reviewer_id not in reviewer_endorsements:
                 reviewer_endorsements[reviewer_id] = {
                     'endorsements': [],
@@ -78,7 +78,7 @@ class EndorsementAdminService(BasicDbService):
                 })
 
             _endorsements = data['reviews'] + data['endorsements']
-            reviewer_name = _endorsements[-1].reviewer.name if _endorsements else 'Unknown'
+            reviewer_name = _endorsements[-1].actor.name if _endorsements else 'Unknown'
             result.append({
                 'reviewer_id': reviewer_id,
                 'reviewer_name': reviewer_name,

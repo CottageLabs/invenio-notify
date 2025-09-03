@@ -11,7 +11,7 @@ def create_endorsement_reply(superuser_identity, create_reviewer, create_inbox, 
         if endorsement_request_id is None:
             # Create an endorsement request
             reviewer = create_reviewer()
-            request = create_endorsement_request(reviewer_id=reviewer.id)
+            request = create_endorsement_request(actor_id=reviewer.id)
             endorsement_request_id = request.id
         
         inbox = create_inbox()

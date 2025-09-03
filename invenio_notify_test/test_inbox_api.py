@@ -1,7 +1,7 @@
 import pytest
 from invenio_oauth2server.models import Token
 
-from invenio_notify.records.models import ReviewerMapModel
+from invenio_notify.records.models import ActorMapModel
 from invenio_notify.scopes import inbox_scope
 from invenio_notify.utils import user_utils
 from invenio_notify_test.fixtures.inbox_payload import (
@@ -21,7 +21,7 @@ def create_scope_token(user):
 
 def create_reviewer_map(db, user_id, reviewer_id):
     """Create a reviewer map entry and commit to the database."""
-    ReviewerMapModel.create({
+    ActorMapModel.create({
         'user_id': user_id,
         'reviewer_id': reviewer_id,
     })

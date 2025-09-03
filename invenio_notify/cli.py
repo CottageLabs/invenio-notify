@@ -9,7 +9,7 @@ from rich.markdown import Markdown
 from sqlalchemy import desc
 
 from invenio_notify import tasks
-from invenio_notify.records.models import EndorsementModel, NotifyInboxModel, ReviewerMapModel, ReviewerModel
+from invenio_notify.records.models import EndorsementModel, NotifyInboxModel, ActorMapModel, ActorModel
 from invenio_notify.utils import user_utils
 
 
@@ -78,13 +78,13 @@ def list_notify(size):
 @click.option('--email', '-e', type=str, help='Email of user to assign the reviewer to')
 @with_appcontext
 def test_data(email):
-    """Generate test data for ReviewerModel."""
+    """Generate test data for ActorModel."""
     from invenio_notify.proxies import current_reviewer_service
 
-    print("Generating a test record for ReviewerModel...")
+    print("Generating a test record for ActorModel...")
 
     # Generate reviewer record
-    reviewer = ReviewerModel.create({
+    reviewer = ActorModel.create({
         'name': "Peer Community in Evolutionary Biology",
         'actor_id': 'https://evolbiol.peercommunityin.org/coar_notify/',
         'inbox_url': "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
@@ -93,7 +93,7 @@ def test_data(email):
 
     print(f"Created reviewer: {reviewer.name} with actor ID: {reviewer.actor_id}")
 
-    # If email is provided, create a ReviewerMapModel for the user
+    # If email is provided, create a ActorMapModel for the user
     if email:
         user = user_utils.find_user_by_email(email)
         if user is None:
@@ -126,16 +126,16 @@ def user():
 def list(user, reviewer_id):
     """ List user and reviewer id mapping """
     if user:
-        rows = ReviewerMapModel.find_by_email(user)
+        rows = ActorMapModel.find_by_email(user)
     elif reviewer_id:
-        rows = ReviewerMapModel.find_by_reviewer_id(reviewer_id)
+        rows = ActorMapModel.find_by_actor_id(reviewer_id)
     else:
         print('Please provide either email or reviewer_id to query.')
         return
 
     print('List of users and reviewer ids:')
     for r in rows:
-        print(f'{r.user.email:<40} -> [{r.reviewer_id}]')
+        print(f'{r.user.email:<40} -> [{r.actor_id}]')
 
 
 @user.command()
@@ -156,11 +156,11 @@ def add(email, actor_ids):
 
     assigned_count = 0
     for actor_id in actor_ids:
-        if ReviewerModel.has_member_with_email(email, actor_id):
+        if ActorModel.has_member_with_email(email, actor_id):
             print(f'User {user.email} already has reviewer ID ({actor_id}) assigned.')
             continue
 
-        reviewer_id = db.session.query(ReviewerModel.id).filter_by(actor_id=actor_id).scalar()
+        reviewer_id = db.session.query(ActorModel.actor_id).filter_by(actor_id=actor_id).scalar()
 
         if reviewer_id:
             current_reviewer_service.add_member_by_emails(reviewer_id, [email])

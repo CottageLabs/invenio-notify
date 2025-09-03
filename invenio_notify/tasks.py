@@ -16,7 +16,7 @@ from invenio_notify.constants import SUPPORTED_TYPES
 from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder, \
     EndorsementUpdateNotificationBuilder
 from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
-from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
+from invenio_notify.records.models import NotifyInboxModel, ActorModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.records import RDMRecord
@@ -140,7 +140,7 @@ def get_notification_type(notification_raw: dict) -> str | None:
     return None
 
 
-def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
+def get_reviewer_by_actor_id(notification_raw: dict) -> ActorModel:
     """
     Extract reviewer data from notification by actor ID.
     
@@ -148,7 +148,7 @@ def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
         notification_raw: The raw notification data
         
     Returns:
-        ReviewerModel if found
+        ActorModel if found
         
     Raises:
         DataNotFound: If actor ID is not found or reviewer doesn't exist
@@ -158,8 +158,8 @@ def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
     if not actor_id:
         raise DataNotFound(f"Actor ID not found in notification, actor[{actor_id}]")
 
-    # Find ReviewerModel with matching actor_id
-    reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
+    # Find ActorModel with matching actor_id
+    reviewer = ActorModel.query.filter_by(actor_id=actor_id).first()
     if not reviewer:
         raise DataNotFound(f"Reviewer not found, actor_id[{actor_id}]")
 
@@ -168,7 +168,7 @@ def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
 
 @unit_of_work()
 def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadata], inbox_id, notification_raw,
-                              reviewer: ReviewerModel, endo_reply_id: Optional[int] = None, uow=None):
+                              reviewer: ActorModel, endo_reply_id: Optional[int] = None, uow=None):
     """
     Create a new endorsement record using the endorsement service.
 
@@ -278,7 +278,7 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
 @unit_of_work()
 def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
                                   notification_raw: dict,
-                                  reviewer: ReviewerModel,
+                                  reviewer: ActorModel,
                                   endo_reply_id: Optional[int] = None,
                                   uow=None, ):
     """
@@ -356,7 +356,7 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
         # Review's notification will be sent when endorsement record is created
         create_endorsement_update_notification(
             endorsement_request.record_id,
-            endorsement_request.reviewer.name,
+            endorsement_request.actor.name,
             noti_type,
             uow
         )
@@ -403,7 +403,7 @@ def inbox_processing():
             continue
 
         # Check if noti sender is a member of the reviewer
-        if not ReviewerModel.has_member(inbox_record.user_id, reviewer.actor_id):
+        if not ActorModel.has_member(inbox_record.user_id, reviewer.actor_id):
             log.warning(f"User {inbox_record.user_id} is not a member of reviewer {reviewer.actor_id}")
             mark_as_processed(inbox_record, "User is not a member of reviewer")
             continue

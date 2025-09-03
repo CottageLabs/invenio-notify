@@ -32,7 +32,7 @@ def inbox_test_data_builder(
             self._create_inbox_fixture = create_inbox
 
             # Store created objects for later access
-            self.reviewer = None
+            self.actor = None
             self.endorsement_request = None
             self.inbox = None
 
@@ -40,20 +40,20 @@ def inbox_test_data_builder(
             """Create a reviewer with actor_id from notification_data."""
             # Create reviewer with actor_id from notification data
             actor_id = self.notification_data['actor']['id']
-            self.reviewer = self._create_reviewer_fixture(actor_id=actor_id)
+            self.actor = self._create_reviewer_fixture(actor_id=actor_id)
             return self
 
         def add_member_to_reviewer(self):
             """Add superuser as a member to the reviewer."""
-            if self.reviewer is None:
+            if self.actor is None:
                 raise ValueError("Reviewer must be created first")
 
-            reviewer_utils.add_member_to_reviewer(self.reviewer.id, self.user_identity.id)
+            reviewer_utils.add_member_to_reviewer(self.actor.id, self.user_identity.id)
             return self
 
         def create_endorsement_request(self, notification_id=None):
             """Create an endorsement request with notification_id from notification_data."""
-            if self.reviewer is None:
+            if self.actor is None:
                 raise ValueError("Reviewer must be created first")
 
             from invenio_rdm_records.proxies import current_rdm_records
@@ -64,7 +64,7 @@ def inbox_test_data_builder(
             # Create endorsement request with notification_id from inReplyTo
             self.endorsement_request = self._create_endorsement_request_fixture(
                 record_id=record.id,
-                reviewer_id=self.reviewer.id,
+                actor_id=self.actor.id,
                 user_id=self.user_identity.id,
                 notification_id=notification_id or self.notification_data['inReplyTo']
             )

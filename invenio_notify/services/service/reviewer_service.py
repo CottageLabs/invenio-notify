@@ -3,7 +3,7 @@ from invenio_accounts.models import User
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 
-from invenio_notify.records.models import ReviewerMapModel, ReviewerModel
+from invenio_notify.records.models import ActorMapModel, ActorModel
 from invenio_notify.utils import user_utils, reviewer_utils
 from .base_service import BasicDbService
 
@@ -42,7 +42,7 @@ class ReviewerService(BasicDbService):
 
     @unit_of_work()
     def add_member_by_emails(self, reviewer_id, emails, uow=None):
-        reviewer: ReviewerModel = self.record_cls.get(reviewer_id)
+        reviewer: ActorModel = self.record_cls.get(reviewer_id)
 
         new_emails = set(emails)
         existing_emails = {m.email for m in reviewer.members}
@@ -79,7 +79,7 @@ class ReviewerService(BasicDbService):
 
     @unit_of_work()
     def del_member_by_id(self, reviewer_id, user_id, uow=None):
-        reviewer: ReviewerModel = self.record_cls.get(reviewer_id)
+        reviewer: ActorModel = self.record_cls.get(reviewer_id)
         user: User = User.query.get(user_id)
 
         if user not in reviewer.members:
@@ -87,15 +87,15 @@ class ReviewerService(BasicDbService):
             return reviewer
 
         current_app.logger.info(f'Removing user [{user.email}] from reviewer [{reviewer.actor_id}]')
-        reviewer_map = ReviewerMapModel.query.filter_by(
+        reviewer_map = ActorMapModel.query.filter_by(
             user_id=user.id,
-            reviewer_id=reviewer.id
+            actor_id=reviewer.id
         ).first()
         if not reviewer_map:
             current_app.logger.warning(f'No mapping found for user [{user.email}] and reviewer [{reviewer.actor_id}]')
             return reviewer
 
-        ReviewerMapModel.delete(reviewer_map)
+        ActorMapModel.delete(reviewer_map)
 
         reviewer = self.record_cls.get(reviewer_id)
         return reviewer

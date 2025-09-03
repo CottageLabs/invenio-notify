@@ -19,13 +19,13 @@ def test_inbox_test_data_builder(db, rdm_record, superuser_identity, inbox_test_
                )
     
     # Verify all components were created
-    assert builder.reviewer is not None
-    assert builder.reviewer.actor_id == notification_data['actor']['id']
+    assert builder.actor is not None
+    assert builder.actor.actor_id == notification_data['actor']['id']
     
     assert builder.endorsement_request is not None
     record = current_rdm_records.records_service.record_cls.pid.resolve(rdm_record.id)
     assert builder.endorsement_request.record_id == record.id
-    assert builder.endorsement_request.reviewer_id == builder.reviewer.id
+    assert builder.endorsement_request.actor_id == builder.actor.id
     assert builder.endorsement_request.notification_id == notification_data['inReplyTo']
     
     assert builder.inbox is not None
@@ -48,13 +48,13 @@ def test_inbox_test_data_builder_usage_example(db, rdm_record, superuser_identit
                  .create_inbox())
     
     # Access the created components
-    reviewer = test_data.reviewer
+    reviewer = test_data.actor
     endorsement_request = test_data.endorsement_request
     inbox = test_data.inbox
     
     # Verify they match the original pattern
     assert reviewer.actor_id == notification_data['actor']['id']
-    assert endorsement_request.reviewer_id == reviewer.id
+    assert endorsement_request.actor_id == reviewer.id
     assert endorsement_request.notification_id == notification_data['inReplyTo']
     assert inbox.record_id == recid
     assert inbox.raw == notification_data

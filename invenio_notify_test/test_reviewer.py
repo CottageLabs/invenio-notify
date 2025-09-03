@@ -1,7 +1,7 @@
 from invenio_accounts.testutils import create_test_user
 
 from invenio_notify.proxies import current_reviewer_service
-from invenio_notify.records.models import ReviewerModel
+from invenio_notify.records.models import ActorModel
 from invenio_notify_test.fixtures.reviewer_fixture import (
     create_reviewer,
     reviewer_data,
@@ -11,17 +11,17 @@ from invenio_notify_test.fixtures.user_fixture import create_test_users
 
 
 def test_create_model(db, superuser_identity):
-    assert ReviewerModel.query.count() == 0
+    assert ActorModel.query.count() == 0
     data = reviewer_data(inbox_api_token='test-api-token')
 
     # Create a new reviewer entry
-    reviewer = ReviewerModel.create(data)
+    reviewer = ActorModel.create(data)
 
     # Verify record was created
-    assert ReviewerModel.query.count() == 1
+    assert ActorModel.query.count() == 1
 
     # Retrieve the record and verify attributes
-    retrieved = ReviewerModel.get(reviewer.id)
+    retrieved = ActorModel.get(reviewer.id)
     assert retrieved.actor_id == data['actor_id']
     assert retrieved.name == data['name']
     assert retrieved.inbox_url == data['inbox_url']
@@ -32,7 +32,7 @@ def test_create_model(db, superuser_identity):
 def test_service_create(test_app, superuser_identity):
     reviewer_serv = current_reviewer_service
 
-    assert ReviewerModel.query.count() == 0
+    assert ActorModel.query.count() == 0
     data = reviewer_data()
 
     result = reviewer_serv.create(superuser_identity, data)
@@ -44,13 +44,13 @@ def test_service_create(test_app, superuser_identity):
     assert result_dict['inbox_api_token'] == data['inbox_api_token']
     assert result_dict['description'] == data['description']
     assert 'links' in result_dict
-    assert ReviewerModel.query.count() == 1
+    assert ActorModel.query.count() == 1
 
 
 def test_service_search(test_app, superuser_identity):
     reviewer_serv = current_reviewer_service
 
-    assert ReviewerModel.query.count() == 0
+    assert ActorModel.query.count() == 0
 
     # Get sample reviewer data
     reviewers = sample_reviewers(3)
@@ -61,7 +61,7 @@ def test_service_search(test_app, superuser_identity):
     reviewer_serv.create(superuser_identity, reviewer_2)
     reviewer_serv.create(superuser_identity, reviewer_3)
 
-    assert ReviewerModel.query.count() == 3
+    assert ActorModel.query.count() == 3
 
     # Search with filter by name
     result = reviewer_serv.search(superuser_identity, params={'q': '2'})
@@ -94,7 +94,7 @@ def test_service_add_member(test_app, superuser_identity, db, create_reviewer):
     reviewer_serv.add_member(superuser_identity, reviewer_id, {"emails": emails_to_add})
     
     # Get the updated reviewer
-    reviewer_model = ReviewerModel.get(reviewer_id)
+    reviewer_model = ActorModel.get(reviewer_id)
     
     # Check if members were added correctly
     member_emails = [member.email for member in reviewer_model.members]
@@ -107,7 +107,7 @@ def test_service_add_member(test_app, superuser_identity, db, create_reviewer):
     reviewer_serv.add_member(superuser_identity, reviewer_id, {"emails": ["test1@example.com", "test3@example.com"]})
     
     # Get the updated reviewer
-    reviewer_model = ReviewerModel.get(reviewer_id)
+    reviewer_model = ActorModel.get(reviewer_id)
     
     # Check that test3 was added but test1 wasn't duplicated
     member_emails = [member.email for member in reviewer_model.members]
@@ -131,7 +131,7 @@ def test_service_del_member(test_app, superuser_identity, db, create_reviewer):
     reviewer_serv.add_member(superuser_identity, reviewer_id, {"emails": emails_to_add})
     
     # Get the updated reviewer
-    reviewer_model = ReviewerModel.get(reviewer_id)
+    reviewer_model = ActorModel.get(reviewer_id)
     
     # Verify all members were added
     member_emails = [member.email for member in reviewer_model.members]
@@ -143,7 +143,7 @@ def test_service_del_member(test_app, superuser_identity, db, create_reviewer):
     reviewer_serv.del_member(superuser_identity, reviewer_id, {"user_id": user_id_to_remove})
     
     # Get the updated reviewer
-    reviewer_model = ReviewerModel.get(reviewer_id)
+    reviewer_model = ActorModel.get(reviewer_id)
     
     # Check that the user was removed
     member_emails = [member.email for member in reviewer_model.members]
@@ -157,7 +157,7 @@ def test_service_del_member(test_app, superuser_identity, db, create_reviewer):
     reviewer_serv.del_member(superuser_identity, reviewer_id, {"user_id": non_member_user.id})
     
     # Check that members remain unchanged
-    reviewer_model = ReviewerModel.get(reviewer_id)
+    reviewer_model = ActorModel.get(reviewer_id)
     member_emails = [member.email for member in reviewer_model.members]
     assert len(member_emails) == 2
     assert "test1@example.com" in member_emails
@@ -173,7 +173,7 @@ def test_inbox_api_token_field(db, superuser_identity):
         inbox_api_token='secret-api-token-123'
     )
     
-    reviewer_with_token = ReviewerModel.create(data_with_token)
+    reviewer_with_token = ActorModel.create(data_with_token)
     
     # Verify token was saved correctly
     assert reviewer_with_token.inbox_api_token == 'secret-api-token-123'
@@ -184,7 +184,7 @@ def test_inbox_api_token_field(db, superuser_identity):
         inbox_api_token=None
     )
     
-    reviewer_without_token = ReviewerModel.create(data_without_token)
+    reviewer_without_token = ActorModel.create(data_without_token)
     
     # Verify token is None
     assert reviewer_without_token.inbox_api_token is None

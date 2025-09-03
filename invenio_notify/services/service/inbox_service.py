@@ -12,7 +12,7 @@ from coarnotify.server import (
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
-from invenio_notify.records.models import ReviewerModel
+from invenio_notify.records.models import ActorModel
 from invenio_notify.tasks import get_notification_type
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -118,7 +118,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'Missing notification ID')
 
         actor_id = raw['actor']['id']
-        if not ReviewerModel.has_member(g.identity.id, actor_id):
+        if not ActorModel.has_member(g.identity.id, actor_id):
             current_app.logger.warning(f'Actor id not match with user: {actor_id}, {g.identity.id}')
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 

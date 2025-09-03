@@ -2,18 +2,18 @@ from datetime import datetime, timezone
 
 import pytest
 
-from invenio_notify.records.models import ReviewerModel
+from invenio_notify.records.models import ActorModel
 
 
 @pytest.fixture
 def create_reviewer(db, superuser_identity):
-    """Fixture to create a ReviewerModel instance."""
+    """Fixture to create a ActorModel instance."""
 
     def _create_reviewer(actor_id=None, name='Test Reviewer',
                          inbox_url='https://example.com/inbox',
 
                          inbox_api_token=None, description=None):
-        """Create a ReviewerModel instance.
+        """Create a ActorModel instance.
         
         Args:
             actor_id: Actor ID for the reviewer (default: 'test-reviewer-id')
@@ -23,12 +23,12 @@ def create_reviewer(db, superuser_identity):
             description: Optional description of the reviewer
 
         Returns:
-            ReviewerModel instance
+            ActorModel instance
         """
 
         if actor_id is None:
             actor_id = 'test-reviewer-id-' + datetime.now(timezone.utc).isoformat()
-        reviewer = ReviewerModel.create({
+        reviewer = ActorModel.create({
             'actor_id': actor_id,
             'name': name,
             'inbox_url': inbox_url,
