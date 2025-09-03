@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Union
 
 from celery import shared_task
@@ -107,7 +107,7 @@ def mark_as_processed(inbox_record: NotifyInboxModel, comment=None, uow=None):
         inbox_record: The inbox record to mark as processed
         comment: Optional comment to add to the record
     """
-    inbox_record.process_date = datetime.today()
+    inbox_record.process_date = datetime.now(timezone.utc)
     if comment is not None:
         inbox_record.process_note = comment
 

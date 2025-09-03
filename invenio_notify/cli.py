@@ -1,5 +1,5 @@
 import os.path
-from datetime import datetime
+from datetime import datetime, timezone
 
 import click
 import rich
@@ -88,7 +88,7 @@ def test_data(email):
         'name': "Peer Community in Evolutionary Biology",
         'actor_id': 'https://evolbiol.peercommunityin.org/coar_notify/',
         'inbox_url': "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
-        'description': f"Test reviewer generated on {datetime.now().strftime('%Y-%m-%d')}"
+        'description': f"Test reviewer generated on {datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
     })
 
     print(f"Created reviewer: {reviewer.name} with actor ID: {reviewer.actor_id}")
