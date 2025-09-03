@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime, timezone
 
 import pytest
 
@@ -27,7 +27,7 @@ def create_reviewer(db, superuser_identity):
         """
 
         if actor_id is None:
-            actor_id = 'test-reviewer-id-' + datetime.datetime.now().isoformat()
+            actor_id = 'test-reviewer-id-' + datetime.now(timezone.utc).isoformat()
         reviewer = ReviewerModel.create({
             'actor_id': actor_id,
             'name': name,

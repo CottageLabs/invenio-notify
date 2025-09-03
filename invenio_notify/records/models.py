@@ -3,11 +3,11 @@ from typing import Iterable
 from invenio_accounts.models import User
 from invenio_db import db
 from sqlalchemy.dialects import postgresql
-from sqlalchemy_utils import Timestamp
 from sqlalchemy_utils.types import JSONType, UUIDType
 
 from invenio_notify import constants
 from invenio_notify.errors import NotExistsError
+from invenio_notify.records.mixins import UTCTimestamp
 from invenio_rdm_records.records.models import RDMRecordMetadata
 
 JSON = (
@@ -108,7 +108,7 @@ class DbOperationMixin:
             db.session.query(cls).filter_by(id=id).update(data)
 
 
-class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
+class NotifyInboxModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     Stores all valid COAR notifications from the inbox endpoint.
     """
@@ -147,7 +147,7 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
         return cls.search(None, [cls.process_date.is_(None)])
 
 
-class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
+class ReviewerMapModel(db.Model, UTCTimestamp, DbOperationMixin):
     """ Used to store reviewer membership mappings. """
 
     __tablename__ = "reviewer_map"
@@ -193,7 +193,7 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
         return [r[0] for r in db.session.query(cls.reviewer_id).filter(cls.user_id == user_id).all()]
 
 
-class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
+class ReviewerModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     An organization that provides a review service, e.g. PCI, COAR, etc.
 
@@ -257,7 +257,7 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
         return result is not None
 
 
-class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
+class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     Endorsement data for the record
 
@@ -307,7 +307,7 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     endorsement_reply = db.relationship("EndorsementReplyModel", uselist=False)
 
 
-class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
+class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     Endorsement Request that is sent by record owners to reviewers.
 
@@ -368,7 +368,7 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
         return latest_status
 
 
-class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
+class EndorsementReplyModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     Stores replies to EndorsementRequestModel.
 
