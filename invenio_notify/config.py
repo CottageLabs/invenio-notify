@@ -11,8 +11,8 @@ NOTIFY_INBOX_SEARCH = {
         "-updated",
         "process_date",
         "-process_date",
-        "recid",
-        "-recid",
+        "record_id",
+        "-record_id",
         "user_id",
         "-user_id",
     ],
@@ -51,13 +51,13 @@ NOTIFY_INBOX_SORT_OPTIONS = {
         title=_("Process Date (Oldest First)"),
         fields=["-process_date"],
     ),
-    "recid": dict(
+    "record_id": dict(
         title=_("Record ID (A-Z)"),
-        fields=["recid"],
+        fields=["record_id"],
     ),
-    "-recid": dict(
+    "-record_id": dict(
         title=_("Record ID (Z-A)"),
-        fields=["-recid"],
+        fields=["-record_id"],
     ),
     "user_id": dict(
         title=_("User ID (Ascending)"),

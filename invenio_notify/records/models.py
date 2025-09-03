@@ -122,8 +122,8 @@ class NotifyInboxModel(db.Model, UTCTimestamp, DbOperationMixin):
     raw = db.Column(JSON, nullable=False)
     """ COAR notification data as a JSON string """
 
-    recid = db.Column(db.Text, nullable=False)
-    """ Record ID (recid e.g. p97a0-c4p20) instead of UUID of the record """
+    record_id = db.Column(db.Text, nullable=False)
+    """ Record ID (e.g. p97a0-c4p20) instead of UUID of the record """
 
     process_date = db.Column(db.DateTime, nullable=True)
 

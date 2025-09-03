@@ -38,7 +38,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('notification_id', sa.Text(), nullable=False),
     sa.Column('raw', sa.JSON().with_variant(sqlalchemy_utils.types.json.JSONType(), 'mysql').with_variant(postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), 'postgresql').with_variant(sqlalchemy_utils.types.json.JSONType(), 'sqlite'), nullable=False),
-    sa.Column('recid', sa.Text(), nullable=False),
+    sa.Column('record_id', sa.Text(), nullable=False),
     sa.Column('process_date', sa.DateTime(), nullable=True),
     sa.Column('process_note', sa.Text(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=False),

@@ -58,7 +58,7 @@ class NotifyInboxService(BasicDbService):
             # Search across multiple fields
             search_conditions = [
                 model.notification_id.cast(String).ilike(search_term),  # Search in notification ID
-                model.recid.ilike(search_term),  # Search in record ID
+                model.record_id.ilike(search_term),  # Search in record ID
                 model.process_note.ilike(search_term),  # Search in process notes
                 cast(model.raw, String).ilike(search_term),  # Search in raw JSON data
             ]
@@ -123,7 +123,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
         if not get_notification_type(raw):
-            current_app.logger.info(f'Unknown type: [{recid=}]{raw.get("type")}')
+            current_app.logger.info(f'Unknown type: [{record_id=}]{raw.get("type")}')
             raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
 
         records_service: RDMRecordService = current_rdm_records_service

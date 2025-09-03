@@ -39,7 +39,7 @@ class TestInboxService(BasicDbServiceTestHelper):
 
     def _create_record(self, *args, **kwargs):
         recid = kwargs.get('recid', 'test-record-id')
-        return self.create_inbox(recid=recid)
+        return self.create_inbox(record_id=recid)
 
 
 class TestReviewerService(BasicDbServiceTestHelper):

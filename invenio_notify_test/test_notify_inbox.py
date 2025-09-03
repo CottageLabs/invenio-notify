@@ -7,7 +7,7 @@ from invenio_notify_test.fixtures.inbox_payload import payload_review
 def test_create_model(db, superuser_identity, create_inbox):
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
-    m = create_inbox(recid=record_id)
+    m = create_inbox(record_id=record_id)
     m.commit()
 
     # find record by record_id

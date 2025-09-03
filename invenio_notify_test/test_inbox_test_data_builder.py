@@ -29,7 +29,7 @@ def test_inbox_test_data_builder(db, rdm_record, superuser_identity, inbox_test_
     assert builder.endorsement_request.notification_id == notification_data['inReplyTo']
     
     assert builder.inbox is not None
-    assert builder.inbox.recid == recid
+    assert builder.inbox.record_id == recid
     assert builder.inbox.raw == notification_data
     assert builder.inbox.notification_id == notification_data.get('id')
 
@@ -56,5 +56,5 @@ def test_inbox_test_data_builder_usage_example(db, rdm_record, superuser_identit
     assert reviewer.actor_id == notification_data['actor']['id']
     assert endorsement_request.reviewer_id == reviewer.id
     assert endorsement_request.notification_id == notification_data['inReplyTo']
-    assert inbox.recid == recid
+    assert inbox.record_id == recid
     assert inbox.raw == notification_data
