@@ -147,10 +147,10 @@ class NotifyInboxModel(db.Model, UTCTimestamp, DbOperationMixin):
         return cls.search(None, [cls.process_date.is_(None)])
 
 
-class ActorMapModel(db.Model, UTCTimestamp, DbOperationMixin):
+class ActorMembersModel(db.Model, UTCTimestamp, DbOperationMixin):
     """ Used to store actor membership mappings. """
 
-    __tablename__ = "notify_actor_map"
+    __tablename__ = "notify_actor_members"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -214,7 +214,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     members = db.relationship(
         "User",
-        secondary=ActorMapModel.__tablename__,
+        secondary=ActorMembersModel.__tablename__,
     )
 
     endorsements = db.relationship("EndorsementModel", back_populates="actor")
@@ -231,8 +231,8 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             bool: True if the user is a member of the actor, False otherwise
         """
         result = (db.session.query(cls)
-                  .join(ActorMapModel, ActorMapModel.actor_id == cls.actor_id)
-                  .join(User, User.id == ActorMapModel.user_id)
+                  .join(ActorMembersModel, ActorMembersModel.actor_id == cls.actor_id)
+                  .join(User, User.id == ActorMembersModel.user_id)
                   .filter(User.email == email, cls.actor_id == actor_id)
                   .first())
         return result is not None
@@ -249,8 +249,8 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             bool: True if the user is a member of the actor, False otherwise
         """
         result = (db.session.query(cls)
-                  .join(ActorMapModel, ActorMapModel.actor_id == cls.actor_id)
-                  .filter(ActorMapModel.user_id == user_id, cls.actor_id == actor_id)
+                  .join(ActorMembersModel, ActorMembersModel.actor_id == cls.actor_id)
+                  .filter(ActorMembersModel.user_id == user_id, cls.actor_id == actor_id)
                   .first())
         return result is not None
 

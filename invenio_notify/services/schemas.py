@@ -37,7 +37,7 @@ class EndorsementSchema(BaseRecordSchema):
     endorsement_reply_id = fields.Integer(required=False, allow_none=True)
 
 
-class ReviewerMapSchema(BaseRecordSchema):
+class ActorMembersSchema(BaseRecordSchema):
     user_id = fields.Integer(required=True)
     actor_id = fields.String(required=True)
 

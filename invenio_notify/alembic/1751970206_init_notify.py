@@ -47,18 +47,18 @@ def upgrade():
     sa.UniqueConstraint('notification_id', name=op.f('uq_notify_inbox_notification_id'))
     )
     op.create_index(op.f('ix_notify_inbox_user_id'), 'notify_inbox', ['user_id'], unique=False)
-    op.create_table('notify_actor_map',
+    op.create_table('notify_actor_members',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('actor_id', sa.Text(), nullable=False),
     sa.Column('created', sa.DateTime(), nullable=False),
     sa.Column('updated', sa.DateTime(), nullable=False),
-    sa.ForeignKeyConstraint(['actor_id'], ['notify_actor.actor_id'], name=op.f('fk_notify_actor_map_actor_id_notify_actor'), ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['user_id'], ['accounts_user.id'], name=op.f('fk_notify_actor_map_user_id_accounts_user'), ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id', name=op.f('pk_notify_actor_map'))
+    sa.ForeignKeyConstraint(['actor_id'], ['notify_actor.actor_id'], name=op.f('fk_notify_actor_members_actor_id_notify_actor'), ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['accounts_user.id'], name=op.f('fk_notify_actor_members_user_id_accounts_user'), ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id', name=op.f('pk_notify_actor_members'))
     )
-    op.create_index(op.f('ix_notify_actor_map_actor_id'), 'notify_actor_map', ['actor_id'], unique=False)
-    op.create_index(op.f('ix_notify_actor_map_user_id'), 'notify_actor_map', ['user_id'], unique=False)
+    op.create_index(op.f('ix_notify_actor_members_actor_id'), 'notify_actor_members', ['actor_id'], unique=False)
+    op.create_index(op.f('ix_notify_actor_members_user_id'), 'notify_actor_members', ['user_id'], unique=False)
     op.create_table('endorsement',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
@@ -126,9 +126,9 @@ def downgrade():
     op.drop_index(op.f('ix_endorsement_actor_id'), table_name='endorsement')
     op.drop_index(op.f('ix_endorsement_record_id'), table_name='endorsement')
     op.drop_table('endorsement')
-    op.drop_index(op.f('ix_notify_actor_map_user_id'), table_name='notify_actor_map')
-    op.drop_index(op.f('ix_notify_actor_map_actor_id'), table_name='notify_actor_map')
-    op.drop_table('notify_actor_map')
+    op.drop_index(op.f('ix_notify_actor_members_user_id'), table_name='notify_actor_members')
+    op.drop_index(op.f('ix_notify_actor_members_actor_id'), table_name='notify_actor_members')
+    op.drop_table('notify_actor_members')
     op.drop_index(op.f('ix_notify_inbox_user_id'), table_name='notify_inbox')
     op.drop_table('notify_inbox')
     op.drop_table('notify_actor')

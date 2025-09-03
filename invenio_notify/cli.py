@@ -9,7 +9,7 @@ from rich.markdown import Markdown
 from sqlalchemy import desc
 
 from invenio_notify import tasks
-from invenio_notify.records.models import EndorsementModel, NotifyInboxModel, ActorMapModel, ActorModel
+from invenio_notify.records.models import EndorsementModel, NotifyInboxModel, ActorMembersModel, ActorModel
 from invenio_notify.utils import user_utils
 
 
@@ -93,7 +93,7 @@ def test_data(email):
 
     print(f"Created reviewer: {reviewer.name} with actor ID: {reviewer.actor_id}")
 
-    # If email is provided, create a ActorMapModel for the user
+    # If email is provided, create a ActorMembersModel for the user
     if email:
         user = user_utils.find_user_by_email(email)
         if user is None:
@@ -126,9 +126,9 @@ def user():
 def list(user, reviewer_id):
     """ List user and reviewer id mapping """
     if user:
-        rows = ActorMapModel.find_by_email(user)
+        rows = ActorMembersModel.find_by_email(user)
     elif reviewer_id:
-        rows = ActorMapModel.find_by_actor_id(reviewer_id)
+        rows = ActorMembersModel.find_by_actor_id(reviewer_id)
     else:
         print('Please provide either email or reviewer_id to query.')
         return

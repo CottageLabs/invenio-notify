@@ -3,7 +3,7 @@ from invenio_accounts.models import User
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 
-from invenio_notify.records.models import ActorMapModel, ActorModel
+from invenio_notify.records.models import ActorMembersModel, ActorModel
 from invenio_notify.utils import user_utils, reviewer_utils
 from .base_service import BasicDbService
 
@@ -87,7 +87,7 @@ class ReviewerService(BasicDbService):
             return reviewer
 
         current_app.logger.info(f'Removing user [{user.email}] from reviewer [{reviewer.actor_id}]')
-        reviewer_map = ActorMapModel.query.filter_by(
+        reviewer_map = ActorMembersModel.query.filter_by(
             user_id=user.id,
             actor_id=reviewer.id
         ).first()
@@ -95,7 +95,7 @@ class ReviewerService(BasicDbService):
             current_app.logger.warning(f'No mapping found for user [{user.email}] and reviewer [{reviewer.actor_id}]')
             return reviewer
 
-        ActorMapModel.delete(reviewer_map)
+        ActorMembersModel.delete(reviewer_map)
 
         reviewer = self.record_cls.get(reviewer_id)
         return reviewer
