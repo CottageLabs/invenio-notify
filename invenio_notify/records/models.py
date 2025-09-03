@@ -167,7 +167,7 @@ class ActorMembersModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     actor_id = db.Column(
         db.Text(),
-        db.ForeignKey("notify_actor.actor_id", ondelete="CASCADE"),
+        db.ForeignKey("notify_actor.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -201,7 +201,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     __tablename__ = "notify_actor"
 
-    actor_id = db.Column(db.Text, primary_key=True)
+    id = db.Column(db.Text, primary_key=True)
     """ ID that is used in COAR notification (JSON) """
 
     name = db.Column(db.Text, nullable=False)
@@ -231,9 +231,9 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             bool: True if the user is a member of the actor, False otherwise
         """
         result = (db.session.query(cls)
-                  .join(ActorMembersModel, ActorMembersModel.actor_id == cls.actor_id)
+                  .join(ActorMembersModel, ActorMembersModel.actor_id == cls.id)
                   .join(User, User.id == ActorMembersModel.user_id)
-                  .filter(User.email == email, cls.actor_id == actor_id)
+                  .filter(User.email == email, cls.id == actor_id)
                   .first())
         return result is not None
 
@@ -249,8 +249,8 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             bool: True if the user is a member of the actor, False otherwise
         """
         result = (db.session.query(cls)
-                  .join(ActorMembersModel, ActorMembersModel.actor_id == cls.actor_id)
-                  .filter(ActorMembersModel.user_id == user_id, cls.actor_id == actor_id)
+                  .join(ActorMembersModel, ActorMembersModel.actor_id == cls.id)
+                  .filter(ActorMembersModel.user_id == user_id, cls.id == actor_id)
                   .first())
         return result is not None
 
@@ -271,11 +271,12 @@ class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
     ), index=True, nullable=True, )
 
     record = db.relationship(RDMRecordMetadata, foreign_keys=[record_id])
-    """ ID of the record, ID that is saved in PostgreSQL instead of recid that is used in JSON and /records """
+    """ ID of the record, ID thE       AttributeError: 'EndorsementAdminService' object has no attribute 'get_notify_info'
+at is saved in PostgreSQL instead of recid that is used in JSON and /records """
 
     actor_id = db.Column(
         db.Text,
-        db.ForeignKey("notify_actor.actor_id", ondelete="NO ACTION"),
+        db.ForeignKey("notify_actor.id", ondelete="NO ACTION"),
         nullable=True,
         index=True,
     )
@@ -333,7 +334,7 @@ class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     actor_id = db.Column(
         db.Text,
-        db.ForeignKey("notify_actor.actor_id", ondelete="NO ACTION"),
+        db.ForeignKey("notify_actor.id", ondelete="NO ACTION"),
         nullable=False,
         index=True,
     )

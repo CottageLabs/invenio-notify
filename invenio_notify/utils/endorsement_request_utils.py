@@ -55,7 +55,7 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: ActorMod
             "type": "Service"
         },
         "target": {
-            "id": reviewer.actor_id,
+            "id": reviewer.id,
             "inbox": reviewer.inbox_url,
             "type": "Service"
         },

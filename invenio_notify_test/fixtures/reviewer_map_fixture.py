@@ -24,7 +24,7 @@ def create_reviewer_map(db, superuser_identity, create_reviewer):
         reviewer = create_reviewer(actor_id=actor_id)
 
         reviewer_map = ActorMembersModel.create({
-            'actor_id': reviewer.actor_id,
+            'actor_id': reviewer.id,
             'user_id': user_id
         })
         return reviewer_map

@@ -187,7 +187,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     endorsement_service = current_app.extensions["invenio-notify"].endorsement_service
 
     reviewer_id = reviewer.id
-    log.info(f"Found reviewer ID {reviewer_id} for actor_id '{reviewer.actor_id}'")
+    log.info(f"Found reviewer ID {reviewer_id} for actor_id '{reviewer.id}'")
 
     reviewer_type = get_notification_type(notification_raw)
     if not reviewer_type:
@@ -403,8 +403,8 @@ def inbox_processing():
             continue
 
         # Check if noti sender is a member of the reviewer
-        if not ActorModel.has_member(inbox_record.user_id, reviewer.actor_id):
-            log.warning(f"User {inbox_record.user_id} is not a member of reviewer {reviewer.actor_id}")
+        if not ActorModel.has_member(inbox_record.user_id, reviewer.id):
+            log.warning(f"User {inbox_record.user_id} is not a member of reviewer {reviewer.id}")
             mark_as_processed(inbox_record, "User is not a member of reviewer")
             continue
 
