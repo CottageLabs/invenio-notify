@@ -34,9 +34,9 @@ class EndorsementListView(Phase1AdminDisabledMixin, AdminResourceListView):
 
     create_view_name = None
 
-    search_config_name = "NOTIFY_SEARCH"
+    search_config_name = "NOTIFY_ENDORSEMENT_SEARCH"
 
-    search_sort_config_name = "NOTIFY_SORT_OPTIONS"
+    search_sort_config_name = "NOTIFY_ENDORSEMENT_SORT_OPTIONS"
 
 
 class EndorsementDetailView(Phase1AdminDisabledMixin, AdminResourceDetailView):

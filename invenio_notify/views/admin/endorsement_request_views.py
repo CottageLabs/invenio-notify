@@ -34,9 +34,9 @@ class EndorsementRequestListView(Phase2AdminDisabledMixin, AdminResourceListView
 
     create_view_name = None
 
-    search_config_name = "NOTIFY_SEARCH"
+    search_config_name = "NOTIFY_ENDORSEMENT_REQUEST_SEARCH"
 
-    search_sort_config_name = "NOTIFY_SORT_OPTIONS"
+    search_sort_config_name = "NOTIFY_ENDORSEMENT_REQUEST_SORT_OPTIONS"
 
 class EndorsementRequestDetailView(Phase2AdminDisabledMixin, AdminResourceDetailView):
     """Admin endorsement request detail view."""
