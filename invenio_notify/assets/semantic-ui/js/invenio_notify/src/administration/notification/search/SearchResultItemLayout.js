@@ -9,12 +9,12 @@ import { i18next } from "@translations/invenio_app_rdm/i18next";
 class SearchResultItemComponent extends Component {
 
   /**
-   * Generate link to administration record page if recid exists
+   * Generate link to administration record page if record_id exists
    */
-  generateRecordLink = (recid) => {
-    if (!recid) return "-";
+  generateRecordLink = (record_id) => {
+    if (!record_id) return "-";
 
-    const recordUrl = `/administration/records?q=id:${recid}&f=allversions:true`;
+    const recordUrl = `/administration/records?q=id:${record_id}&f=allversions:true`;
     return (
       <a 
         href={recordUrl}
@@ -23,7 +23,7 @@ class SearchResultItemComponent extends Component {
         className="ui blue link"
         title={i18next.t("View record in administration")}
       >
-        {recid}
+        {record_id}
         <i className="external alternate icon ml-5" />
       </a>
     );
@@ -84,8 +84,8 @@ class SearchResultItemComponent extends Component {
           </div>
         </Table.Cell>
         
-        <Table.Cell key={`notification-recid-${result.id}`} data-label={i18next.t("Record ID")}>
-          {this.generateRecordLink(result.recid)}
+        <Table.Cell key={`notification-record_id-${result.id}`} data-label={i18next.t("Record ID")}>
+          {this.generateRecordLink(result.record_id)}
         </Table.Cell>
         
         <Table.Cell key={`notification-user_id-${result.id}`} data-label={i18next.t("User ID")}>

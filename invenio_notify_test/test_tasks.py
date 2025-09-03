@@ -50,7 +50,7 @@ def assert_inbox_processing_failed(inbox, process_note_startswith, n_request=0):
 def test_mark_as_processed(db, superuser_identity, create_inbox):
     """Test the mark_as_processed function."""
     # Create a test inbox record
-    inbox = create_inbox(recid='r1')
+    inbox = create_inbox(record_id='r1')
 
     # Initially, process_date should be None
     assert inbox.process_date is None

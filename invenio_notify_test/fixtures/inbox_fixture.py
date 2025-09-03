@@ -11,7 +11,7 @@ from invenio_notify_test.utils import resolve_user_id
 def create_inbox(db, superuser_identity):
     """Fixture to create a NotifyInboxModel instance."""
 
-    def _create_inbox(recid='r1', raw=None, user_id=None, identity=None, notification_id=None):
+    def _create_inbox(record_id='r1', raw=None, user_id=None, identity=None, notification_id=None):
         """Create a NotifyInboxModel instance.
         
         Args:

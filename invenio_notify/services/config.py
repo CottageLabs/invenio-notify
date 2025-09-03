@@ -57,9 +57,9 @@ class NotifyInboxSearchOptions(DefaultSearchOptions):
             title=_("Process Date (Newest First)"),
             fields=["process_date"],
         ),
-        "recid": dict(
+        "record_id": dict(
             title=_("Record ID (A-Z)"),
-            fields=["recid"],
+            fields=["record_id"],
         ),
         "user_id": dict(
             title=_("User ID (Ascending)"),
@@ -82,9 +82,9 @@ class NotifyInboxSearchOptions(DefaultSearchOptions):
             title=_("Process Date (Oldest First)"),
             fields=["-process_date"],
         ),
-        "-recid": dict(
+        "-record_id": dict(
             title=_("Record ID (Z-A)"),
-            fields=["-recid"],
+            fields=["-record_id"],
         ),
         "-user_id": dict(
             title=_("User ID (Descending)"),

@@ -40,7 +40,7 @@ def test_service_create(db, superuser_identity, minimal_record, test_app, create
 
     assert EndorsementModel.query.count() == 0
 
-    inbox = create_inbox(recid='r1')
+    inbox = create_inbox(record_id='r1')
 
     record_id = str(record.id)
     reviewer_id = create_reviewer().id
@@ -67,7 +67,7 @@ def test_service_update(db, superuser_identity, minimal_record, test_app, create
                         create_endorsement):
     record = prepare_test_rdm_record(db, minimal_record)
     endo_serv = proxies.current_endorsement_service
-    inbox = create_inbox(recid='r1')
+    inbox = create_inbox(record_id='r1')
     reviewer = create_reviewer()
 
     # Create endorsement data as a dictionary first
@@ -112,7 +112,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     reviewer2 = create_reviewer(name="Reviewer Two")
 
     # Create endorsements using the fixture - each needs unique inbox due to unique constraint
-    inbox1 = create_inbox(recid='r1')
+    inbox1 = create_inbox(record_id='r1')
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer1.id,
@@ -121,7 +121,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
         result_url='https://example.com/endorsement1'
     )
 
-    inbox2 = create_inbox(recid='r2')
+    inbox2 = create_inbox(record_id='r2')
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer1.id,
@@ -131,14 +131,14 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     )
 
     # Create an endorsement for a different record
-    inbox3 = create_inbox(recid='r3')
+    inbox3 = create_inbox(record_id='r3')
     create_endorsement(
         record_id=str(not_related_record.id),
         reviewer_id=reviewer1.id,
         inbox_id=inbox3.id
     )
 
-    inbox4 = create_inbox(recid='r4')
+    inbox4 = create_inbox(record_id='r4')
     create_endorsement(
         record_id=record_id,
         reviewer_id=reviewer2.id,
