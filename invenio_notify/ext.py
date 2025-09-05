@@ -75,7 +75,7 @@ class InvenioNotify:
     def init_resources(self, app):
         """Initialize the resources for notifications."""
 
-        if feature_toggle.is_phase_1_enabled(app):
+        if feature_toggle.is_pci_endorsement_enabled(app):
             self.inbox_api_resource = InboxApiResource(
                 service=self.notify_inbox_service,
                 config=InboxApiResourceConfig,
