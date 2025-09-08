@@ -15,7 +15,7 @@ def create_inbox(db, superuser_identity):
         """Create a NotifyInboxModel instance.
         
         Args:
-            recid: Record ID to associate with the inbox
+            record_id: Record ID to associate with the inbox
             raw: Raw data content (default: 'test')
             user_id: User ID to associate with the inbox (overrides identity)
             identity: Identity object to get user_id from (defaults to superuser_identity)
@@ -35,7 +35,7 @@ def create_inbox(db, superuser_identity):
         inbox = NotifyInboxModel.create({
             'notification_id': notification_id,
             'raw': raw,
-            'recid': recid,
+            'record_id': record_id,
             'user_id': user_id
         })
         return inbox

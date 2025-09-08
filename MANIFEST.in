@@ -1,2 +1,25 @@
 # `MANIFEST.in`
-recursive-include invenio_notify *.json *.js *.html
+include *.md
+include *.toml
+include *.txt
+include *.sh
+recursive-include bin *.sh
+recursive-include docs *.json
+recursive-include docs *.mmd
+recursive-include docs_sphinx *.bat
+recursive-include docs_sphinx *.rst
+recursive-include docs_sphinx Makefile
+recursive-include invenio_notify *.html
+recursive-include invenio_notify *.jinja
+recursive-include invenio_notify *.js
+recursive-include invenio_notify *.json
+recursive-include invenio_notify *.py
+recursive-include invenio_notify_test *.py
+
+# Include specific docs_sphinx css files but exclude build directory
+include docs_sphinx/_static/css/custom.css
+
+# Exclude build artifacts and IDE files
+prune docs_sphinx/_build
+prune .claude
+prune .idea

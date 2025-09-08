@@ -5,13 +5,13 @@ from invenio_notify_test.fixtures.endorsement_request_fixture import create_endo
 
 
 @pytest.fixture
-def create_endorsement_reply(superuser_identity, create_reviewer, create_inbox, create_endorsement_request):
+def create_endorsement_reply(superuser_identity, create_actor, create_inbox, create_endorsement_request):
     """Fixture to create an endorsement reply."""
     def _create_endorsement_reply(endorsement_request_id=None, status="Request Endorsement"):
         if endorsement_request_id is None:
             # Create an endorsement request
-            reviewer = create_reviewer()
-            request = create_endorsement_request(reviewer_id=reviewer.id)
+            actor = create_actor()
+            request = create_endorsement_request(actor_id=actor.id)
             endorsement_request_id = request.id
         
         inbox = create_inbox()

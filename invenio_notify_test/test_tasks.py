@@ -69,13 +69,13 @@ def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_
     - No Endorsement request
     - type: review
     """
-    recid = rdm_record.id
-    notification_data = payload_review(recid)
+    record_id = rdm_record.id
+    notification_data = payload_review(record_id)
 
     # Use builder to create test data
-    test_data = (inbox_test_data_builder(recid, notification_data)
-                 .create_reviewer()
-                 .add_member_to_reviewer()
+    test_data = (inbox_test_data_builder(record_id, notification_data)
+                 .create_actor()
+                 .add_member_to_actor()
                  .create_inbox())
 
     # Verify no endorsements exist before processing
@@ -105,8 +105,8 @@ def test_inbox_processing__success__endorsement(db, rdm_record, inbox_test_data_
             'endorsement_count': 0,
             'endorsement_list': [],
             'review_count': 1,
-            'reviewer_id': test_data.reviewer.id,
-            'reviewer_name': test_data.reviewer.name,
+            'actor_id': test_data.actor.id,
+            'actor_name': test_data.actor.name,
             'review_list': [{
                 'created': endorsement.created.isoformat(),
                 'index': 1,
@@ -125,15 +125,15 @@ def test_inbox_processing__success__endorsement_with_endorsement_request(db, rdm
     - Have an Endorsement request
     - type: endorsement response
     """
-    recid = rdm_record.id
+    record_id = rdm_record.id
 
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
-    notification_data = payload_endorsement_resp(recid, in_reply_to=inbox_payload.generate_notification_id())
+    notification_data = payload_endorsement_resp(record_id, in_reply_to=inbox_payload.generate_notification_id())
 
     # Use builder to create test data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
-                 .create_reviewer()
-                 .add_member_to_reviewer()
+                 .create_actor()
+                 .add_member_to_actor()
                  .create_endorsement_request()
                  .create_inbox())
 
@@ -159,15 +159,15 @@ def test_inbox_processing__success__reject_with_endorsement_request(db, rdm_reco
     - Have an Endorsement request
     - type: reject
     """
-    recid = rdm_record.id
+    record_id = rdm_record.id
 
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
-    notification_data = payload_reject(recid)
+    notification_data = payload_reject(record_id)
 
     # Use builder to create test data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
-                 .create_reviewer()
-                 .add_member_to_reviewer()
+                 .create_actor()
+                 .add_member_to_actor()
                  .create_endorsement_request()
                  .create_inbox())
 
@@ -193,15 +193,15 @@ def test_inbox_processing__fail__reject_without_endorsement_request(db, rdm_reco
     - NO related Endorsement request
     - type: reject
     """
-    recid = rdm_record.id
+    record_id = rdm_record.id
 
     # Create a valid working notification but expect it to fail COAR parsing for "Reject" type
-    notification_data = payload_reject(recid)
+    notification_data = payload_reject(record_id)
 
     # Even endorsement request is created, but notification_id does not match with new notification data
     test_data = (inbox_test_data_builder(rdm_record.id, notification_data)
-                 .create_reviewer()
-                 .add_member_to_reviewer()
+                 .create_actor()
+                 .add_member_to_actor()
                  .create_endorsement_request(notification_id=uuid.uuid4())
                  .create_inbox())
 
@@ -210,40 +210,40 @@ def test_inbox_processing__fail__reject_without_endorsement_request(db, rdm_reco
                                    n_request=1)
 
 
-def test_inbox_processing__fail__record_not_found(db, superuser_identity, create_inbox, create_reviewer,
+def test_inbox_processing__fail__record_not_found(db, superuser_identity, create_inbox, create_actor,
                                                   inbox_test_data_builder):
     """Test inbox processing when the "record" is not found."""
 
-    recid = 'r1'
-    notification_data = payload_review(recid)
-    test_data = (inbox_test_data_builder(recid, notification_data)
-                 .create_reviewer()
-                 .add_member_to_reviewer()
+    record_id = 'r1'
+    notification_data = payload_review(record_id)
+    test_data = (inbox_test_data_builder(record_id, notification_data)
+                 .create_actor()
+                 .add_member_to_actor()
                  .create_inbox())
 
     assert_inbox_processing_failed(test_data.inbox, "Failed to resolve record from notification")
 
 
-def test_inbox_processing__fail__reviewer_not_found(db, rdm_record, inbox_test_data_builder):
-    """Test inbox processing when the "reviewer" is not found."""
-    recid = rdm_record.id
-    notification_data = payload_review(recid)
+def test_inbox_processing__fail__actor_not_found(db, rdm_record, inbox_test_data_builder):
+    """Test inbox processing when the "actor" is not found."""
+    record_id = rdm_record.id
+    notification_data = payload_review(record_id)
 
-    # Do not create reviewer, so actor_id won't match any reviewer
-    test_data = (inbox_test_data_builder(recid, notification_data)
+    # Do not create actor, so actor_id won't match any actor
+    test_data = (inbox_test_data_builder(record_id, notification_data)
                  .create_inbox())
 
-    assert_inbox_processing_failed(test_data.inbox, "Reviewer not found")
+    assert_inbox_processing_failed(test_data.inbox, "Actor not found")
 
 
 def test_inbox_processing__fail__not_a_member(db, rdm_record, inbox_test_data_builder):
-    """ Test inbox processing failure when user is not a member of the reviewer."""
-    recid = rdm_record.id
-    notification_data = payload_review(recid)
+    """ Test inbox processing failure when user is not a member of the actor."""
+    record_id = rdm_record.id
+    notification_data = payload_review(record_id)
 
-    # Create reviewer but do not add user as member
-    test_data = (inbox_test_data_builder(recid, notification_data)
-                 .create_reviewer()
+    # Create actor but do not add user as member
+    test_data = (inbox_test_data_builder(record_id, notification_data)
+                 .create_actor()
                  .create_inbox())
 
-    assert_inbox_processing_failed(test_data.inbox, "User is not a member of reviewer")
+    assert_inbox_processing_failed(test_data.inbox, "User is not a member of actor")

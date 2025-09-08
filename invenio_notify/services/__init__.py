@@ -1,8 +1,8 @@
 from .config import (
     NotifyInboxServiceConfig,
     EndorsementAdminServiceConfig,
-    ReviewerMapServiceConfig,
-    ReviewerServiceConfig,
+    ActorMapServiceConfig,
+    ActorServiceConfig,
     EndorsementRequestServiceConfig,
     EndorsementReplyServiceConfig,
 )
@@ -10,8 +10,8 @@ from .service import (
     BasicDbService,
     NotifyInboxService,
     EndorsementAdminService,
-    ReviewerService,
-    ReviewerMapService,
+    ActorService,
+    ActorMapService,
     EndorsementRequestService,
     EndorsementReplyService,
 )
@@ -21,16 +21,16 @@ __all__ = [
     "BasicDbService",
     "NotifyInboxService",
     "EndorsementAdminService",
-    "ReviewerService",
-    "ReviewerMapService",
+    "ActorService",
+    "ActorMapService",
     "EndorsementRequestService",
     "EndorsementReplyService",
 
     # Configs
     "NotifyInboxServiceConfig",
     "EndorsementAdminServiceConfig",
-    "ReviewerMapServiceConfig",
-    "ReviewerServiceConfig",
+    "ActorMapServiceConfig",
+    "ActorServiceConfig",
     "EndorsementRequestServiceConfig",
     "EndorsementReplyServiceConfig",
 ]

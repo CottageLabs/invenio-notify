@@ -11,7 +11,7 @@ class TestCreateEndorsementRequestData:
 
     @patch('invenio_notify.utils.endorsement_request_utils.invenio_url_for')
     @patch('invenio_notify.utils.endorsement_request_utils.uuid.uuid4')
-    def test_basic_functionality(self, mock_uuid, mock_url_for, rdm_record, superuser, create_reviewer):
+    def test_basic_functionality(self, mock_uuid, mock_url_for, rdm_record, superuser, create_actor):
         """Test basic endorsement request data creation with DOI links."""
         # Setup mocks
         test_uuid = uuid.UUID('12345678-1234-5678-9012-123456789012')
@@ -21,10 +21,10 @@ class TestCreateEndorsementRequestData:
         # Create test objects
         user = superuser
         record_item = rdm_record  # rdm_record fixture already returns RecordItem
-        reviewer = create_reviewer(
-            actor_id='https://fake.dev.abc/test-reviewer',
-            name='Test Reviewer',
-            inbox_url='https://reviewer.example.com/inbox'
+        actor = create_actor(
+            actor_id='https://fake.dev.abc/test-actor',
+            name='Test Actor',
+            inbox_url='https://actor.example.com/inbox'
         )
 
         # Add DOI to record data
@@ -32,7 +32,7 @@ class TestCreateEndorsementRequestData:
 
         # Call function with origin_id
         origin_id = 'https://example.com/origin'
-        result = create_endorsement_request_data(user, record_item, reviewer, origin_id)
+        result = create_endorsement_request_data(user, record_item, actor, origin_id)
 
         # Verify basic structure
         assert result['@context'] == [
@@ -65,8 +65,8 @@ class TestCreateEndorsementRequestData:
         assert result['origin']['inbox'] == 'https://example.com/inbox'
         assert result['origin']['type'] == 'Service'
 
-        assert result['target']['id'] == reviewer.actor_id
-        assert result['target']['inbox'] == reviewer.inbox_url
+        assert result['target']['id'] == actor.actor_id
+        assert result['target']['inbox'] == actor.inbox_url
         assert result['target']['type'] == 'Service'
 
         # test coar validation

@@ -21,14 +21,14 @@ Inbox
 .. autoclass:: invenio_notify.records.models.NotifyInboxModel
 
 
-Reviewer
+Actor
 ~~~~~~~~~~~~~~~
-.. autoclass:: invenio_notify.records.models.ReviewerModel
+.. autoclass:: invenio_notify.records.models.ActorModel
 
-.. autoclass:: invenio_notify.records.models.ReviewerMapModel
+.. autoclass:: invenio_notify.records.models.ActorMapModel
 
 Endorsement Request
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 .. autoclass:: invenio_notify.records.models.EndorsementRequestModel
 
 .. autoclass:: invenio_notify.records.models.EndorsementReplyModel

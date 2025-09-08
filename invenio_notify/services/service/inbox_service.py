@@ -12,7 +12,7 @@ from coarnotify.server import (
 from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
-from invenio_notify.records.models import ReviewerModel
+from invenio_notify.records.models import ActorModel
 from invenio_notify.tasks import get_notification_type
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -38,11 +38,11 @@ def get_record_id_from_notification(raw: dict) -> str:
         record_url = raw['context']['id']
     elif raw.get('object', {}).get('object', {}).get('id'):
         record_url = raw['object']['object']['id']
-    
+
     if not record_url:
         current_app.logger.error('No record URL found in notification')
         raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'No record URL found')
-    
+
     return get_recid_by_record_url(record_url)
 
 
@@ -110,7 +110,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         current_app.logger.debug('called notification_received')
 
         raw = notification.to_jsonld()
-        recid = get_record_id_from_notification(raw)
+        record_id = get_record_id_from_notification(raw)
 
         notification_id = raw.get('id')
         if not notification_id:
@@ -118,7 +118,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'Missing notification ID')
 
         actor_id = raw['actor']['id']
-        if not ReviewerModel.has_member(g.identity.id, actor_id):
+        if not ActorModel.has_member(g.identity.id, actor_id):
             current_app.logger.warning(f'Actor id not match with user: {actor_id}, {g.identity.id}')
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
@@ -127,11 +127,12 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
 
         records_service: RDMRecordService = current_rdm_records_service
-        records_service.record_cls.pid.resolve(recid)
+        records_service.record_cls.pid.resolve(record_id)
 
         current_app.logger.debug(f'client input raw: {raw}')
         try:
-            current_inbox_service.create(g.identity, {"notification_id": notification_id, "raw": raw, 'recid': recid})
+            inbox_record = {"notification_id": notification_id, "raw": raw, 'record_id': record_id}
+            current_inbox_service.create(g.identity, inbox_record)
         except Exception as e:
             current_app.logger.error(f'Failed to create inbox record: {e}')
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, f'Failed to create inbox record')

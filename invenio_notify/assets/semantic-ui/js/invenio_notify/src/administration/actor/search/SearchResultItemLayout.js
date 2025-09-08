@@ -5,7 +5,7 @@ import { Table, Dropdown, Icon, Button, Grid } from "semantic-ui-react";
 import { withState } from "react-searchkit";
 import { AdminUIRoutes } from "@js/invenio_administration/src/routes";
 import { i18next } from "@translations/invenio_app_rdm/i18next";
-import { ReviewerSearchActions } from "./ReviewerSearchActions";
+import { ActorSearchActions } from "./ActorSearchActions";
 import { Provider } from "react-redux";
 import store from "./state/store";
 
@@ -26,10 +26,10 @@ class SearchResultItemComponent extends Component {
 
     return (
       <Table.Row>
-        <Table.Cell key={`reviewer-Id-${result.id}`} data-label={i18next.t("Id")}>
+        <Table.Cell key={`actor-Id-${result.id}`} data-label={i18next.t("Id")}>
           {result.id}
         </Table.Cell>
-        <Table.Cell key={`reviewer-active-${result.id}`} data-label={i18next.t("Name")}>
+        <Table.Cell key={`actor-active-${result.id}`} data-label={i18next.t("Name")}>
           <a href={AdminUIRoutes.editView(listUIEndpoint, result, idKeyPath)} >
             {result.name}
           </a>
@@ -62,7 +62,7 @@ class SearchResultItemComponent extends Component {
             successCallback={this.refreshAfterAction}
             listUIEndpoint={listUIEndpoint}
           />
-          <ReviewerSearchActions
+          <ActorSearchActions
             result={result}
             className="ml-2"
           />

@@ -1,7 +1,7 @@
 import pytest
 from invenio_oauth2server.models import Token
 
-from invenio_notify.records.models import ReviewerMapModel
+from invenio_notify.records.models import ActorMapModel
 from invenio_notify.scopes import inbox_scope
 from invenio_notify.utils import user_utils
 from invenio_notify_test.fixtures.inbox_payload import (
@@ -11,7 +11,7 @@ from invenio_notify_test.fixtures.inbox_payload import (
     payload_reject,
     payload_tentative_reject
 )
-from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
+from invenio_notify_test.fixtures.actor_fixture import create_actor
 
 
 def create_scope_token(user):
@@ -19,11 +19,11 @@ def create_scope_token(user):
     return token
 
 
-def create_reviewer_map(db, user_id, reviewer_id):
-    """Create a reviewer map entry and commit to the database."""
-    ReviewerMapModel.create({
+def create_actor_map(db, user_id, actor_id):
+    """Create a actor map entry and commit to the database."""
+    ActorMapModel.create({
         'user_id': user_id,
-        'reviewer_id': reviewer_id,
+        'actor_id': actor_id,
     })
     db.session.commit()
 
@@ -42,22 +42,22 @@ def create_notify_user(db, superuser_identity):
 
 
 @pytest.fixture
-def user_reviewer_setup(db, superuser_identity, create_reviewer):
-    """Fixture to setup user, token, and reviewer with specified actor_id."""
+def user_actor_setup(db, superuser_identity, create_actor):
+    """Fixture to setup user, token, and actor with specified actor_id."""
     
     def _setup(actor_id):
-        """Setup user, token, and reviewer with specified actor_id.
+        """Setup user, token, and actor with specified actor_id.
         
         Args:
-            actor_id: Actor ID for the reviewer
+            actor_id: Actor ID for the actor
             
         Returns:
-            tuple: (token, user, reviewer)
+            tuple: (token, user, actor)
         """
         token, user = create_notify_user(db, superuser_identity)
-        reviewer = create_reviewer(actor_id=actor_id)
-        create_reviewer_map(db, user.id, reviewer.id)
-        return token, user, reviewer
+        actor = create_actor(actor_id=actor_id)
+        create_actor_map(db, user.id, actor.id)
+        return token, user, actor
     
     return _setup
 
@@ -75,19 +75,19 @@ def test_inbox_401(client):
     payload_reject,
     payload_tentative_reject
 ])
-def test_inbox__success(client, rdm_record, user_reviewer_setup, payload_func):
+def test_inbox__success(client, rdm_record, user_actor_setup, payload_func):
     """Test successful inbox processing with all different payload types."""
     notify_data = payload_func(rdm_record.id)
-    token, user, reviewer = user_reviewer_setup(notify_data['actor']['id'])
+    token, user, actor = user_actor_setup(notify_data['actor']['id'])
 
     response = send_inbox(client, token, notify_data)
     assert response.status_code == 202
     assert response.json['message'] == 'Accepted'
 
 
-def test_inbox__actor_id_mismatch(client, rdm_record, user_reviewer_setup):
+def test_inbox__actor_id_mismatch(client, rdm_record, user_actor_setup):
     notify_review_data = payload_review(rdm_record.id)
-    token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'] + 'wrong')
+    token, user, actor = user_actor_setup(notify_review_data['actor']['id'] + 'wrong')
 
     response = send_inbox(client, token, notify_review_data)
     assert response.status_code == 403
@@ -95,9 +95,9 @@ def test_inbox__actor_id_mismatch(client, rdm_record, user_reviewer_setup):
 
 
 
-def test_inbox__duplicate_notification_id(client, rdm_record, user_reviewer_setup):
+def test_inbox__duplicate_notification_id(client, rdm_record, user_actor_setup):
     notify_review_data = payload_review(rdm_record.id)
-    token, user, reviewer = user_reviewer_setup(notify_review_data['actor']['id'])
+    token, user, actor = user_actor_setup(notify_review_data['actor']['id'])
 
     # Send the same notification first time - should succeed
     response1 = send_inbox(client, token, notify_review_data)

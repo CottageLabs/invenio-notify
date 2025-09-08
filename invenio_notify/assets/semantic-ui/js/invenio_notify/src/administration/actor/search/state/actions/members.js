@@ -26,18 +26,18 @@ const handleApiError = (error, dispatch, defaultMessage) => {
 };
 
 /**
- * Fetch members list for a specific reviewer
- * @param {string|number} reviewerId - The ID of the reviewer
+ * Fetch members list for a specific actor
+ * @param {string|number} actorId - The ID of the actor
  * @returns {Promise} - Promise that resolves with the members data
  */
-export const fetchMembers = (reviewerId) => {
+export const fetchMembers = (actorId) => {
   return async (dispatch) => {
     dispatch({
       type: MEMBERS_REQUEST,
     });
     
     try {
-      const cancellableRequest = withCancel(memberApiClient.getMembers(reviewerId));
+      const cancellableRequest = withCancel(memberApiClient.getMembers(actorId));
       const response = await cancellableRequest.promise;
       
       const members = response.data.hits || [];
@@ -55,12 +55,12 @@ export const fetchMembers = (reviewerId) => {
 };
 
 /**
- * Add members to a reviewer
- * @param {string|number} reviewerId - The ID of the reviewer
+ * Add members to a actor
+ * @param {string|number} actorId - The ID of the actor
  * @param {string[]} emails - Array of email addresses to add as members
  * @returns {Promise} - Promise that resolves with the response data
  */
-export const addMembers = (reviewerId, emails) => {
+export const addMembers = (actorId, emails) => {
   return async (dispatch) => {
     dispatch({
       type: MEMBERS_REQUEST,
@@ -68,12 +68,12 @@ export const addMembers = (reviewerId, emails) => {
     
     try {
       const cancellableRequest = withCancel(
-        memberApiClient.addMembers(reviewerId, emails)
+        memberApiClient.addMembers(actorId, emails)
       );
       const response = await cancellableRequest.promise;
       
       // Refresh members list after adding
-      dispatch(fetchMembers(reviewerId));
+      dispatch(fetchMembers(actorId));
       
       return response.data;
     } catch (error) {
@@ -83,12 +83,12 @@ export const addMembers = (reviewerId, emails) => {
 };
 
 /**
- * Delete a member from a reviewer
- * @param {string|number} reviewerId - The ID of the reviewer
+ * Delete a member from a actor
+ * @param {string|number} actorId - The ID of the actor
  * @param {string|number} memberId - The ID of the member to delete
  * @returns {Promise} - Promise that resolves with the response data
  */
-export const deleteMember = (reviewerId, memberId) => {
+export const deleteMember = (actorId, memberId) => {
   return async (dispatch) => {
     dispatch({
       type: MEMBERS_REQUEST,
@@ -96,12 +96,12 @@ export const deleteMember = (reviewerId, memberId) => {
     
     try {
       const cancellableRequest = withCancel(
-        memberApiClient.deleteMember(reviewerId, memberId)
+        memberApiClient.deleteMember(actorId, memberId)
       );
       const response = await cancellableRequest.promise;
       
       // Refresh members list after deletion
-      dispatch(fetchMembers(reviewerId));
+      dispatch(fetchMembers(actorId));
       
       return response.data;
     } catch (error) {

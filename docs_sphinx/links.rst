@@ -1,7 +1,7 @@
 .. include:: _static/_links.rst
 
 Useful Links
-=====
+============
 
 |invenio-notify|_
     Original implementation of the COAR Notify protocol for Invenio framework, providing

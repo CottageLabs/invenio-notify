@@ -3,8 +3,8 @@ from .endorsement_reply_service import EndorsementReplyService
 from .endorsement_request_service import EndorsementRequestService
 from .endorsement_service import EndorsementAdminService
 from .inbox_service import NotifyInboxService
-from .reviewer_map_service import ReviewerMapService
-from .reviewer_service import ReviewerService
+from .actor_map_service import ActorMapService
+from .actor_service import ActorService
 
 __all__ = [
     # Base classes and utilities
@@ -13,8 +13,8 @@ __all__ = [
     # Services
     "NotifyInboxService",
     "EndorsementAdminService",
-    "ReviewerService",
-    "ReviewerMapService", 
+    "ActorService",
+    "ActorMapService", 
     "EndorsementRequestService",
     "EndorsementReplyService",
 ]

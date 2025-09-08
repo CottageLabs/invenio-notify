@@ -6,28 +6,28 @@ Notify Workflow
 Actors
 --------------
 
-- **Reviewer** - External peer review service that evaluates and endorses scholarly records
+- **Actor** - External peer review service that evaluates and endorses scholarly records
 - **Repository** - The Invenio-based repository system that hosts and manages scholarly records  
 - **Record owner** - User who owns a record in repository and requests peer review
 
 Flow Process
 ------------
 
-1. **Record owner** submits a request to **Reviewer** for peer review
-2. **Reviewer** sends responses to the **Repository's** inbox endpoints
-3. The **Repository** receives notifications from **Reviewer** and stores them in the inbox
+1. **Record owner** submits a request to **Actor** for peer review
+2. **Actor** sends responses to the **Repository's** inbox endpoints
+3. The **Repository** receives notifications from **Actor** and stores them in the inbox
 4. A background job processes the inbox notifications automatically
 5. Valid notifications (such as Review or Endorsement) are saved to the database and displayed on the record's landing page
 
 .. note::
-   Reviewer can send multiple notifications for one record with different statuses
+   Actor can send multiple notifications for one record with different statuses
    (e.g. TentativeAccept, Reject, Review, Endorsement, etc.).
 
 .. note::
-   Reviewer also can send Review or Endorsement notifications to a record without owner requesting it.
+   Actor also can send Review or Endorsement notifications to a record without owner requesting it.
 
 .. seealso::
-   For detailed PCI (Reviewer) workflow and possible reply status, see the |pci-workflow|_.
+   For detailed PCI (Actor) workflow and possible reply status, see the |pci-workflow|_.
 
 
 Workflow Diagram

@@ -23,12 +23,12 @@ class AdminPermissionPolicy(BasePermissionPolicy):
     can_disable = [Administration(), SystemProcess()]
 
 
-class ReviewerMapPermissionPolicy(AdminPermissionPolicy):
+class ActorMapPermissionPolicy(AdminPermissionPolicy):
     pass
 
 
 class EndorsementPermissionPolicy(AdminPermissionPolicy):
     pass
 
-class ReviewerPermissionPolicy(AdminPermissionPolicy):
+class ActorPermissionPolicy(AdminPermissionPolicy):
     pass

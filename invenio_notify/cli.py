@@ -9,7 +9,7 @@ from rich.markdown import Markdown
 from sqlalchemy import desc
 
 from invenio_notify import tasks
-from invenio_notify.records.models import EndorsementModel, NotifyInboxModel, ReviewerMapModel, ReviewerModel
+from invenio_notify.records.models import EndorsementModel, NotifyInboxModel, ActorMapModel, ActorModel
 from invenio_notify.utils import user_utils
 
 
@@ -75,39 +75,39 @@ def list_notify(size):
 
 
 @notify.command()
-@click.option('--email', '-e', type=str, help='Email of user to assign the reviewer to')
+@click.option('--email', '-e', type=str, help='Email of user to assign the actor to')
 @with_appcontext
 def test_data(email):
-    """Generate test data for ReviewerModel."""
-    from invenio_notify.proxies import current_reviewer_service
+    """Generate test data for ActorModel."""
+    from invenio_notify.proxies import current_actor_service
 
-    print("Generating a test record for ReviewerModel...")
+    print("Generating a test record for ActorModel...")
 
-    # Generate reviewer record
-    reviewer = ReviewerModel.create({
+    # Generate actor record
+    actor = ActorModel.create({
         'name': "Peer Community in Evolutionary Biology",
         'actor_id': 'https://evolbiol.peercommunityin.org/coar_notify/',
         'inbox_url': "https://evolbiol.peercommunityin.org/coar_notify/inbox/",
-        'description': f"Test reviewer generated on {datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+        'description': f"Test actor generated on {datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
     })
 
-    print(f"Created reviewer: {reviewer.name} with actor ID: {reviewer.actor_id}")
+    print(f"Created actor: {actor.name} with actor ID: {actor.actor_id}")
 
-    # If email is provided, create a ReviewerMapModel for the user
+    # If email is provided, create a ActorMapModel for the user
     if email:
         user = user_utils.find_user_by_email(email)
         if user is None:
-            print(f"User with email {email} not found. Reviewer created but not assigned to any user.")
+            print(f"User with email {email} not found. Actor created but not assigned to any user.")
         else:
             # Add required role to the user
             user_utils.add_coarnotify_action(db, user.id)
 
             # Add the user as a member
-            current_reviewer_service.add_member_by_email(reviewer.id, email)
-            print(f"Created reviewer mapping: {email} -> {reviewer.name}")
+            current_actor_service.add_member_by_email(actor.id, email)
+            print(f"Created actor mapping: {email} -> {actor.name}")
 
     db.session.commit()
-    print("Successfully created test reviewer record")
+    print("Successfully created test actor record")
 
 
 # =============================================================================
@@ -121,21 +121,21 @@ def user():
 
 @user.command()
 @click.option('-u', '--user', type=str, help='query by user email')
-@click.option('-r', '--reviewer_id', type=str, help='query by reviewer id')
+@click.option('-r', '--actor_id', type=str, help='query by actor id')
 @with_appcontext
-def list(user, reviewer_id):
-    """ List user and reviewer id mapping """
+def list(user, actor_id):
+    """ List user and actor id mapping """
     if user:
-        rows = ReviewerMapModel.find_by_email(user)
-    elif reviewer_id:
-        rows = ReviewerMapModel.find_by_reviewer_id(reviewer_id)
+        rows = ActorMapModel.find_by_email(user)
+    elif actor_id:
+        rows = ActorMapModel.find_by_actor_id(actor_id)
     else:
-        print('Please provide either email or reviewer_id to query.')
+        print('Please provide either email or actor_id to query.')
         return
 
-    print('List of users and reviewer ids:')
+    print('List of users and actor ids:')
     for r in rows:
-        print(f'{r.user.email:<40} -> [{r.reviewer_id}]')
+        print(f'{r.user.email:<40} -> [{r.actor_id}]')
 
 
 @user.command()
@@ -143,10 +143,10 @@ def list(user, reviewer_id):
 @click.argument('actor_ids', nargs=-1, required=True)
 @with_appcontext
 def add(email, actor_ids):
-    """ assign coarnotify role and reviewer ids to user """
-    from invenio_notify.proxies import current_reviewer_service
+    """ assign coarnotify role and actor ids to user """
+    from invenio_notify.proxies import current_actor_service
 
-    print(f'Assigning reviewer_id(s) {actor_ids} to user[{email}]')
+    print(f'Assigning actor_id(s) {actor_ids} to user[{email}]')
     user = user_utils.find_user_by_email(email)
     if user is None:
         print(f'User with email {email} not found.')
@@ -156,21 +156,21 @@ def add(email, actor_ids):
 
     assigned_count = 0
     for actor_id in actor_ids:
-        if ReviewerModel.has_member_with_email(email, actor_id):
-            print(f'User {user.email} already has reviewer ID ({actor_id}) assigned.')
+        if ActorModel.has_member_with_email(email, actor_id):
+            print(f'User {user.email} already has actor ID ({actor_id}) assigned.')
             continue
 
-        reviewer_id = db.session.query(ReviewerModel.id).filter_by(actor_id=actor_id).scalar()
+        actor_id = db.session.query(ActorModel.id).filter_by(actor_id=actor_id).scalar()
 
-        if reviewer_id:
-            current_reviewer_service.add_member_by_emails(reviewer_id, [email])
+        if actor_id:
+            current_actor_service.add_member_by_emails(actor_id, [email])
             assigned_count += 1
         else:
-            print(f"No reviewer found with actor ID: {actor_id}")
+            print(f"No actor found with actor ID: {actor_id}")
 
     if assigned_count:
         db.session.commit()
-        print(f'Successfully assigned {assigned_count} new reviewer ID(s) to {email}')
+        print(f'Successfully assigned {assigned_count} new actor ID(s) to {email}')
 
 
 # =============================================================================
@@ -185,7 +185,7 @@ def dummy_pci():
 @dummy_pci.command()
 def list():
     """List all received notifications in dummy PCI store"""
-    from invenio_notify.dummy_reviewer.dummy_pci_app import DummyPCIBackend
+    from invenio_notify.dummy_actor.dummy_pci_app import DummyPCIBackend
     
     backend = DummyPCIBackend()
     backend.print_notifications()
@@ -199,7 +199,7 @@ def list():
 @click.option('--token', help='token that used to notify api' )
 def reply(token, type):
     """Reply to the last notification in store"""
-    from invenio_notify.dummy_reviewer.dummy_pci_app import DummyPCIBackend
+    from invenio_notify.dummy_actor.dummy_pci_app import DummyPCIBackend
     
     backend = DummyPCIBackend()
     backend.reply_last(token, payload_type=type)
@@ -208,7 +208,7 @@ def reply(token, type):
 @dummy_pci.command()
 def run():
     """Run the dummy PCI server"""
-    from invenio_notify.dummy_reviewer import dummy_pci_app
+    from invenio_notify.dummy_actor import dummy_pci_app
     p = os.path.abspath(dummy_pci_app.__file__)
     print('****************************************')
     print("You have to run the following command manually:")
@@ -219,7 +219,7 @@ def run():
 @dummy_pci.command()
 def reset():
     """Reset dummy PCI store to empty list"""
-    from invenio_notify.dummy_reviewer.dummy_pci_app import DummyPCIBackend
+    from invenio_notify.dummy_actor.dummy_pci_app import DummyPCIBackend
     
     backend = DummyPCIBackend()
     backend.reset()

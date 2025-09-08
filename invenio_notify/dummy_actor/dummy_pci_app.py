@@ -219,10 +219,10 @@ class DummyInboxCOARBinding(COARNotifyServiceBinding):
         return COARNotifyReceipt(COARNotifyReceipt.ACCEPTED)
 
 
-@app.route('/dummy-reviewer/dummy-inbox', methods=['POST'])
+@app.route('/dummy-actor/dummy-inbox', methods=['POST'])
 def dummy_inbox():
-    """Dummy reviewer inbox endpoint for testing purposes."""
-    print("Received request at /dummy-reviewer/dummy-inbox")
+    """Dummy actor inbox endpoint for testing purposes."""
+    print("Received request at /dummy-actor/dummy-inbox")
 
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -262,11 +262,11 @@ def dummy_inbox():
 
 
 def run():
-    """Run the dummy reviewer Flask server."""
+    """Run the dummy actor Flask server."""
     port = 53010
     try:
-        print("Starting dummy reviewer server...")
-        print(f"Server will be available at: http://localhost:{port}/dummy-reviewer/dummy-inbox")
+        print("Starting dummy actor server...")
+        print(f"Server will be available at: http://localhost:{port}/dummy-actor/dummy-inbox")
         app.run(debug=True, host='0.0.0.0', port=port)
     except Exception as e:
         print(f"Error starting server: {e}")

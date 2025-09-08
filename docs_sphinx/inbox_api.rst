@@ -33,7 +33,7 @@ Using the Token
 
 Include the token in the ``Authorization`` header of your requests:
 
-.. code-block:: http
+.. code-block:: text
 
    Authorization: Bearer YOUR_ACCESS_TOKEN
 
@@ -94,8 +94,8 @@ Field Descriptions
 
 - ``type``: Notification type (see supported types below)
 - ``actor.id``: **URL identifying the service or organization** sending the notification. This ID
-  must be defined and configured in the Reviewer's admin page, where administrators
-  manage approved reviewers and endorsers.
+  must be defined and configured in the Actor's admin page, where administrators
+  manage approved actors and endorsers.
 
 - ``context.id``: The complete **URL of the target record's landing page** in the repository
   (the record being reviewed or endorsed).
@@ -103,7 +103,7 @@ Field Descriptions
   ``ietf:cite-as`` field provides the **DOI that will be displayed** as a citation link on the
   record page.
 - ``inReplyTo`` (optional): **Reference to an original notification ID** when this notification
-  is a response or follow-up to a previous notification. For example, when a reviewer 
+  is a response or follow-up to a previous notification. For example, when a actor 
   replies to an endorsement request that was originally sent by a record owner through the 
   invenio-notify, this field should contain the ID of the endorsement request's notification
   to maintain proper thread continuity.
@@ -180,7 +180,7 @@ Returned when the OAuth token is missing or invalid:
 403 Forbidden
 """""""""""""
 
-Returned when the actor ID doesn't match registered reviewers:
+Returned when the actor ID doesn't match registered actors:
 
 .. code-block:: json
 
@@ -214,7 +214,7 @@ To test the endpoint:
      -d @notification.json
 
 Background Processing
---------------------
+---------------------
 
 Notifications are processed asynchronously via Celery tasks. The system will:
 

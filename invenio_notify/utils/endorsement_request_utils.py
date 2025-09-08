@@ -4,15 +4,15 @@ from invenio_base import invenio_url_for
 from invenio_records_resources.services.records.results import RecordItem
 
 from invenio_notify import constants
-from invenio_notify.records.models import ReviewerModel, EndorsementRequestModel, EndorsementModel
+from invenio_notify.records.models import ActorModel, EndorsementRequestModel, EndorsementModel
 
 
-def create_endorsement_request_data(user, record: RecordItem, reviewer: ReviewerModel, origin_id=None):
+def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel, origin_id=None):
     """Create endorsement request data following COAR notification structure.
     
     Args:
         user: User object making the endorsement request
-        reviewer: Reviewer object containing inbox URL and other details
+        actor: Actor object containing inbox URL and other details
         origin_id: Origin ID from configuration (optional, will be retrieved from config if not provided)
     """
 
@@ -55,8 +55,8 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
             "type": "Service"
         },
         "target": {
-            "id": reviewer.actor_id,
-            "inbox": reviewer.inbox_url,
+            "id": actor.actor_id,
+            "inbox": actor.inbox_url,
             "type": "Service"
         },
         "type": [
@@ -68,55 +68,55 @@ def create_endorsement_request_data(user, record: RecordItem, reviewer: Reviewer
     return data
 
 
-def get_overall_endorsement_status(record_id, reviewer_id):
+def get_overall_endorsement_status(record_id, actor_id):
     # First check if there's an actual endorsement
-    status = get_latest_endorsement_status(record_id, reviewer_id)
+    status = get_latest_endorsement_status(record_id, actor_id)
     if status:
         return status
 
     # If no endorsement, check endorsement request status
-    status = get_latest_endorsement_request_status(record_id, reviewer_id)
+    status = get_latest_endorsement_request_status(record_id, actor_id)
     if status:
         return status
 
     return None
 
 
-def get_available_reviewers(record_id):
-    """Get list of available reviewers with their endorsement request status.
+def get_available_actors(record_id):
+    """Get list of available actors with their endorsement request status.
     
     Args:
         record_id: UUID of the record
         user_id: ID of the user making the request
         
     Returns:
-        list: List of reviewer dictionaries with id, name, and status
+        list: List of actor dictionaries with id, name, and status
     """
 
-    all_reviewers = ReviewerModel.query.all()
-    reviewers = []
+    all_actors = ActorModel.query.all()
+    actors = []
 
-    for reviewer in all_reviewers:
-        endo_staus = get_overall_endorsement_status(record_id, reviewer.id)
+    for actor in all_actors:
+        endo_staus = get_overall_endorsement_status(record_id, actor.id)
 
         # Set status based on endorsement request
-        available = can_send(endo_staus, reviewer)
+        available = can_send(endo_staus, actor)
 
-        reviewers.append({
-            "reviewer_id": reviewer.id,
-            "reviewer_name": reviewer.name,
+        actors.append({
+            "actor_id": actor.id,
+            "actor_name": actor.name,
             "status": endo_staus or 'available',
             'available': available,
         })
 
-    return reviewers
+    return actors
 
 
-def get_latest_endorsement_request_status(record_id, reviewer_id):
+def get_latest_endorsement_request_status(record_id, actor_id):
     status = (
         EndorsementRequestModel.query.filter_by(
             record_id=record_id,
-            reviewer_id=reviewer_id,
+            actor_id=actor_id,
         )
         .order_by(EndorsementRequestModel.created.desc())
         .with_entities(EndorsementRequestModel.latest_status)
@@ -125,11 +125,11 @@ def get_latest_endorsement_request_status(record_id, reviewer_id):
     return status
 
 
-def get_latest_endorsement_status(record_id, reviewer_id):
+def get_latest_endorsement_status(record_id, actor_id):
     status = (
         EndorsementModel.query.filter_by(
             record_id=record_id,
-            reviewer_id=reviewer_id,
+            actor_id=actor_id,
         )
         .order_by(EndorsementModel.created.desc())
         .with_entities(EndorsementModel.review_type)
@@ -138,8 +138,8 @@ def get_latest_endorsement_status(record_id, reviewer_id):
     return status
 
 
-def can_send(endo_status, reviewer):
-    if not reviewer or not reviewer.inbox_url or not reviewer.inbox_api_token:
+def can_send(endo_status, actor):
+    if not actor or not actor.inbox_url or not actor.inbox_api_token:
         return False
 
     available = (

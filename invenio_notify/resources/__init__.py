@@ -1,6 +1,6 @@
 from .config import (
     InboxAdminResourceConfig,
-    ReviewerAdminResourceConfig,
+    ActorAdminResourceConfig,
     InboxApiResourceConfig,
     EndorsementRequestResourceConfig,
     EndorsementRequestAdminResourceConfig,
@@ -13,14 +13,14 @@ from .resource import (
     EndorsementAdminResource,
     InboxAdminResource,
     InboxApiResource,
-    ReviewerAdminResource,
+    ActorAdminResource,
 )
 
 __all__ = [
     # Resources
     "BasicDbResource",
     "InboxAdminResource", 
-    "ReviewerAdminResource",
+    "ActorAdminResource",
     "InboxApiResource",
     "EndorsementRequestResource",
     "EndorsementRequestAdminResource",
@@ -28,7 +28,7 @@ __all__ = [
 
     # Configs
     "InboxAdminResourceConfig",
-    "ReviewerAdminResourceConfig", 
+    "ActorAdminResourceConfig", 
     "InboxApiResourceConfig",
     "EndorsementRequestResourceConfig",
     "EndorsementRequestAdminResourceConfig",

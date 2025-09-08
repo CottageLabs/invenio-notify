@@ -9,12 +9,12 @@ from invenio_administration.views.base import (
 from invenio_notify.feature_toggle import PCIEndorsementAdminDisabledMixin
 
 
-class ReviewerListView(PCIEndorsementAdminDisabledMixin, AdminResourceListView):
-    api_endpoint = "/reviewer"
-    name = "reviewer"
-    resource_config = "reviewer_admin_resource"
-    title = "Reviewers"
-    menu_label = "Reviewers"
+class ActorListView(PCIEndorsementAdminDisabledMixin, AdminResourceListView):
+    api_endpoint = "/actor"
+    name = "actor"
+    resource_config = "actor_admin_resource"
+    title = "Actors"
+    menu_label = "Actors"
     category = _("Notify")
     pid_path = "id"
     icon = "user"
@@ -34,26 +34,26 @@ class ReviewerListView(PCIEndorsementAdminDisabledMixin, AdminResourceListView):
         "updated": {"text": _("Updated"), "order": 7, "width": 2},
     }
 
-    create_view_name = "reviewer_create"
+    create_view_name = "actor_create"
 
-    search_config_name = "NOTIFY_REVIEWER_SEARCH"
+    search_config_name = "NOTIFY_ACTOR_SEARCH"
 
-    search_sort_config_name = "NOTIFY_REVIEWER_SORT_OPTIONS"
+    search_sort_config_name = "NOTIFY_ACTOR_SORT_OPTIONS"
 
-    template = "invenio_notify/administration/reviewer_search.html"
+    template = "invenio_notify/administration/actor_search.html"
 
 
-class ReviewerDetailView(PCIEndorsementAdminDisabledMixin, AdminResourceDetailView):
-    url = "/reviewer/<pid_value>"
-    api_endpoint = "/reviewer"
-    name = "reviewer-details"
-    resource_config = "reviewer_admin_resource"
-    title = "Reviewer Details"
+class ActorDetailView(PCIEndorsementAdminDisabledMixin, AdminResourceDetailView):
+    url = "/actor/<pid_value>"
+    api_endpoint = "/actor"
+    name = "actor-details"
+    resource_config = "actor_admin_resource"
+    title = "Actor Details"
 
     display_delete = True
     display_edit = True
 
-    list_view_name = "reviewer"
+    list_view_name = "actor"
     pid_path = "id"
 
     item_field_list = {
@@ -69,11 +69,11 @@ class ReviewerDetailView(PCIEndorsementAdminDisabledMixin, AdminResourceDetailVi
 
 
 # Common form fields for create and edit views
-reviewer_form_fields = {
+actor_form_fields = {
     "name": {
         "order": 10,
         "text": _("Name"),
-        "description": _("Full name of the reviewer."),
+        "description": _("Full name of the actor."),
     },
     "actor_id": {
         "order": 20,
@@ -83,51 +83,51 @@ reviewer_form_fields = {
     "inbox_url": {
         "order": 30,
         "text": _("Inbox URL"),
-        "description": _("Inbox URL for the reviewer."),
+        "description": _("Inbox URL for the actor."),
     },
     "inbox_api_token": {
         "order": 35,
         "text": _("Inbox API Token"),
-        "description": _("API token for the reviewer's inbox."),
+        "description": _("API token for the actor's inbox."),
     },
     "description": {
         "order": 40,
         "text": _("Description"),
-        "description": _("Additional information about the reviewer."),
+        "description": _("Additional information about the actor."),
     },
 }
 
 
-class ReviewerCreateView(PCIEndorsementAdminDisabledMixin, AdminResourceCreateView):
-    """Configuration for Reviewer create view."""
+class ActorCreateView(PCIEndorsementAdminDisabledMixin, AdminResourceCreateView):
+    """Configuration for Actor create view."""
 
-    name = "reviewer_create"
-    url = "/reviewer/create"
-    resource_config = "reviewer_admin_resource"
-    api_endpoint = "/reviewer"
-    title = "Create Reviewer"
+    name = "actor_create"
+    url = "/actor/create"
+    resource_config = "actor_admin_resource"
+    api_endpoint = "/actor"
+    title = "Create Actor"
 
-    list_view_name = "reviewer"
+    list_view_name = "actor"
 
     form_fields = {
-        **reviewer_form_fields,
+        **actor_form_fields,
     }
 
 
-class ReviewerEditView(PCIEndorsementAdminDisabledMixin, AdminResourceEditView):
-    """Configuration for Reviewer edit view."""
+class ActorEditView(PCIEndorsementAdminDisabledMixin, AdminResourceEditView):
+    """Configuration for Actor edit view."""
 
-    name = "reviewer_edit"
-    url = "/reviewer/<pid_value>/edit"
-    resource_config = "reviewer_admin_resource"
+    name = "actor_edit"
+    url = "/actor/<pid_value>/edit"
+    resource_config = "actor_admin_resource"
     pid_path = "id"
-    api_endpoint = "/reviewer"
-    title = "Edit Reviewer"
+    api_endpoint = "/actor"
+    title = "Edit Actor"
 
-    list_view_name = "reviewer"
+    list_view_name = "actor"
 
     form_fields = {
-        **reviewer_form_fields,
+        **actor_form_fields,
         "created": {"order": 500},
         "updated": {"order": 600},
     }

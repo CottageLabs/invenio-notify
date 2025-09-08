@@ -24,16 +24,16 @@ class MemberForm extends Component {
     }
 
     componentDidMount() {
-        if (this.props.reviewerId) {
-            this.fetchMembers(this.props.reviewerId);
+        if (this.props.actorId) {
+            this.fetchMembers(this.props.actorId);
         }
     }
 
     componentDidUpdate(prevProps) {
-        // Update state if reviewerId prop changes
-        if (prevProps.reviewerId !== this.props.reviewerId) {
-            if (this.props.reviewerId) {
-                this.fetchMembers(this.props.reviewerId);
+        // Update state if actorId prop changes
+        if (prevProps.actorId !== this.props.actorId) {
+            if (this.props.actorId) {
+                this.fetchMembers(this.props.actorId);
             }
         }
 
@@ -43,10 +43,10 @@ class MemberForm extends Component {
         }
     }
 
-    fetchMembers = async (reviewerId) => {
+    fetchMembers = async (actorId) => {
         const { addNotification } = this.context;
         try {
-            await this.props.fetchMembers(reviewerId);
+            await this.props.fetchMembers(actorId);
         } catch (error) {
             addNotification({
                 title: i18next.t("Error"),
@@ -62,10 +62,10 @@ class MemberForm extends Component {
 
     handleMemberDelete = async (memberId) => {
         const { addNotification } = this.context;
-        const { deleteMember, reviewerId, actionSuccessCallback } = this.props;
+        const { deleteMember, actorId, actionSuccessCallback } = this.props;
 
         try {
-            await deleteMember(reviewerId, memberId);
+            await deleteMember(actorId, memberId);
         } catch (error) {
             addNotification({
                 title: i18next.t("Error"),
@@ -89,7 +89,7 @@ class MemberForm extends Component {
 
     handleSubmit = async (values, { resetForm }) => {
         const { addNotification } = this.context;
-        const { addMembers, reviewerId, actionSuccessCallback } = this.props;
+        const { addMembers, actorId, actionSuccessCallback } = this.props;
 
         console.log("Submit member with email:", values.emails);
 
@@ -100,7 +100,7 @@ class MemberForm extends Component {
 
         console.log("Parsed email list:", emails);
         try {
-            await addMembers(reviewerId, emails);
+            await addMembers(actorId, emails);
         } catch (error) {
             addNotification({
                 title: i18next.t("Error"),
@@ -137,7 +137,7 @@ class MemberForm extends Component {
 
     render() {
         const { error, loading } = this.state;
-        const { members, reviewerId } = this.props;
+        const { members, actorId } = this.props;
 
         return (
             <Formik
@@ -168,7 +168,7 @@ class MemberForm extends Component {
                                 </div>
                             </Modal.Header>
                             <Modal.Content>
-                                {reviewerId && (
+                                {actorId && (
                                     <div className="member-list">
                                         <h4>{i18next.t("Member Emails")}</h4>
                                         {loading ? (
@@ -247,7 +247,7 @@ class MemberForm extends Component {
 
 MemberForm.propTypes = {
     onClose: PropTypes.func.isRequired,
-    reviewerId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    actorId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     actionSuccessCallback: PropTypes.func,
     fetchMembers: PropTypes.func.isRequired,
     addMembers: PropTypes.func.isRequired,

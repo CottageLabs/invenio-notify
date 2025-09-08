@@ -8,7 +8,7 @@ from werkzeug.local import LocalProxy
 if TYPE_CHECKING:
     from invenio_notify.services import (
         NotifyInboxService,
-        ReviewerService,
+        ActorService,
         EndorsementAdminService,
         EndorsementRequestService,
         EndorsementReplyService,
@@ -16,8 +16,8 @@ if TYPE_CHECKING:
 
 current_notify = LocalProxy(lambda: current_app.extensions["invenio-notify"])
 
-current_reviewer_service: 'ReviewerService' = LocalProxy(  # type:ignore[assignment]
-    lambda: current_notify.reviewer_service
+current_actor_service: 'ActorService' = LocalProxy(  # type:ignore[assignment]
+    lambda: current_notify.actor_service
 )
 
 current_endorsement_service: 'EndorsementAdminService' = LocalProxy( # type:ignore[assignment]
