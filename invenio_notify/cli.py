@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 import click
 import rich
 from flask.cli import with_appcontext
+from invenio_access.permissions import system_identity
 from invenio_db import db
 from rich.markdown import Markdown
 from sqlalchemy import desc
@@ -102,8 +103,8 @@ def test_data(email):
             # Add required role to the user
             user_utils.add_coarnotify_action(db, user.id)
 
-            # Add the user as a member
-            current_actor_service.add_member_by_email(actor.id, email)
+            # Add the user as a member using system identity (bypasses permissions for CLI)
+            current_actor_service.add_member(system_identity, actor.id, {'users': [{'user': user.id}]})
             print(f"Created actor mapping: {email} -> {actor.name}")
 
     db.session.commit()
@@ -163,7 +164,8 @@ def add(email, actor_ids):
         actor_id = db.session.query(ActorModel.id).filter_by(actor_id=actor_id).scalar()
 
         if actor_id:
-            current_actor_service.add_member_by_emails(actor_id, [email])
+            # Use system identity to bypass permissions for CLI operations
+            current_actor_service.add_member(system_identity, actor_id, {'users': [{'user': user.id}]})
             assigned_count += 1
         else:
             print(f"No actor found with actor ID: {actor_id}")
