@@ -29,7 +29,8 @@ class ActorService(BasicDbService):
     def schema_del_member(self):
         return ServiceSchemaWrapper(self, schema=self.config.schema_del_member)
 
-    def add_member(self, identity, id, data, raise_errors=True):
+    @unit_of_work()
+    def add_member(self, identity, id, data, raise_errors=True, uow=None):
         self.require_permission(identity, "update")
 
         valid_data, errors = self.schema_add_member.load(
@@ -38,11 +39,9 @@ class ActorService(BasicDbService):
             raise_errors=raise_errors,
         )
 
-        return self.add_member_by_emails(id, valid_data['emails'])
-
-    @unit_of_work()
-    def add_member_by_emails(self, actor_id, emails, uow=None):
-        actor: ActorModel = self.record_cls.get(actor_id)
+        # Inline the functionality from add_member_by_emails with proper permission check
+        actor: ActorModel = self.record_cls.get(id)
+        emails = valid_data['emails']
 
         new_emails = set(emails)
         existing_emails = {m.email for m in actor.members}
@@ -59,14 +58,16 @@ class ActorService(BasicDbService):
             user = user_utils.find_user_by_email(email)
             if user:
                 current_app.logger.info(f'Adding user [{user.email}] to actor [{actor.actor_id}]')
-                actor_utils.add_member_to_actor(actor_id, user.id, uow=uow)
+                actor_utils.add_member_to_actor(id, user.id, uow=uow)
             else:
                 current_app.logger.warning(f'User with email {email} not found')
 
-        actor = self.record_cls.get(actor_id)
+        actor = self.record_cls.get(id)
         return actor
 
-    def del_member(self, identity, id, data, raise_errors=True):
+
+    @unit_of_work()
+    def del_member(self, identity, id, data, raise_errors=True, uow=None):
         self.require_permission(identity, "update")
 
         valid_data, errors = self.schema_del_member.load(
@@ -75,11 +76,9 @@ class ActorService(BasicDbService):
             raise_errors=raise_errors,
         )
 
-        return self.del_member_by_id(id, valid_data['user_id'])
-
-    @unit_of_work()
-    def del_member_by_id(self, actor_id, user_id, uow=None):
-        actor: ActorModel = self.record_cls.get(actor_id)
+        # Inline the functionality from del_member_by_id with proper permission check
+        actor: ActorModel = self.record_cls.get(id)
+        user_id = valid_data['user_id']
         user: User = User.query.get(user_id)
 
         if user not in actor.members:
@@ -97,8 +96,9 @@ class ActorService(BasicDbService):
 
         ActorMapModel.delete(actor_map)
 
-        actor = self.record_cls.get(actor_id)
+        actor = self.record_cls.get(id)
         return actor
+
 
     def get_members(self, identity, id):
         """Get members for a actor by ID."""
