@@ -1,6 +1,8 @@
 from flask import current_app
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
+from sqlalchemy.exc import IntegrityError
+from psycopg2 import errorcodes
 
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.server import (
@@ -151,6 +153,15 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         try:
             inbox_record = {"notification_id": notification_id, "raw": raw, 'record_id': record_id}
             current_inbox_service.create(self._identity, inbox_record)
+        except IntegrityError as e:
+            # Check if it's specifically a unique constraint violation
+            if hasattr(e.orig, 'pgcode') and e.orig.pgcode == errorcodes.UNIQUE_VIOLATION:
+                current_app.logger.warning(f'Duplicate notification_id {notification_id}: {e}')
+                raise COARProcessFail(constants.STATUS_BAD_REQUEST, f'Notification already exists: {notification_id}')
+            else:
+                # Re-raise other integrity errors (foreign key, check constraints, etc.)
+                current_app.logger.error(f'Database integrity error: {e}')
+                raise COARProcessFail(constants.STATUS_BAD_REQUEST, f'Database integrity error')
         except Exception as e:
             current_app.logger.error(f'Failed to create inbox record: {e}')
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, f'Failed to create inbox record')
