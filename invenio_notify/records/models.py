@@ -142,9 +142,23 @@ class NotifyInboxModel(db.Model, UTCTimestamp, DbOperationMixin):
     """ User ID of the sender """
 
     @classmethod
-    def unprocessed_records(cls) -> Iterable["NotifyInboxModel"]:
-        """Get all unprocessed inbox records (where process_date is None)."""
-        return cls.search(None, [cls.process_date.is_(None)])
+    def unprocessed_records(cls, batch_size=100) -> Iterable["NotifyInboxModel"]:
+        """Generator that yields batches of unprocessed inbox records.
+        
+        Args:
+            batch_size: Number of records per batch (default: 100)
+            
+        Yields:
+            List of NotifyInboxModel instances (up to batch_size per batch)
+        """
+        offset = 0
+        while True:
+            query = cls.query.filter(cls.process_date.is_(None))
+            batch = query.offset(offset).limit(batch_size).all()
+            if not batch:
+                break
+            yield batch
+            offset += batch_size
 
 
 class ActorMapModel(db.Model, UTCTimestamp, DbOperationMixin):
