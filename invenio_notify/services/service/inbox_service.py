@@ -1,5 +1,4 @@
 from flask import current_app
-from flask import g
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 
@@ -23,13 +22,13 @@ from sqlalchemy import or_, cast, String
 
 def get_record_id_from_notification(raw: dict) -> str:
     """Extract record ID from notification data.
-    
+
     Args:
         raw (dict): Raw notification data
-        
+
     Returns:
         str: Record ID extracted from notification
-        
+
     Raises:
         COARProcessFail: If no record URL is found
     """
@@ -71,8 +70,17 @@ class NotifyInboxService(BasicDbService):
         return super().search(identity, params, search_preference, expand, filter_maker=self._create_search_filters,
                               **kwargs)
 
-    def receive_notification(self, notification_raw: dict) -> COARNotifyReceipt:
-        server = COARNotifyServer(InboxCOARBinding())
+    def receive_notification(self, notification_raw: dict, identity) -> COARNotifyReceipt:
+        """Process a COAR notification with injected identity.
+
+        Args:
+            notification_raw: The raw notification data
+            identity: The identity object
+            
+        Returns:
+            COARNotifyReceipt indicating processing result
+        """
+        server = COARNotifyServer(InboxCOARBinding(identity))
         current_app.logger.debug(f'input announcement:')
         result = server.receive(notification_raw, validate=True)
         current_app.logger.debug(f'result: {result}')
@@ -105,6 +113,16 @@ class NotifyInboxService(BasicDbService):
 
 
 class InboxCOARBinding(COARNotifyServiceBinding):
+    """COAR notification binding with injectable identity."""
+    
+    def __init__(self, identity):
+        """Initialize with identity.
+        
+        Args:
+            identity: The identity object.
+        """
+        super().__init__()
+        self._identity = identity
 
     def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
         current_app.logger.debug('called notification_received')
@@ -118,8 +136,8 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'Missing notification ID')
 
         actor_id = raw['actor']['id']
-        if not ActorModel.has_member(g.identity.id, actor_id):
-            current_app.logger.warning(f'Actor id not match with user: {actor_id}, {g.identity.id}')
+        if not ActorModel.has_member(self._identity.id, actor_id):
+            current_app.logger.warning(f'Actor id not match with user: {actor_id}, {self._identity.id}')
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
         if not get_notification_type(raw):
@@ -132,7 +150,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         current_app.logger.debug(f'client input raw: {raw}')
         try:
             inbox_record = {"notification_id": notification_id, "raw": raw, 'record_id': record_id}
-            current_inbox_service.create(g.identity, inbox_record)
+            current_inbox_service.create(self._identity, inbox_record)
         except Exception as e:
             current_app.logger.error(f'Failed to create inbox record: {e}')
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, f'Failed to create inbox record')

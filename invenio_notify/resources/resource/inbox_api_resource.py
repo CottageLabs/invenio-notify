@@ -1,3 +1,4 @@
+from flask import g
 from flask_resources import (
     Resource,
     resource_requestctx,
@@ -62,5 +63,8 @@ class InboxApiResource(Resource):
         if not data:
             raise ValueError("Request data is required")
 
-        result = self.service.receive_notification(notification_raw=data)
+        result = self.service.receive_notification(
+            notification_raw=data,
+            identity=g.identity
+        )
         return response_coar_notify_receipt(result)
