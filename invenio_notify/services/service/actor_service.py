@@ -4,6 +4,7 @@ from invenio_db.uow import unit_of_work
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 
 from invenio_notify.records.models import ActorMapModel, ActorModel
+from invenio_notify.services.results import MembersList
 from invenio_notify.utils import user_utils, actor_utils
 from .base_service import BasicDbService
 
@@ -38,8 +39,6 @@ class ActorService(BasicDbService):
             context={"identity": identity},
             raise_errors=raise_errors,
         )
-
-        # Inline the functionality from add_member_by_emails with proper permission check
         actor: ActorModel = self.record_cls.get(id)
         emails = valid_data['emails']
 
@@ -63,7 +62,7 @@ class ActorService(BasicDbService):
                 current_app.logger.warning(f'User with email {email} not found')
 
         actor = self.record_cls.get(id)
-        return actor
+        return self.result_item(self, identity, actor, links_tpl=self.links_item_tpl)
 
 
     @unit_of_work()
@@ -83,7 +82,7 @@ class ActorService(BasicDbService):
 
         if user not in actor.members:
             current_app.logger.info(f'User [{user.email}] is not a member of actor [{actor.actor_id}]')
-            return actor
+            return self.result_item(self, identity, actor, links_tpl=self.links_item_tpl)
 
         current_app.logger.info(f'Removing user [{user.email}] from actor [{actor.actor_id}]')
         actor_map = ActorMapModel.query.filter_by(
@@ -92,12 +91,12 @@ class ActorService(BasicDbService):
         ).first()
         if not actor_map:
             current_app.logger.warning(f'No mapping found for user [{user.email}] and actor [{actor.actor_id}]')
-            return actor
+            return self.result_item(self, identity, actor, links_tpl=self.links_item_tpl)
 
         ActorMapModel.delete(actor_map)
 
         actor = self.record_cls.get(id)
-        return actor
+        return self.result_item(self, identity, actor, links_tpl=self.links_item_tpl)
 
 
     def get_members(self, identity, id):
@@ -108,11 +107,6 @@ class ActorService(BasicDbService):
         if not actor:
             raise Exception(f"Actor {id} not found")
 
-        member_data = []
-        for member in actor.members:
-            member_data.append({
-                "id": member.id,
-                "email": member.email
-            })
+        member_data = [{"id": m.id, "email": m.email } for m in actor.members]
 
-        return member_data
+        return MembersList(member_data)
