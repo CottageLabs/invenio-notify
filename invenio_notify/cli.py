@@ -104,7 +104,7 @@ def test_data(email):
             user_utils.add_coarnotify_action(db, user.id)
 
             # Add the user as a member using system identity (bypasses permissions for CLI)
-            current_actor_service.add_member(system_identity, actor.id, {'users': [{'user': user.id}]})
+            current_actor_service.add_member(system_identity, actor.id, {'emails': [email]})
             print(f"Created actor mapping: {email} -> {actor.name}")
 
     db.session.commit()
@@ -165,7 +165,7 @@ def add(email, actor_ids):
 
         if actor_id:
             # Use system identity to bypass permissions for CLI operations
-            current_actor_service.add_member(system_identity, actor_id, {'users': [{'user': user.id}]})
+            current_actor_service.add_member(system_identity, actor_id, {'emails': [email]})
             assigned_count += 1
         else:
             print(f"No actor found with actor ID: {actor_id}")
