@@ -15,10 +15,10 @@
 * [ ] Code documentation and related non-code documentation has all been updated [link](https://github.com/CottageLabs/org/blob/master/docs/coding-standards.md#documentation-changes)
 * [ ] Migration has been created and tested
 
-## Actor Checklist
+## Reviewer Checklist
 
-*Actors should review and confirm each of these items before approval*
-*If there are multiple actors, this section can be duplicated for each actor*
+*Reviewers should review and confirm each of these items before approval*
+*If there are multiple reviewers, this section can be duplicated for each reviewer*
 
 * [ ] Code meets acceptance criteria from issue
 * [ ] Unit tests are written and all pass
