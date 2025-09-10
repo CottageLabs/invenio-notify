@@ -157,7 +157,8 @@ class NotifyInboxModel(db.Model, UTCTimestamp, DbOperationMixin):
             batch = query.offset(offset).limit(batch_size).all()
             if not batch:
                 break
-            yield batch
+            for r in batch:
+                yield r
             offset += batch_size
 
 

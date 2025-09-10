@@ -376,16 +376,15 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
 
 
 def inbox_processing():
-    for inbox_records in NotifyInboxModel.unprocessed_records():
-        for inbox_record in inbox_records:
-            try:
-                notification = COARNotifyFactory.get_by_object(inbox_record.raw)
-                notification_raw: dict = notification.to_jsonld()
-            except Exception as e:
-                msg = f"Failed to decode inbox json {inbox_record.id}: {e}"
-                log.error(msg)
-                mark_as_processed(inbox_record, msg)
-                continue
+    for inbox_record in NotifyInboxModel.unprocessed_records():
+        try:
+            notification = COARNotifyFactory.get_by_object(inbox_record.raw)
+            notification_raw: dict = notification.to_jsonld()
+        except Exception as e:
+            msg = f"Failed to decode inbox json {inbox_record.id}: {e}"
+            log.error(msg)
+            mark_as_processed(inbox_record, msg)
+            continue
 
         noti_type = get_notification_type(notification_raw)
 
