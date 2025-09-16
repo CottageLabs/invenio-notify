@@ -1,12 +1,9 @@
 from typing import List, Dict
 
 from flask import current_app
-from invenio_db import db
-from sqlalchemy.orm import selectinload
 
 from invenio_notify import constants
 from invenio_notify.records.models import EndorsementModel
-from invenio_rdm_records.records.models import RDMRecordMetadata
 from .base_service import BasicDbService
 
 
@@ -30,13 +27,7 @@ class EndorsementAdminService(BasicDbService):
             return []
 
         # Get all endorsements for this parent's children
-        endorsements = (
-            db.session.query(EndorsementModel)
-            .join(RDMRecordMetadata, EndorsementModel.record_id == RDMRecordMetadata.id)
-            .options(selectinload(EndorsementModel.record))
-            .filter(RDMRecordMetadata.parent_id == parent_id)
-            .all()
-        )
+        endorsements = EndorsementModel.query_by_parent_id(parent_id).all()
 
         if not endorsements:
             return []
@@ -89,3 +80,13 @@ class EndorsementAdminService(BasicDbService):
             })
 
         return result
+
+    @staticmethod
+    def get_notify_info(parent_id) -> Dict:
+        """
+        designed for indexing and used by dumper on invenio-rdm-records
+        notify field contain information of notify for search purpose
+        """
+        return {
+            'has_reviews': EndorsementModel.query_by_parent_id(parent_id).count() > 0
+        }
