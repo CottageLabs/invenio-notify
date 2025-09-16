@@ -9,6 +9,7 @@ from sqlalchemy_utils.types import JSONType, UUIDType
 
 from invenio_notify import constants
 from invenio_notify.errors import NotExistsError
+from invenio_notify.records.mixins import UTCTimestamp
 from invenio_rdm_records.records.models import RDMRecordMetadata
 
 JSON = (
@@ -109,7 +110,7 @@ class DbOperationMixin:
             db.session.query(cls).filter_by(id=id).update(data)
 
 
-class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
+class NotifyInboxModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     Stores all valid COAR notifications from the inbox endpoint.
     """
@@ -117,14 +118,14 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    noti_id = db.Column(db.Text, nullable=False, unique=True)
+    notification_id = db.Column(db.Text, nullable=False, unique=True)
     """ Notification ID from the COAR notification """
 
     raw = db.Column(JSON, nullable=False)
     """ COAR notification data as a JSON string """
 
-    recid = db.Column(db.Text, nullable=False)
-    """ Record ID (recid e.g. p97a0-c4p20) instead of UUID of the record """
+    record_id = db.Column(db.Text, nullable=False)
+    """ Record ID (e.g. p97a0-c4p20) instead of UUID of the record """
 
     process_date = db.Column(db.DateTime, nullable=True)
 
@@ -143,15 +144,30 @@ class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     """ User ID of the sender """
 
     @classmethod
-    def unprocessed_records(cls) -> Iterable["NotifyInboxModel"]:
-        """Get all unprocessed inbox records (where process_date is None)."""
-        return cls.search(None, [cls.process_date.is_(None)])
+    def unprocessed_records(cls, batch_size=100) -> Iterable["NotifyInboxModel"]:
+        """Generator that yields batches of unprocessed inbox records.
+
+        Args:
+            batch_size: Number of records per batch (default: 100)
+
+        Yields:
+            List of NotifyInboxModel instances (up to batch_size per batch)
+        """
+        offset = 0
+        while True:
+            query = cls.query.filter(cls.process_date.is_(None))
+            batch = query.offset(offset).limit(batch_size).all()
+            if not batch:
+                break
+            for r in batch:
+                yield r
+            offset += batch_size
 
 
-class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
-    """ Used to store reviewer membership mappings. """
+class ActorMapModel(db.Model, UTCTimestamp, DbOperationMixin):
+    """ Used to store actor membership mappings. """
 
-    __tablename__ = "reviewer_map"
+    __tablename__ = "actor_map"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -163,18 +179,18 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
     )
 
     user = db.relationship(
-        "User", backref=db.backref("reviewer_ids", cascade="all, delete-orphan")
+        "User", backref=db.backref("actor_ids", cascade="all, delete-orphan")
     )
 
-    reviewer_id = db.Column(
+    actor_id = db.Column(
         db.Integer(),
-        db.ForeignKey("reviewer.id", ondelete="CASCADE"),
+        db.ForeignKey("actor.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
 
-    reviewer = db.relationship(
-        "ReviewerModel", backref=db.backref("member_mappings", cascade="all, delete-orphan")
+    actor = db.relationship(
+        "ActorModel", backref=db.backref("member_mappings", cascade="all, delete-orphan")
     )
 
     @classmethod
@@ -185,22 +201,22 @@ class ReviewerMapModel(db.Model, Timestamp, DbOperationMixin):
                 .all())
 
     @classmethod
-    def find_by_reviewer_id(cls, reviewer_id):
-        return cls.query.filter(cls.reviewer_id == reviewer_id).all()
+    def find_by_actor_id(cls, actor_id):
+        return cls.query.filter(cls.actor_id == actor_id).all()
 
     @classmethod
     def find_review_id_by_user_id(cls, user_id):
-        """ Find a list of reviewer IDs by user ID. """
-        return [r[0] for r in db.session.query(cls.reviewer_id).filter(cls.user_id == user_id).all()]
+        """ Find a list of actor IDs by user ID. """
+        return [r[0] for r in db.session.query(cls.actor_id).filter(cls.user_id == user_id).all()]
 
 
-class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
+class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     An organization that provides a review service, e.g. PCI, COAR, etc.
 
     If inbox_url, inbox_api_token is set, it will allow Record owners to send endorsement requests.
     """
-    __tablename__ = "reviewer"
+    __tablename__ = "actor"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -217,52 +233,52 @@ class ReviewerModel(db.Model, Timestamp, DbOperationMixin):
 
     members = db.relationship(
         "User",
-        secondary=ReviewerMapModel.__tablename__,
+        secondary=ActorMapModel.__tablename__,
     )
 
-    endorsements = db.relationship("EndorsementModel", back_populates="reviewer")
+    endorsements = db.relationship("EndorsementModel", back_populates="actor")
 
     @classmethod
     def has_member_with_email(cls, email, actor_id) -> bool:
-        """Check if a user with given email is a member of a reviewer with the given actor_id.
+        """Check if a user with given email is a member of a actor with the given actor_id.
         
         Args:
             email: Email address of the user
-            actor_id: The actor_id of the reviewer
+            actor_id: The actor_id of the actor
             
         Returns:
-            bool: True if the user is a member of the reviewer, False otherwise
+            bool: True if the user is a member of the actor, False otherwise
         """
         result = (db.session.query(cls)
-                  .join(ReviewerMapModel, ReviewerMapModel.reviewer_id == cls.id)
-                  .join(User, User.id == ReviewerMapModel.user_id)
+                  .join(ActorMapModel, ActorMapModel.actor_id == cls.id)
+                  .join(User, User.id == ActorMapModel.user_id)
                   .filter(User.email == email, cls.actor_id == actor_id)
                   .first())
         return result is not None
 
     @classmethod
     def has_member(cls, user_id, actor_id) -> bool:
-        """Check if a user with given user_id is a member of a reviewer with the given actor_id.
+        """Check if a user with given user_id is a member of a actor with the given actor_id.
         
         Args:
             user_id: ID of the user
-            actor_id: The actor_id of the reviewer
+            actor_id: The actor_id of the actor
             
         Returns:
-            bool: True if the user is a member of the reviewer, False otherwise
+            bool: True if the user is a member of the actor, False otherwise
         """
         result = (db.session.query(cls)
-                  .join(ReviewerMapModel, ReviewerMapModel.reviewer_id == cls.id)
-                  .filter(ReviewerMapModel.user_id == user_id, cls.actor_id == actor_id)
+                  .join(ActorMapModel, ActorMapModel.actor_id == cls.id)
+                  .filter(ActorMapModel.user_id == user_id, cls.actor_id == actor_id)
                   .first())
         return result is not None
 
 
-class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
+class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     Endorsement data for the record
 
-    Both Review and Endorsement records from Reviewer will be stored here.
+    Both Review and Endorsement records from Actor will be stored here.
     """
 
     __tablename__ = "endorsement"
@@ -276,14 +292,14 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     record = db.relationship(RDMRecordMetadata, foreign_keys=[record_id])
     """ ID of the record, ID that is saved in PostgreSQL instead of recid that is used in JSON and /records """
 
-    reviewer_id = db.Column(
+    actor_id = db.Column(
         db.Integer,
-        db.ForeignKey("reviewer.id", ondelete="NO ACTION"),
+        db.ForeignKey("actor.id", ondelete="NO ACTION"),
         nullable=True,
         index=True,
     )
     """ ID of review service provider (e.g. ID of PCI) """
-    reviewer = db.relationship("ReviewerModel", back_populates="endorsements")
+    actor = db.relationship("ActorModel", back_populates="endorsements")
 
     review_type = db.Column(db.Text, nullable=True)
     """ review or endorsement """
@@ -296,8 +312,8 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     result_url = db.Column(db.Text, nullable=False)
     """ URL of review results """
 
-    reviewer_name = db.Column(db.Text, nullable=False)
-    """ Name of the reviewer; copied in case the reviewer is deleted """
+    actor_name = db.Column(db.Text, nullable=False)
+    """ Name of the actor; copied in case the actor is deleted """
 
     endorsement_reply_id = db.Column(
         db.Integer,
@@ -310,10 +326,10 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     @classmethod
     def query_by_parent_id(cls, parent_id):
         """Get all endorsements for a parent's children.
-        
+
         Args:
             parent_id: The UUID of the parent record
-            
+
         Returns:
             Query result of all endorsements for the parent's children
         """
@@ -325,9 +341,9 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
         )
 
 
-class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
+class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
-    Endorsement Request that is sent by record owners to reviewers.
+    Endorsement Request that is sent by record owners to actors.
 
     It serves as an outbox of our repository system for COAR endorsement notifications.
     """
@@ -335,7 +351,7 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    noti_id = db.Column(db.Text, nullable=False, unique=True)
+    notification_id = db.Column(db.Text, nullable=False, unique=True)
     """ Notification ID from the COAR notification """
 
     record_id = db.Column(UUIDType, db.ForeignKey(
@@ -351,13 +367,13 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
     )
     """ User ID of the sender """
 
-    reviewer_id = db.Column(
+    actor_id = db.Column(
         db.Integer,
-        db.ForeignKey("reviewer.id", ondelete="NO ACTION"),
+        db.ForeignKey("actor.id", ondelete="NO ACTION"),
         nullable=False,
         index=True,
     )
-    reviewer = db.relationship("ReviewerModel")
+    actor = db.relationship("ActorModel")
 
     raw = db.Column(JSON, nullable=False)
     """ Raw notification data as JSON """
@@ -386,7 +402,7 @@ class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
         return latest_status
 
 
-class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
+class EndorsementReplyModel(db.Model, UTCTimestamp, DbOperationMixin):
     """
     Stores replies to EndorsementRequestModel.
 

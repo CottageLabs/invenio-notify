@@ -12,7 +12,7 @@ def create_endorsement(db):
     
     Args:
         record_id: ID of the record being endorsed
-        reviewer_id: ID of the reviewer entity
+        actor_id: ID of the actor entity
         inbox_id: ID of the notification inbox
         review_type: Type of review (default: endorsement)
         result_url: URL of the review result
@@ -23,22 +23,22 @@ def create_endorsement(db):
 
     def _create_endorsement(
             record_id,
-            reviewer_id,
+            actor_id,
             inbox_id=None,
             review_type=constants.TYPE_ENDORSEMENT,
             result_url="https://example.com/result",
-            reviewer_name="Test Reviewer"
+            actor_name="Test Actor"
     ):
         """Create an endorsement."""
         data = {
             'record_id': record_id,
-            'reviewer_id': reviewer_id,
+            'actor_id': actor_id,
             'review_type': review_type,
             'inbox_id': inbox_id,
             'result_url': result_url,
         }
         
-        data['reviewer_name'] = reviewer_name
+        data['actor_name'] = actor_name
 
         model = EndorsementModel()
         model.create(data)

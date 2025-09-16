@@ -3,7 +3,7 @@
 from invenio_search import current_search_client
 
 from invenio_notify.constants import TYPE_ENDORSEMENT, TYPE_REVIEW
-from invenio_notify.records.models import EndorsementModel, ReviewerModel
+from invenio_notify.records.models import EndorsementModel, ActorModel
 from invenio_notify_test.fixtures.record_fixture import prepare_test_rdm_record
 from invenio_rdm_records.proxies import current_rdm_records_service
 
@@ -14,20 +14,20 @@ def test_record_indexing_with_endorsements(db, superuser_identity, minimal_recor
     # Create a test record
     record = prepare_test_rdm_record(db, minimal_record)
     
-    # Create a reviewer
-    reviewer = ReviewerModel.create({
-        'name': 'Test Reviewer Service',
-        'actor_id': 'test-reviewer-123'
+    # Create a actor
+    actor = ActorModel.create({
+        'name': 'Test Actor Service',
+        'actor_id': 'test-actor-123'
     })
     db.session.commit()
     
     # Create an endorsement for the record
     endorsement_data = {
         'record_id': record.id,
-        'reviewer_id': reviewer.id,
+        'actor_id': actor.id,
         'review_type': TYPE_ENDORSEMENT,
-        'result_url': 'https://test-reviewer.example.com/endorsement/123',
-        'reviewer_name': reviewer.name,
+        'result_url': 'https://test-actor.example.com/endorsement/123',
+        'actor_name': actor.name,
     }
     
     endorsement = EndorsementModel.create(endorsement_data)
@@ -57,15 +57,15 @@ def test_record_indexing_with_endorsements(db, superuser_identity, minimal_recor
     
     # Verify the structure of the endorsements data
     endorsement_data = indexed_doc['endorsements'][0]
-    assert 'reviewer_id' in endorsement_data
-    assert 'reviewer_name' in endorsement_data
+    assert 'actor_id' in endorsement_data
+    assert 'actor_name' in endorsement_data
     assert 'endorsement_count' in endorsement_data
     assert 'review_count' in endorsement_data
     assert 'endorsement_list' in endorsement_data
     
     # Verify the endorsement details
-    assert endorsement_data['reviewer_id'] == reviewer.id
-    assert endorsement_data['reviewer_name'] == reviewer.name
+    assert endorsement_data['actor_id'] == actor.id
+    assert endorsement_data['actor_name'] == actor.name
     assert endorsement_data['endorsement_count'] == 1
     assert endorsement_data['review_count'] == 0
     assert len(endorsement_data['endorsement_list']) == 1
@@ -75,7 +75,7 @@ def test_record_indexing_with_endorsements(db, superuser_identity, minimal_recor
     assert 'created' in endorsement_item
     assert 'index' in endorsement_item
     assert 'url' in endorsement_item
-    assert endorsement_item['url'] == 'https://test-reviewer.example.com/endorsement/123'
+    assert endorsement_item['url'] == 'https://test-actor.example.com/endorsement/123'
 
 
 def test_record_indexing_with_mixed_endorsements_and_reviews(db, superuser_identity, 
@@ -85,29 +85,29 @@ def test_record_indexing_with_mixed_endorsements_and_reviews(db, superuser_ident
     # Create a test record
     record = prepare_test_rdm_record(db, minimal_record)
     
-    # Create a reviewer
-    reviewer = ReviewerModel.create({
+    # Create a actor
+    actor = ActorModel.create({
         'name': 'Mixed Review Service',
-        'actor_id': 'mixed-reviewer-456'
+        'actor_id': 'mixed-actor-456'
     })
     db.session.commit()
     
     # Create an endorsement
     endorsement_data = {
         'record_id': record.id,
-        'reviewer_id': reviewer.id,
+        'actor_id': actor.id,
         'review_type': TYPE_ENDORSEMENT,
-        'result_url': 'https://mixed-reviewer.example.com/endorsement/456',
-        'reviewer_name': reviewer.name,
+        'result_url': 'https://mixed-actor.example.com/endorsement/456',
+        'actor_name': actor.name,
     }
     
     # Create a review
     review_data = {
         'record_id': record.id,
-        'reviewer_id': reviewer.id,
+        'actor_id': actor.id,
         'review_type': TYPE_REVIEW,
-        'result_url': 'https://mixed-reviewer.example.com/review/456',
-        'reviewer_name': reviewer.name,
+        'result_url': 'https://mixed-actor.example.com/review/456',
+        'actor_name': actor.name,
     }
     
     EndorsementModel.create(endorsement_data)
@@ -129,7 +129,7 @@ def test_record_indexing_with_mixed_endorsements_and_reviews(db, superuser_ident
     
     # Assert that the endorsements field exists and contains both types
     assert 'endorsements' in indexed_doc
-    assert len(indexed_doc['endorsements']) == 1  # One reviewer entry
+    assert len(indexed_doc['endorsements']) == 1  # One actor entry
     
     endorsement_data = indexed_doc['endorsements'][0]
     assert endorsement_data['endorsement_count'] == 1
@@ -138,43 +138,43 @@ def test_record_indexing_with_mixed_endorsements_and_reviews(db, superuser_ident
     assert len(endorsement_data['review_list']) == 1
     
     # Verify URLs are correct
-    assert endorsement_data['endorsement_list'][0]['url'] == 'https://mixed-reviewer.example.com/endorsement/456'
-    assert endorsement_data['review_list'][0]['url'] == 'https://mixed-reviewer.example.com/review/456'
+    assert endorsement_data['endorsement_list'][0]['url'] == 'https://mixed-actor.example.com/endorsement/456'
+    assert endorsement_data['review_list'][0]['url'] == 'https://mixed-actor.example.com/review/456'
 
 
-def test_record_indexing_with_multiple_reviewers(db, superuser_identity, minimal_record, 
+def test_record_indexing_with_multiple_actors(db, superuser_identity, minimal_record, 
                                                resource_type_v, location):
-    """Test that a record with endorsements from multiple reviewers gets indexed correctly."""
+    """Test that a record with endorsements from multiple actors gets indexed correctly."""
     # Create a test record
     record = prepare_test_rdm_record(db, minimal_record)
     
-    # Create two reviewers
-    reviewer1 = ReviewerModel.create({
-        'name': 'First Reviewer Service',
-        'actor_id': 'first-reviewer-789'
+    # Create two actors
+    actor1 = ActorModel.create({
+        'name': 'First Actor Service',
+        'actor_id': 'first-actor-789'
     })
     
-    reviewer2 = ReviewerModel.create({
-        'name': 'Second Reviewer Service', 
-        'actor_id': 'second-reviewer-789'
+    actor2 = ActorModel.create({
+        'name': 'Second Actor Service', 
+        'actor_id': 'second-actor-789'
     })
     db.session.commit()
     
-    # Create endorsements from both reviewers
+    # Create endorsements from both actors
     endorsement1_data = {
         'record_id': record.id,
-        'reviewer_id': reviewer1.id,
+        'actor_id': actor1.id,
         'review_type': TYPE_ENDORSEMENT,
-        'result_url': 'https://first-reviewer.example.com/endorsement/789',
-        'reviewer_name': reviewer1.name,
+        'result_url': 'https://first-actor.example.com/endorsement/789',
+        'actor_name': actor1.name,
     }
     
     endorsement2_data = {
         'record_id': record.id,
-        'reviewer_id': reviewer2.id,
+        'actor_id': actor2.id,
         'review_type': TYPE_ENDORSEMENT,
-        'result_url': 'https://second-reviewer.example.com/endorsement/789',
-        'reviewer_name': reviewer2.name,
+        'result_url': 'https://second-actor.example.com/endorsement/789',
+        'actor_name': actor2.name,
     }
     
     EndorsementModel.create(endorsement1_data)
@@ -191,16 +191,16 @@ def test_record_indexing_with_multiple_reviewers(db, superuser_identity, minimal
     response = current_search_client.get(index=index_name, id=doc_id)
     indexed_doc = response['_source']
     
-    # Assert that the endorsements field contains both reviewers
+    # Assert that the endorsements field contains both actors
     assert 'endorsements' in indexed_doc
     assert len(indexed_doc['endorsements']) == 2
     
-    # Get reviewer names from the indexed data
-    reviewer_names = [e['reviewer_name'] for e in indexed_doc['endorsements']]
-    assert 'First Reviewer Service' in reviewer_names
-    assert 'Second Reviewer Service' in reviewer_names
+    # Get actor names from the indexed data
+    actor_names = [e['actor_name'] for e in indexed_doc['endorsements']]
+    assert 'First Actor Service' in actor_names
+    assert 'Second Actor Service' in actor_names
     
-    # Verify each reviewer has one endorsement
+    # Verify each actor has one endorsement
     for endorsement_data in indexed_doc['endorsements']:
         assert endorsement_data['endorsement_count'] == 1
         assert endorsement_data['review_count'] == 0

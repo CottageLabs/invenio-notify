@@ -32,25 +32,25 @@ class EndorsementAdminService(BasicDbService):
         if not endorsements:
             return []
 
-        reviewer_endorsements = {}
+        actor_endorsements = {}
         for endorsement in endorsements:
-            reviewer_id = endorsement.reviewer_id
-            if reviewer_id not in reviewer_endorsements:
-                reviewer_endorsements[reviewer_id] = {
+            actor_id = endorsement.actor_id
+            if actor_id not in actor_endorsements:
+                actor_endorsements[actor_id] = {
                     'endorsements': [],
                     'reviews': []
                 }
 
             if endorsement.review_type == constants.TYPE_ENDORSEMENT:
-                reviewer_endorsements[reviewer_id]['endorsements'].append(endorsement)
+                actor_endorsements[actor_id]['endorsements'].append(endorsement)
             elif endorsement.review_type == constants.TYPE_REVIEW:
-                reviewer_endorsements[reviewer_id]['reviews'].append(endorsement)
+                actor_endorsements[actor_id]['reviews'].append(endorsement)
             else:
                 current_app.logger.warning(
                     f'Unknown review type: {endorsement.review_type} for endorsement {endorsement.id}')
 
         result = []
-        for reviewer_id, data in reviewer_endorsements.items():
+        for actor_id, data in actor_endorsements.items():
             sub_endorsement_list = []
             sub_review_list = []
 
@@ -69,10 +69,10 @@ class EndorsementAdminService(BasicDbService):
                 })
 
             _endorsements = data['reviews'] + data['endorsements']
-            reviewer_name = _endorsements[-1].reviewer.name if _endorsements else 'Unknown'
+            actor_name = _endorsements[-1].actor.name if _endorsements else 'Unknown'
             result.append({
-                'reviewer_id': reviewer_id,
-                'reviewer_name': reviewer_name,
+                'actor_id': actor_id,
+                'actor_name': actor_name,
                 'endorsement_count': len(sub_endorsement_list),
                 'review_count': len(sub_review_list),
                 'endorsement_list': sub_endorsement_list,

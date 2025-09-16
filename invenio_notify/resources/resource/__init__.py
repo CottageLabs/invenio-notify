@@ -6,7 +6,7 @@ from .endorsement_request_resource import EndorsementRequestResource
 from .endorsement_admin_resource import EndorsementAdminResource
 from .inbox_admin_resource import InboxAdminResource
 from .inbox_api_resource import InboxApiResource
-from .reviewer_admin_resource import ReviewerAdminResource
+from .actor_admin_resource import ActorAdminResource
 
 __all__ = [
     "BasicDbResource",
@@ -15,5 +15,5 @@ __all__ = [
     "EndorsementAdminResource",
     "InboxAdminResource",
     "InboxApiResource",
-    "ReviewerAdminResource",
+    "ActorAdminResource",
 ]

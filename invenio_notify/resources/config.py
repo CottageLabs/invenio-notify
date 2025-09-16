@@ -48,9 +48,9 @@ class InboxAdminResourceConfig(BasicAdminResourceConfig):
 
 
 
-class ReviewerAdminResourceConfig(BasicAdminResourceConfig):
-    blueprint_name = "reviewer"
-    url_prefix = "/reviewer"
+class ActorAdminResourceConfig(BasicAdminResourceConfig):
+    blueprint_name = "actor"
+    url_prefix = "/actor"
 
     routes = BasicAdminResourceConfig.routes
     # Updated route names for better consistency
@@ -71,7 +71,7 @@ class EndorsementRequestResourceConfig(ResourceConfig, ConfiguratorMixin):
 
     routes = {
         'send': '/send/<path:pid_value>',
-        'reviewers': '/reviewers/<path:pid_value>',
+        'actors': '/actors/<path:pid_value>',
     }
 
     request_view_args = {

@@ -7,11 +7,11 @@ from invenio_notify_test.fixtures.inbox_payload import payload_review
 def test_create_model(db, superuser_identity, create_inbox):
     assert NotifyInboxModel.query.count() == 0
     record_id = 'kajsdlkasjk'
-    m = create_inbox(recid=record_id)
+    m = create_inbox(record_id=record_id)
     m.commit()
 
     # find record by record_id
-    new_m = NotifyInboxModel.search({'recid': record_id}, [])
+    new_m = NotifyInboxModel.search({'record_id': record_id}, [])
     assert m == new_m[0]
     assert NotifyInboxModel.query.count() == 1
 
@@ -23,13 +23,13 @@ def test_service_create(test_app, superuser_identity):
     record_id = 'kajsdlkasjk'
     raw_payload = payload_review(record_id)
     result = notify_inbox_serv.create(superuser_identity, {
-        'raw': raw_payload, 'recid': record_id
+        'raw': raw_payload, 'record_id': record_id
     })
     result_dict = result.to_dict()
-    assert result_dict['recid'] == record_id
-    # noti_id should now store the full notification ID including 'urn:uuid:' prefix
-    expected_noti_id = raw_payload['id']
-    assert result_dict['noti_id'] == expected_noti_id
+    assert result_dict['record_id'] == record_id
+    # notification_id should now store the full notification ID including 'urn:uuid:' prefix
+    expected_notification_id = raw_payload['id']
+    assert result_dict['notification_id'] == expected_notification_id
     assert 'links' in result_dict
     assert NotifyInboxModel.query.count() == 1
 
@@ -45,13 +45,13 @@ def test_service_search(test_app, superuser_identity):
 
     # Create test records
     notify_inbox_serv.create(superuser_identity, {
-        'raw': payload_review(record_id_1), 'recid': record_id_1,
+        'raw': payload_review(record_id_1), 'record_id': record_id_1,
     })
     notify_inbox_serv.create(superuser_identity, {
-        'raw': payload_review(record_id_2), 'recid': record_id_2,
+        'raw': payload_review(record_id_2), 'record_id': record_id_2,
     })
     notify_inbox_serv.create(superuser_identity, {
-        'raw': payload_review(record_id_3), 'recid': record_id_3,
+        'raw': payload_review(record_id_3), 'record_id': record_id_3,
     })
 
     assert NotifyInboxModel.query.count() == 3
@@ -62,7 +62,7 @@ def test_service_search(test_app, superuser_identity):
     assert len(result_list) == 3
 
     # Verify record_ids are in the results
-    record_ids = [item['recid'] for item in result_list]
+    record_ids = [item['record_id'] for item in result_list]
     assert record_id_1 in record_ids
     assert record_id_2 in record_ids
     assert record_id_3 in record_ids

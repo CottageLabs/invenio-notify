@@ -7,8 +7,8 @@ from invenio_notify.records.models import (
     EndorsementReplyModel,
     EndorsementRequestModel,
     NotifyInboxModel,
-    ReviewerMapModel,
-    ReviewerModel,
+    ActorMapModel,
+    ActorModel,
 )
 from invenio_notify.services.config_utils import DefaultSearchOptions
 from invenio_notify.services.links import (
@@ -30,8 +30,8 @@ from invenio_notify.services.schemas import (
     EndorsementRequestSchema,
     EndorsementSchema,
     NotifyInboxSchema,
-    ReviewerMapSchema,
-    ReviewerSchema,
+    ActorMapSchema,
+    ActorSchema,
 )
 
 
@@ -57,9 +57,9 @@ class NotifyInboxSearchOptions(DefaultSearchOptions):
             title=_("Process Date (Newest First)"),
             fields=["process_date"],
         ),
-        "recid": dict(
+        "record_id": dict(
             title=_("Record ID (A-Z)"),
-            fields=["recid"],
+            fields=["record_id"],
         ),
         "user_id": dict(
             title=_("User ID (Ascending)"),
@@ -82,9 +82,9 @@ class NotifyInboxSearchOptions(DefaultSearchOptions):
             title=_("Process Date (Oldest First)"),
             fields=["-process_date"],
         ),
-        "-recid": dict(
+        "-record_id": dict(
             title=_("Record ID (Z-A)"),
-            fields=["-recid"],
+            fields=["-record_id"],
         ),
         "-user_id": dict(
             title=_("User ID (Descending)"),
@@ -126,41 +126,41 @@ class EndorsementAdminServiceConfig(RecordServiceConfig):
     }
 
 
-class ReviewerMapSearchOptions(DefaultSearchOptions):
+class ActorMapSearchOptions(DefaultSearchOptions):
     sort_default = "user_id"
     sort_options = {
         "user_id": dict(
             title=_("User id"),
             fields=["user_id"],
         ),
-        "reviewer_id": dict(
-            title=_("Reviewer id"),
-            fields=["reviewer_id"],
+        "actor_id": dict(
+            title=_("Actor id"),
+            fields=["actor_id"],
         ),
     }
 
 
-class ReviewerMapServiceConfig(RecordServiceConfig):
+class ActorMapServiceConfig(RecordServiceConfig):
     result_list_cls = BasicDbModelRecordList
-    record_cls = ReviewerMapModel
-    schema = ReviewerMapSchema
+    record_cls = ActorMapModel
+    schema = ActorMapSchema
 
     permission_policy_cls = AdminPermissionPolicy
 
     # # Search configuration
-    search = ReviewerMapSearchOptions
+    search = ActorMapSearchOptions
 
     # # links configuration
     links_item = {
-        "self": IdLink("{+api}/reviewer-map/{id}"),
+        "self": IdLink("{+api}/actor-map/{id}"),
     }
-    links_search = pagination_links("{+api}/reviewer-map{?args*}")
+    links_search = pagination_links("{+api}/actor-map{?args*}")
 
 
-class ReviewerServiceConfig(RecordServiceConfig):
+class ActorServiceConfig(RecordServiceConfig):
     result_list_cls = BasicDbModelRecordList
-    record_cls = ReviewerModel
-    schema = ReviewerSchema
+    record_cls = ActorModel
+    schema = ActorSchema
     schema_add_member = AddMemberSchema
     schema_del_member = DelMemberSchema
 
@@ -171,9 +171,9 @@ class ReviewerServiceConfig(RecordServiceConfig):
 
     # Links configuration
     links_item = {
-        "self": IdLink("{+api}/reviewer/{id}"),
+        "self": IdLink("{+api}/actor/{id}"),
     }
-    links_search = pagination_links("{+api}/reviewer{?args*}")
+    links_search = pagination_links("{+api}/actor{?args*}")
 
 
 class EndorsementRequestServiceConfig(RecordServiceConfig):

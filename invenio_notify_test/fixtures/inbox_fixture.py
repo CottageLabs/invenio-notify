@@ -11,15 +11,15 @@ from invenio_notify_test.utils import resolve_user_id
 def create_inbox(db, superuser_identity):
     """Fixture to create a NotifyInboxModel instance."""
 
-    def _create_inbox(recid='r1', raw=None, user_id=None, identity=None, noti_id=None):
+    def _create_inbox(record_id='r1', raw=None, user_id=None, identity=None, notification_id=None):
         """Create a NotifyInboxModel instance.
         
         Args:
-            recid: Record ID to associate with the inbox
+            record_id: Record ID to associate with the inbox
             raw: Raw data content (default: 'test')
             user_id: User ID to associate with the inbox (overrides identity)
             identity: Identity object to get user_id from (defaults to superuser_identity)
-            noti_id: Notification ID (defaults to the ID from raw data or auto-generated)
+            notification_id: Notification ID (defaults to the ID from raw data or auto-generated)
             
         Returns:
             NotifyInboxModel instance
@@ -28,14 +28,14 @@ def create_inbox(db, superuser_identity):
         if raw is None:
             raw = payload_review('record-not-exists')
         
-        # Extract noti_id from raw data if not provided
-        if noti_id is None:
-            noti_id = raw.get('id', f'urn:uuid:{uuid.uuid4()}')
+        # Extract notification_id from raw data if not provided
+        if notification_id is None:
+            notification_id = raw.get('id', f'urn:uuid:{uuid.uuid4()}')
 
         inbox = NotifyInboxModel.create({
-            'noti_id': noti_id,
+            'notification_id': notification_id,
             'raw': raw,
-            'recid': recid,
+            'record_id': record_id,
             'user_id': user_id
         })
         return inbox

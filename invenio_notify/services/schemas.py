@@ -10,9 +10,9 @@ def create_current_utc_datetime():
 
 
 class NotifyInboxSchema(BaseRecordSchema):
-    noti_id = fields.String(required=True)
+    notification_id = fields.String(required=True)
     raw = fields.String(required=True)  # admin page UI does not support dict yet
-    recid = fields.String(required=True)
+    record_id = fields.String(required=True)
 
     user_id = fields.Integer(required=True)
 
@@ -21,25 +21,25 @@ class NotifyInboxSchema(BaseRecordSchema):
 
 
 class ApiNotifyInboxSchema(BaseRecordSchema):
-    noti_id = fields.String(required=True)
+    notification_id = fields.String(required=True)
     raw = fields.Dict(required=True)  # raw for api must be a dict
-    recid = fields.String(required=True)
+    record_id = fields.String(required=True)
     user_id = fields.Integer(required=True)
 
 
 class EndorsementSchema(BaseRecordSchema):
     record_id = fields.String(required=True)
-    reviewer_id = fields.Integer(required=True)
+    actor_id = fields.Integer(required=True)
     review_type = fields.String(required=True)
     inbox_id = fields.Integer(required=True)
     result_url = fields.String(required=True)
-    reviewer_name = fields.String(required=True)
+    actor_name = fields.String(required=True)
     endorsement_reply_id = fields.Integer(required=False, allow_none=True)
 
 
-class ReviewerMapSchema(BaseRecordSchema):
+class ActorMapSchema(BaseRecordSchema):
     user_id = fields.Integer(required=True)
-    reviewer_id = fields.Integer(required=True)
+    actor_id = fields.Integer(required=True)
 
 
 class UserSchema(Schema):
@@ -47,7 +47,7 @@ class UserSchema(Schema):
     email = fields.String(required=True)
 
 
-class ReviewerSchema(BaseRecordSchema):
+class ActorSchema(BaseRecordSchema):
     name = fields.String(required=True)
     actor_id = fields.String(required=False, allow_none=True)
     inbox_url = fields.String(required=False, allow_none=True)
@@ -66,9 +66,9 @@ class DelMemberSchema(BaseRecordSchema):
 
 
 class EndorsementRequestSchema(BaseRecordSchema):
-    noti_id = fields.String(required=True)
+    notification_id = fields.String(required=True)
     record_id = fields.String(required=True)
-    reviewer_id = fields.Integer(required=True)
+    actor_id = fields.Integer(required=True)
     raw = fields.String(required=True)
     latest_status = fields.String(required=True)
     user_id = fields.Integer(required=False)

@@ -10,11 +10,10 @@ from invenio_records_resources.resources.records.resource import (
     request_view_args,
 )
 
-from invenio_notify.services.schemas import ReviewerSchema
 from .basic_db_resource import BasicDbResource
 
 
-class ReviewerAdminResource(BasicDbResource):
+class ActorAdminResource(BasicDbResource):
 
     def create_url_rules(self):
         """Create the URL rules for the record resource."""
@@ -39,33 +38,30 @@ class ReviewerAdminResource(BasicDbResource):
     @request_view_args
     @request_data
     def add_member(self):
-        reviewer = self.service.add_member(
+        result = self.service.add_member(
             identity=g.identity,
             id=resource_requestctx.view_args["record_id"],
             data=resource_requestctx.data,
         )
-        reviewer_dict = ReviewerSchema().dump(reviewer)
-        return reviewer_dict, 201
+        return result.to_dict(), 201
 
     @request_headers
     @request_view_args
     @request_data
     def del_member(self):
-        reviewer = self.service.del_member(
+        result = self.service.del_member(
             identity=g.identity,
             id=resource_requestctx.view_args["record_id"],
             data=resource_requestctx.data,
         )
-        reviewer_dict = ReviewerSchema().dump(reviewer)
-        return reviewer_dict, 200
+        return result.to_dict(), 200
 
     @request_headers
     @request_view_args
-    @response_handler()
     def get_members(self):
-        """Get members for a reviewer."""
-        members = self.service.get_members(
+        """Get members for an actor."""
+        result = self.service.get_members(
             identity=g.identity,
             id=resource_requestctx.view_args["record_id"],
         )
-        return {"hits": members}, 200
+        return result.to_dict(), 200

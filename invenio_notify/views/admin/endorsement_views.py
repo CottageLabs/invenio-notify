@@ -24,8 +24,8 @@ class EndorsementListView(PCIEndorsementAdminDisabledMixin, AdminResourceListVie
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "record_id": {"text": _("Record ID"), "order": 2, "width": 2},
-        "reviewer_id": {"text": _("Reviewer ID"), "order": 3, "width": 1},
-        "reviewer_name": {"text": _("Reviewer Name"), "order": 4, "width": 2},
+        "actor_id": {"text": _("Actor ID"), "order": 3, "width": 1},
+        "actor_name": {"text": _("Actor Name"), "order": 4, "width": 2},
         "review_type": {"text": _("Review Type"), "order": 5, "width": 1},
         "result_url": {"text": _("Result URL"), "order": 6, "width": 2},
         "created": {"text": _("Created"), "order": 7, "width": 2},
@@ -57,8 +57,8 @@ class EndorsementDetailView(PCIEndorsementAdminDisabledMixin, AdminResourceDetai
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
         "record_id": {"text": _("Record ID"), "order": 2, "width": 2},
-        "reviewer_id": {"text": _("Reviewer ID"), "order": 3, "width": 1},
-        "reviewer_name": {"text": _("Reviewer Name"), "order": 4, "width": 2},
+        "actor_id": {"text": _("Actor ID"), "order": 3, "width": 1},
+        "actor_name": {"text": _("Actor Name"), "order": 4, "width": 2},
         "review_type": {"text": _("Review Type"), "order": 5, "width": 1},
         "result_url": {"text": _("Result URL"), "order": 6, "width": 3},
         "created": {"text": _("Created"), "order": 7, "width": 2},

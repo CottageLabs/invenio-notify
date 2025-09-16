@@ -75,14 +75,14 @@ class NewEndorsementNotificationBuilder(NotificationBuilder):
 
     @classmethod
     def build(cls, record: RDMRecordMetadata = None,
-              reviewer_name="Unknown", endorsement_url="Unknown",
+              actor_name="Unknown", endorsement_url="Unknown",
               receiver_email=None, user_id=None):
         """
         Build notification with the provided parameters.
 
         Args:
             record: The record object (optional)
-            reviewer_name: Name of the reviewer (default: "Unknown")
+            actor_name: Name of the actor (default: "Unknown")
             endorsement_url: URL of the endorsement (default: "Unknown")
             receiver_email: Email of the recipient (default: "Unknown")
             user_id: ID of the user who should receive the notification (optional)
@@ -100,7 +100,7 @@ class NewEndorsementNotificationBuilder(NotificationBuilder):
             'record_title': record_title,
             'record_url': record_url,
             'endorsement_url': endorsement_url,
-            'reviewer_name': reviewer_name,
+            'actor_name': actor_name,
             'receiver_email': get_receiver_email(receiver_email, user_id),
         }
 
@@ -125,14 +125,14 @@ class EndorsementUpdateNotificationBuilder(NotificationBuilder):
 
     @classmethod
     def build(cls, record: RDMRecordMetadata = None,
-              reviewer_name="Unknown", endorsement_status="Unknown",
+              actor_name="Unknown", endorsement_status="Unknown",
               receiver_email=None, user_id=None):
         """
         Build notification with the provided parameters.
 
         Args:
             record: The record object (optional)
-            reviewer_name: Name of the reviewer (default: "Unknown")
+            actor_name: Name of the actor (default: "Unknown")
             endorsement_status: Status of the endorsement (default: "Unknown")
             receiver_email: Email of the recipient (default: "Unknown")
             user_id: ID of the user who should receive the notification (optional)
@@ -150,7 +150,7 @@ class EndorsementUpdateNotificationBuilder(NotificationBuilder):
             'record_title': record_title,
             'record_url': record_url,
             'endorsement_status': endorsement_status,
-            'reviewer_name': reviewer_name,
+            'actor_name': actor_name,
             'receiver_email': get_receiver_email(receiver_email, user_id),
         }
 

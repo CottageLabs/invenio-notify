@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import { Dropdown } from "semantic-ui-react";
 import { MemberAction } from "./components/MemberAction";
 
-export class ReviewerSearchActions extends Component {
+export class ActorSearchActions extends Component {
     render() {
         const { result, className } = this.props;
         return (
@@ -18,7 +18,7 @@ export class ReviewerSearchActions extends Component {
                 >
                     <Dropdown.Menu>
                         <MemberAction
-                            reviewer={result}
+                            actor={result}
                         />
                     </Dropdown.Menu>
                 </Dropdown>

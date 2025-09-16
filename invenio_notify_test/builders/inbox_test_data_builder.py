@@ -1,12 +1,12 @@
 import pytest
 
-from invenio_notify.utils import reviewer_utils
+from invenio_notify.utils import actor_utils
 
 
 @pytest.fixture
 def inbox_test_data_builder(
     db,
-    create_reviewer,
+    create_actor,
     create_endorsement_request,
     create_inbox,
     rdm_record,
@@ -15,58 +15,58 @@ def inbox_test_data_builder(
     class _InboxTestDataBuilder:
         """Builder class for creating inbox test data with a fluent interface."""
 
-        def __init__(self, recid, notification_data, user_identity=None):
+        def __init__(self, record_id, notification_data, user_identity=None):
             """Initialize the builder with core dependencies and fixtures.
 
             Args:
-                recid: RDM record ID
+                record_id: RDM record ID
                 user_identity: User identity object (defaults to superuser_identity if None)
                 notification_data: Notification data dictionary
             """
-            self.recid = recid
+            self.record_id = record_id
             self.user_identity = user_identity if user_identity is not None else superuser_identity
             self.notification_data = notification_data
             self.db = db
-            self._create_reviewer_fixture = create_reviewer
+            self._create_actor_fixture = create_actor
             self._create_endorsement_request_fixture = create_endorsement_request
             self._create_inbox_fixture = create_inbox
 
             # Store created objects for later access
-            self.reviewer = None
+            self.actor = None
             self.endorsement_request = None
             self.inbox = None
 
-        def create_reviewer(self):
-            """Create a reviewer with actor_id from notification_data."""
-            # Create reviewer with actor_id from notification data
+        def create_actor(self):
+            """Create a actor with actor_id from notification_data."""
+            # Create actor with actor_id from notification data
             actor_id = self.notification_data['actor']['id']
-            self.reviewer = self._create_reviewer_fixture(actor_id=actor_id)
+            self.actor = self._create_actor_fixture(actor_id=actor_id)
             return self
 
-        def add_member_to_reviewer(self):
-            """Add superuser as a member to the reviewer."""
-            if self.reviewer is None:
-                raise ValueError("Reviewer must be created first")
+        def add_member_to_actor(self):
+            """Add superuser as a member to the actor."""
+            if self.actor is None:
+                raise ValueError("Actor must be created first")
 
-            reviewer_utils.add_member_to_reviewer(self.reviewer.id, self.user_identity.id)
+            actor_utils.add_member_to_actor(self.actor.id, self.user_identity.id)
             return self
 
-        def create_endorsement_request(self, noti_id=None):
-            """Create an endorsement request with noti_id from notification_data."""
-            if self.reviewer is None:
-                raise ValueError("Reviewer must be created first")
+        def create_endorsement_request(self, notification_id=None):
+            """Create an endorsement request with notification_id from notification_data."""
+            if self.actor is None:
+                raise ValueError("Actor must be created first")
 
             from invenio_rdm_records.proxies import current_rdm_records
 
             # Resolve record to get its UUID
-            record = current_rdm_records.records_service.record_cls.pid.resolve(self.recid)
+            record = current_rdm_records.records_service.record_cls.pid.resolve(self.record_id)
 
-            # Create endorsement request with noti_id from inReplyTo
+            # Create endorsement request with notification_id from inReplyTo
             self.endorsement_request = self._create_endorsement_request_fixture(
                 record_id=record.id,
-                reviewer_id=self.reviewer.id,
+                actor_id=self.actor.id,
                 user_id=self.user_identity.id,
-                noti_id=noti_id or self.notification_data['inReplyTo']
+                notification_id=notification_id or self.notification_data['inReplyTo']
             )
             return self
 
@@ -74,7 +74,7 @@ def inbox_test_data_builder(
             """Create an inbox with the notification data."""
             # Create inbox record with notification data
             self.inbox = self._create_inbox_fixture(
-                recid=self.recid,
+                record_id=self.record_id,
                 raw=self.notification_data
             )
             return self

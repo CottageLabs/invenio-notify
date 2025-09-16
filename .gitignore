@@ -41,3 +41,5 @@ docs_sphinx/_build/
 ### Generated diagram files
 docs_sphinx/_static/mmd/*.png
 
+
+_playground/

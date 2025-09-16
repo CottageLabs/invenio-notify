@@ -11,8 +11,8 @@ NOTIFY_INBOX_SEARCH = {
         "-updated",
         "process_date",
         "-process_date",
-        "recid",
-        "-recid",
+        "record_id",
+        "-record_id",
         "user_id",
         "-user_id",
     ],
@@ -51,13 +51,13 @@ NOTIFY_INBOX_SORT_OPTIONS = {
         title=_("Process Date (Oldest First)"),
         fields=["-process_date"],
     ),
-    "recid": dict(
+    "record_id": dict(
         title=_("Record ID (A-Z)"),
-        fields=["recid"],
+        fields=["record_id"],
     ),
-    "-recid": dict(
+    "-record_id": dict(
         title=_("Record ID (Z-A)"),
-        fields=["-recid"],
+        fields=["-record_id"],
     ),
     "user_id": dict(
         title=_("User ID (Ascending)"),
@@ -69,7 +69,7 @@ NOTIFY_INBOX_SORT_OPTIONS = {
     ),
 }
 
-NOTIFY_REVIEWER_SEARCH = {
+NOTIFY_ACTOR_SEARCH = {
     "facets": [],
     "sort": [
         "id",
@@ -85,7 +85,7 @@ NOTIFY_REVIEWER_SEARCH = {
     ],
 }
 
-NOTIFY_REVIEWER_SORT_OPTIONS = {
+NOTIFY_ACTOR_SORT_OPTIONS = {
     "id": dict(
         title=_("ID (Ascending)"),
         fields=["id"],
@@ -135,10 +135,10 @@ NOTIFY_ENDORSEMENT_SEARCH = {
         "-id", 
         "record_id",
         "-record_id",
-        "reviewer_id",
-        "-reviewer_id",
-        "reviewer_name",
-        "-reviewer_name",
+        "actor_id",
+        "-actor_id",
+        "actor_name",
+        "-actor_name",
         "review_type",
         "-review_type",
         "created",
@@ -165,21 +165,21 @@ NOTIFY_ENDORSEMENT_SORT_OPTIONS = {
         title=_("Record ID (Z-A)"),
         fields=["-record_id"],
     ),
-    "reviewer_id": dict(
-        title=_("Reviewer ID (Ascending)"),
-        fields=["reviewer_id"],
+    "actor_id": dict(
+        title=_("Actor ID (Ascending)"),
+        fields=["actor_id"],
     ),
-    "-reviewer_id": dict(
-        title=_("Reviewer ID (Descending)"),
-        fields=["-reviewer_id"],
+    "-actor_id": dict(
+        title=_("Actor ID (Descending)"),
+        fields=["-actor_id"],
     ),
-    "reviewer_name": dict(
-        title=_("Reviewer Name (A-Z)"),
-        fields=["reviewer_name"],
+    "actor_name": dict(
+        title=_("Actor Name (A-Z)"),
+        fields=["actor_name"],
     ),
-    "-reviewer_name": dict(
-        title=_("Reviewer Name (Z-A)"),
-        fields=["-reviewer_name"],
+    "-actor_name": dict(
+        title=_("Actor Name (Z-A)"),
+        fields=["-actor_name"],
     ),
     "review_type": dict(
         title=_("Review Type (A-Z)"),
@@ -212,14 +212,14 @@ NOTIFY_ENDORSEMENT_REQUEST_SEARCH = {
     "sort": [
         "id",
         "-id",
-        "noti_id",
-        "-noti_id",
+        "notification_id",
+        "-notification_id",
         "record_id",
         "-record_id",
         "user_id",
         "-user_id",
-        "reviewer_id",
-        "-reviewer_id",
+        "actor_id",
+        "-actor_id",
         "latest_status",
         "-latest_status",
         "created",
@@ -238,13 +238,13 @@ NOTIFY_ENDORSEMENT_REQUEST_SORT_OPTIONS = {
         title=_("ID (Descending)"),
         fields=["-id"],
     ),
-    "noti_id": dict(
+    "notification_id": dict(
         title=_("Notification ID (Ascending)"),
-        fields=["noti_id"],
+        fields=["notification_id"],
     ),
-    "-noti_id": dict(
+    "-notification_id": dict(
         title=_("Notification ID (Descending)"),
-        fields=["-noti_id"],
+        fields=["-notification_id"],
     ),
     "record_id": dict(
         title=_("Record ID (A-Z)"),
@@ -262,13 +262,13 @@ NOTIFY_ENDORSEMENT_REQUEST_SORT_OPTIONS = {
         title=_("User ID (Descending)"),
         fields=["-user_id"],
     ),
-    "reviewer_id": dict(
-        title=_("Reviewer ID (Ascending)"),
-        fields=["reviewer_id"],
+    "actor_id": dict(
+        title=_("Actor ID (Ascending)"),
+        fields=["actor_id"],
     ),
-    "-reviewer_id": dict(
-        title=_("Reviewer ID (Descending)"),
-        fields=["-reviewer_id"],
+    "-actor_id": dict(
+        title=_("Actor ID (Descending)"),
+        fields=["-actor_id"],
     ),
     "latest_status": dict(
         title=_("Latest Status (A-Z)"),

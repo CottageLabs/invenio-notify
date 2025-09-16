@@ -1,7 +1,7 @@
 {% set record_title = notification.context.record_title %}
 {% set record_url = notification.context.record_url %}
 {% set endorsement_url = notification.context.endorsement_url %}
-{% set reviewer_name = notification.context.reviewer_name %}
+{% set actor_name = notification.context.actor_name %}
 {% set account_settings_link = invenio_url_for("invenio_notifications_settings.index") %}
 
 {%- block subject -%}
@@ -11,7 +11,7 @@
 {%- block html_body -%}
 <table style="font-family:'Lato',Helvetica,Arial,sans-serif;border-spacing:15px">
     <tr>
-        <td>{{ _("Your record '{record_title}' has received a new endorsement from '{reviewer_name}'.").format(record_title=record_title, reviewer_name=reviewer_name) }}</td>
+        <td>{{ _("Your record '{record_title}' has received a new endorsement from '{actor_name}'.").format(record_title=record_title, actor_name=actor_name) }}</td>
     </tr>
     <tr>
         <td><a href="{{ record_url }}" class="button">{{ _("View your record")}}</a></td>
@@ -29,7 +29,7 @@
 {%- endblock html_body %}
 
 {%- block plain_body -%}
-{{ _("Your record '{record_title}' has received a new endorsement from '{reviewer_name}'.").format(record_title=record_title, reviewer_name=reviewer_name) }}
+{{ _("Your record '{record_title}' has received a new endorsement from '{actor_name}'.").format(record_title=record_title, actor_name=actor_name) }}
 
 {{ _("View your record: {record_url}").format(record_url=record_url) }}
 {{ _("View endorsement: {endorsement_url}").format(endorsement_url=endorsement_url) }}
@@ -40,7 +40,7 @@
 
 {# Markdown for Slack/Mattermost/chat #}
 {%- block md_body -%}
-{{ _("Your record *{record_title}* has received a new endorsement from *{reviewer_name}*.").format(record_title=record_title, reviewer_name=reviewer_name) }}
+{{ _("Your record *{record_title}* has received a new endorsement from *{actor_name}*.").format(record_title=record_title, actor_name=actor_name) }}
 
 [{{ _("View your record") }}]({{ record_url }})
 [{{ _("View endorsement") }}]({{ endorsement_url }})

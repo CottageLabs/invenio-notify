@@ -24,7 +24,7 @@ export class MemberAction extends Component {
   };
 
   render() {
-    const { reviewer } = this.props;
+    const { actor } = this.props;
     const { modalOpen } = this.state;
 
     return (
@@ -41,10 +41,10 @@ export class MemberAction extends Component {
           {i18next.t("Members")}
         </Button>
 
-        <ActionModal modalOpen={modalOpen} result={reviewer}>
+        <ActionModal modalOpen={modalOpen} result={actor}>
           <MemberFormContainer
             onClose={this.closeModal}
-            reviewerId={reviewer.id}
+            actorId={actor.id}
             actionSuccessCallback={this.props.actionSuccessCallback}
           />
         </ActionModal>
@@ -54,6 +54,6 @@ export class MemberAction extends Component {
 }
 
 MemberAction.propTypes = {
-  reviewer: PropTypes.object.isRequired,
+  actor: PropTypes.object.isRequired,
 };
 

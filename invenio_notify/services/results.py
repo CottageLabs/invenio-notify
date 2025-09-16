@@ -76,3 +76,28 @@ class BasicDbModelRecordList(RecordList):
             if isinstance(self._results, Pagination)
             else self._results
         )
+
+
+class MembersList:
+    """Simple result list for member data that can be JSON serialized."""
+    
+    def __init__(self, members_data):
+        """Constructor."""
+        self._members = members_data
+    
+    def to_dict(self):
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "hits": self._members,
+            "total": len(self._members),
+        }
+    
+    @property
+    def total(self):
+        """Total number of members."""
+        return len(self._members)
+    
+    @property
+    def hits(self):
+        """Member data."""
+        return self._members

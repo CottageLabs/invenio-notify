@@ -2,12 +2,12 @@
 
 erDiagram
     User ||--o{ NotifyInboxModel : has
-    User ||--o{ ReviewerMapModel : has
+    User ||--o{ ActorMapModel : has
     User ||--o{ EndorsementRequestModel : creates
     
-    ReviewerModel ||--o{ ReviewerMapModel : has
-    ReviewerModel ||--o{ EndorsementModel : creates
-    ReviewerModel ||--o{ EndorsementRequestModel : receives
+    ActorModel ||--o{ ActorMapModel : has
+    ActorModel ||--o{ EndorsementModel : creates
+    ActorModel ||--o{ EndorsementRequestModel : receives
     
     RDMRecordMetadata ||--o{ EndorsementModel : has
     RDMRecordMetadata ||--o{ EndorsementRequestModel : has
@@ -28,9 +28,9 @@ erDiagram
     
     NotifyInboxModel {
         int id PK
-        uuid noti_id UK
+        uuid notification_id UK
         json raw
-        text recid
+        text record_id
         datetime process_date
         text process_note
         int user_id FK
@@ -38,15 +38,15 @@ erDiagram
         timestamp updated
     }
     
-    ReviewerMapModel {
+    ActorMapModel {
         int id PK
         int user_id FK
-        int reviewer_id FK
+        int actor_id FK
         timestamp created
         timestamp updated
     }
     
-    ReviewerModel {
+    ActorModel {
         int id PK
         text name
         text actor_id
@@ -60,11 +60,11 @@ erDiagram
     EndorsementModel {
         int id PK
         uuid record_id FK
-        int reviewer_id FK
+        int actor_id FK
         text review_type
         int inbox_id FK
         text result_url
-        text reviewer_name
+        text actor_name
         int endorsement_reply_id FK
         timestamp created
         timestamp updated
@@ -72,10 +72,10 @@ erDiagram
     
     EndorsementRequestModel {
         int id PK
-        uuid noti_id UK
+        uuid notification_id UK
         uuid record_id FK
         int user_id FK
-        int reviewer_id FK
+        int actor_id FK
         json raw
         text latest_status
         timestamp created

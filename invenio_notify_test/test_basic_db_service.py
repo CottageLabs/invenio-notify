@@ -5,27 +5,27 @@ from invenio_notify.proxies import (
     current_endorsement_request_service,
     current_inbox_service,
     current_notify,
-    current_reviewer_service,
+    current_actor_service,
 )
 from invenio_notify_test.fixtures.endorsement_reply_fixture import create_endorsement_reply
 from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request
 from invenio_notify_test.fixtures.inbox_fixture import create_inbox
-from invenio_notify_test.fixtures.reviewer_fixture import create_reviewer
-from invenio_notify_test.fixtures.reviewer_map_fixture import create_reviewer_map
+from invenio_notify_test.fixtures.actor_fixture import create_actor
+from invenio_notify_test.fixtures.actor_map_fixture import create_actor_map
 from invenio_notify_test.utils import BasicDbServiceTestHelper
 
 
-class TestReviewerMapService(BasicDbServiceTestHelper):
+class TestActorMapService(BasicDbServiceTestHelper):
 
     @pytest.fixture(autouse=True)
-    def setup(self, create_reviewer_map):
-        self.create_reviewer_map = create_reviewer_map
+    def setup(self, create_actor_map):
+        self.create_actor_map = create_actor_map
 
     def _create_service(self):
-        return current_notify.reviewer_map_service
+        return current_notify.actor_map_service
 
     def _create_record(self, *args, **kwargs):
-        return self.create_reviewer_map()
+        return self.create_actor_map()
 
 
 class TestInboxService(BasicDbServiceTestHelper):
@@ -38,21 +38,21 @@ class TestInboxService(BasicDbServiceTestHelper):
         return current_inbox_service
 
     def _create_record(self, *args, **kwargs):
-        recid = kwargs.get('recid', 'test-record-id')
-        return self.create_inbox(recid=recid)
+        record_id = kwargs.get('record_id', 'test-record-id')
+        return self.create_inbox(record_id=record_id)
 
 
-class TestReviewerService(BasicDbServiceTestHelper):
+class TestActorService(BasicDbServiceTestHelper):
 
     @pytest.fixture(autouse=True)
-    def setup(self, create_reviewer):
-        self.create_reviewer = create_reviewer
+    def setup(self, create_actor):
+        self.create_actor = create_actor
 
     def _create_service(self):
-        return current_reviewer_service
+        return current_actor_service
 
     def _create_record(self, *args, **kwargs):
-        return self.create_reviewer()
+        return self.create_actor()
 
 
 class TestEndorsementRequestService(BasicDbServiceTestHelper):

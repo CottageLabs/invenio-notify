@@ -5,16 +5,16 @@ import pytest
 from invenio_notify.records.models import EndorsementRequestModel
 
 
-def create_endorsement_request_data(reviewer_id, record_id, latest_status="Request Endorsement", raw=None, user_id=None, noti_id=None):
+def create_endorsement_request_data(actor_id, record_id, latest_status="Request Endorsement", raw=None, user_id=None, notification_id=None):
     """Create default data for EndorsementRequestModel.
     
     Args:
-        reviewer_id: ID of the reviewer
+        actor_id: ID of the actor
         record_id: UUID of the record (required)
         latest_status: Status of the request
         raw: Raw data dict (uses default if None)
         user_id: ID of the user (optional, will be auto-set by service if None)
-        noti_id: Notification UUID from COAR notification (required if None will generate default)
+        notification_id: Notification UUID from COAR notification (required if None will generate default)
         
     Returns:
         dict: Data for creating EndorsementRequestModel
@@ -22,10 +22,10 @@ def create_endorsement_request_data(reviewer_id, record_id, latest_status="Reque
     import uuid
     data = {
         'record_id': record_id,
-        'reviewer_id': reviewer_id,
+        'actor_id': actor_id,
         'raw': raw or {'test': 'data'},
         'latest_status': latest_status,
-        'noti_id': noti_id or uuid.uuid4()
+        'notification_id': notification_id or uuid.uuid4()
     }
     if user_id is not None:
         data['user_id'] = user_id
@@ -33,13 +33,13 @@ def create_endorsement_request_data(reviewer_id, record_id, latest_status="Reque
 
 
 @pytest.fixture
-def create_endorsement_request(superuser_identity, create_reviewer, db, minimal_record):
+def create_endorsement_request(superuser_identity, create_actor, db, minimal_record):
     """Fixture to create an endorsement request."""
-    def _create_endorsement_request(record_id=None, reviewer_id=None, latest_status="Request Endorsement", user_id=None, noti_id=None):
+    def _create_endorsement_request(record_id=None, actor_id=None, latest_status="Request Endorsement", user_id=None, notification_id=None):
         from invenio_notify_test.fixtures.record_fixture import prepare_test_rdm_record
-        if reviewer_id is None:
-            reviewer = create_reviewer()
-            reviewer_id = reviewer.id
+        if actor_id is None:
+            actor = create_actor()
+            actor_id = actor.id
         
         if record_id is None:
             record = prepare_test_rdm_record(db, minimal_record)
@@ -48,9 +48,9 @@ def create_endorsement_request(superuser_identity, create_reviewer, db, minimal_
         if user_id is None:
             user_id = superuser_identity.id
 
-        noti_id = noti_id or uuid.uuid4()
+        notification_id = notification_id or uuid.uuid4()
             
         return EndorsementRequestModel.create(
-            create_endorsement_request_data(reviewer_id, record_id, latest_status, user_id=user_id, noti_id=noti_id)
+            create_endorsement_request_data(actor_id, record_id, latest_status, user_id=user_id, notification_id=notification_id)
         )
     return _create_endorsement_request

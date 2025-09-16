@@ -1,7 +1,7 @@
 import uuid
 
 
-def generate_noti_id():
+def generate_notification_id():
     """Generate a properly formatted URN UUID string."""
     return f"urn:uuid:{uuid.uuid4()}"
 
@@ -98,7 +98,7 @@ def payload_endorsement_resp(record_id, in_reply_to=None) -> dict:
 
 def payload_tentative_accept(record_id, in_reply_to=None) -> dict:
     if in_reply_to is None:
-        in_reply_to = generate_noti_id()
+        in_reply_to = generate_notification_id()
     
     return {
         "@context": [
@@ -164,7 +164,7 @@ def payload_tentative_accept(record_id, in_reply_to=None) -> dict:
 
 def payload_reject(record_id, in_reply_to=None) -> dict:
     if in_reply_to is None:
-        in_reply_to = generate_noti_id()
+        in_reply_to = generate_notification_id()
     
     return {
         "@context": [
@@ -230,7 +230,7 @@ def payload_reject(record_id, in_reply_to=None) -> dict:
 
 def payload_tentative_reject(record_id, in_reply_to=None) -> dict:
     if in_reply_to is None:
-        in_reply_to = generate_noti_id()
+        in_reply_to = generate_notification_id()
     
     return {
         "@context": [

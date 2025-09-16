@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Union
 
 from celery import shared_task
@@ -16,7 +16,7 @@ from invenio_notify.constants import SUPPORTED_TYPES
 from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder, \
     EndorsementUpdateNotificationBuilder
 from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
-from invenio_notify.records.models import NotifyInboxModel, ReviewerModel
+from invenio_notify.records.models import NotifyInboxModel, ActorModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.records import RDMRecord
@@ -44,7 +44,7 @@ def get_record_by_id(record_id) -> RDMRecordMetadata:
     return record
 
 
-def create_endorsement_update_notification(record_id: str, reviewer_name: str,
+def create_endorsement_update_notification(record_id: str, actor_name: str,
                                            noti_type: str, uow) -> None:
     record = get_record_by_id(record_id)
     record_owner_user_id = get_user_id_by_record(record)
@@ -52,7 +52,7 @@ def create_endorsement_update_notification(record_id: str, reviewer_name: str,
         NotificationOp(
             EndorsementUpdateNotificationBuilder.build(
                 record=record,
-                reviewer_name=reviewer_name,
+                actor_name=actor_name,
                 user_id=record_owner_user_id,
                 endorsement_status=noti_type,
             ),
@@ -107,7 +107,7 @@ def mark_as_processed(inbox_record: NotifyInboxModel, comment=None, uow=None):
         inbox_record: The inbox record to mark as processed
         comment: Optional comment to add to the record
     """
-    inbox_record.process_date = datetime.today()
+    inbox_record.process_date = datetime.now(timezone.utc)
     if comment is not None:
         inbox_record.process_note = comment
 
@@ -140,35 +140,35 @@ def get_notification_type(notification_raw: dict) -> str | None:
     return None
 
 
-def get_reviewer_by_actor_id(notification_raw: dict) -> ReviewerModel:
+def get_actor_by_actor_id(notification_raw: dict) -> ActorModel:
     """
-    Extract reviewer data from notification by actor ID.
+    Extract actor data from notification by actor ID.
     
     Args:
         notification_raw: The raw notification data
         
     Returns:
-        ReviewerModel if found
+        ActorModel if found
         
     Raises:
-        DataNotFound: If actor ID is not found or reviewer doesn't exist
+        DataNotFound: If actor ID is not found or actor doesn't exist
     """
     # Extract actor ID from notification
     actor_id = notification_raw.get('actor', {}).get('id', None)
     if not actor_id:
         raise DataNotFound(f"Actor ID not found in notification, actor[{actor_id}]")
 
-    # Find ReviewerModel with matching actor_id
-    reviewer = ReviewerModel.query.filter_by(actor_id=actor_id).first()
-    if not reviewer:
-        raise DataNotFound(f"Reviewer not found, actor_id[{actor_id}]")
+    # Find ActorModel with matching actor_id
+    actor = ActorModel.query.filter_by(actor_id=actor_id).first()
+    if not actor:
+        raise DataNotFound(f"Actor not found, actor_id[{actor_id}]")
 
-    return reviewer
+    return actor
 
 
 @unit_of_work()
 def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadata], inbox_id, notification_raw,
-                              reviewer: ReviewerModel, endo_reply_id: Optional[int] = None, uow=None):
+                              actor: ActorModel, endo_reply_id: Optional[int] = None, uow=None):
     """
     Create a new endorsement record using the endorsement service.
 
@@ -186,11 +186,11 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     """
     endorsement_service = current_app.extensions["invenio-notify"].endorsement_service
 
-    reviewer_id = reviewer.id
-    log.info(f"Found reviewer ID {reviewer_id} for actor_id '{reviewer.actor_id}'")
+    actor_id = actor.id
+    log.info(f"Found actor ID {actor_id} for actor_id '{actor.actor_id}'")
 
-    reviewer_type = get_notification_type(notification_raw)
-    if not reviewer_type:
+    actor_type = get_notification_type(notification_raw)
+    if not actor_type:
         raise DataNotFound(f"Notification type not found in notification {inbox_id}")
 
     # Handle both string record_id and RDMRecordMetadata object
@@ -209,35 +209,35 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     # Create the endorsement record data
     endorsement_data = {
         'record_id': record_id,
-        'reviewer_id': reviewer_id,
-        'review_type': reviewer_type,
+        'actor_id': actor_id,
+        'review_type': actor_type,
         'inbox_id': inbox_id,
         'result_url': review_url,
-        'reviewer_name': reviewer.name,
+        'actor_name': actor.name,
         'endorsement_reply_id': endo_reply_id,
     }
 
-    # Get reviewer name for notification
-    reviewer_name = reviewer.name
+    # Get actor name for notification
+    actor_name = actor.name
 
-    if reviewer_type == constants.TYPE_ENDORSEMENT:
+    if actor_type == constants.TYPE_ENDORSEMENT:
         # Get the record if we don't have it yet
         record = record or get_record_by_id(record_id)
         uow.register(
             NotificationOp(
                 NewEndorsementNotificationBuilder.build(
                     record=record,
-                    reviewer_name=reviewer_name,
+                    actor_name=actor_name,
                     endorsement_url=review_url,
                     user_id=get_user_id_by_record(record),
                 ),
             )
         )
-    elif reviewer_type == constants.TYPE_REVIEW:
+    elif actor_type == constants.TYPE_REVIEW:
         create_endorsement_update_notification(
             record_id,
-            reviewer_name,
-            reviewer_type,
+            actor_name,
+            actor_type,
             uow
         )
 
@@ -278,7 +278,7 @@ def resolve_record_from_notification(record_url: str) -> Optional[RDMRecord]:
 @unit_of_work()
 def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
                                   notification_raw: dict,
-                                  reviewer: ReviewerModel,
+                                  actor: ActorModel,
                                   endo_reply_id: Optional[int] = None,
                                   uow=None, ):
     """
@@ -303,7 +303,7 @@ def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
         record.model,
         inbox_record.id,
         notification_raw,
-        reviewer,
+        actor,
         endo_reply_id
     )
 
@@ -332,17 +332,17 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
         bool: True if processing was successful, False otherwise
     """
 
-    # Extract noti_id from inReplyTo field
-    noti_id = notification_raw.get('inReplyTo', '')
-    if not noti_id:
+    # Extract notification_id from inReplyTo field
+    notification_id = notification_raw.get('inReplyTo', '')
+    if not notification_id:
         log.debug(f"Notification {inbox_record.id} does not have inReplyTo field")
         return
 
-    # Find the endorsement request using noti_id instead of reviewer_id
-    endorsement_request = EndorsementRequestModel.query.filter_by(noti_id=noti_id).first()
+    # Find the endorsement request using notification_id instead of actor_id
+    endorsement_request = EndorsementRequestModel.query.filter_by(notification_id=notification_id).first()
     if not endorsement_request:
-        log.debug(f"Endorsement request with noti_id {noti_id} not found")
-        raise DataNotFound(f"Endorsement request not found for notification id[{inbox_record.id}], noti_id[{noti_id}]")
+        log.debug(f"Endorsement request with notification_id {notification_id} not found")
+        raise DataNotFound(f"Endorsement request not found for notification id[{inbox_record.id}], notification_id[{notification_id}]")
 
     # Extract status from notification type
     noti_type = get_notification_type(notification_raw)
@@ -356,7 +356,7 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
         # Review's notification will be sent when endorsement record is created
         create_endorsement_update_notification(
             endorsement_request.record_id,
-            endorsement_request.reviewer.name,
+            endorsement_request.actor.name,
             noti_type,
             uow
         )
@@ -394,25 +394,25 @@ def inbox_processing():
             mark_as_processed(inbox_record, "Notification type not supported")
             continue
 
-        # Get reviewer using the utility function
+        # Get actor using the utility function
         try:
-            reviewer = get_reviewer_by_actor_id(notification_raw)
+            actor = get_actor_by_actor_id(notification_raw)
         except DataNotFound as e:
-            log.warning(f"Failed to get reviewer: {e}")
+            log.warning(f"Failed to get actor: {e}")
             mark_as_processed(inbox_record, e.message)
             continue
 
-        # Check if noti sender is a member of the reviewer
-        if not ReviewerModel.has_member(inbox_record.user_id, reviewer.actor_id):
-            log.warning(f"User {inbox_record.user_id} is not a member of reviewer {reviewer.actor_id}")
-            mark_as_processed(inbox_record, "User is not a member of reviewer")
+        # Check if noti sender is a member of the actor
+        if not ActorModel.has_member(inbox_record.user_id, actor.actor_id):
+            log.warning(f"User {inbox_record.user_id} is not a member of actor {actor.actor_id}")
+            mark_as_processed(inbox_record, "User is not a member of actor")
             continue
 
         try:
             reply = handle_endorsement_reply(inbox_record, notification_raw)
             if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
                 endo_reply_id = reply.id if reply else None
-                handle_endorsement_and_review(inbox_record, notification_raw, reviewer, endo_reply_id)
+                handle_endorsement_and_review(inbox_record, notification_raw, actor, endo_reply_id)
 
             # Mark inbox as processed after successful reply creation
             mark_as_processed(inbox_record)

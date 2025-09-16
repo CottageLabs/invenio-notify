@@ -23,10 +23,10 @@ class EndorsementRequestListView(PCIAnnouncementOfEndorsementAdminDisabledMixin,
 
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
-        "noti_id": {"text": _("Notification ID"), "order": 2, "width": 2},
+        "notification_id": {"text": _("Notification ID"), "order": 2, "width": 2},
         "record_id": {"text": _("Record ID"), "order": 3, "width": 2},
         "user_id": {"text": _("User ID"), "order": 4, "width": 1},
-        "reviewer_id": {"text": _("Reviewer ID"), "order": 5, "width": 1},
+        "actor_id": {"text": _("Actor ID"), "order": 5, "width": 1},
         "latest_status": {"text": _("Latest Status"), "order": 6, "width": 2},
         "created": {"text": _("Created"), "order": 7, "width": 2},
         "updated": {"text": _("Updated"), "order": 8, "width": 2},
@@ -55,10 +55,10 @@ class EndorsementRequestDetailView(PCIAnnouncementOfEndorsementAdminDisabledMixi
 
     item_field_list = {
         "id": {"text": _("Id"), "order": 1, "width": 1},
-        "noti_id": {"text": _("Notification ID"), "order": 2, "width": 2},
+        "notification_id": {"text": _("Notification ID"), "order": 2, "width": 2},
         "record_id": {"text": _("Record ID"), "order": 3, "width": 2},
         "user_id": {"text": _("User ID"), "order": 4, "width": 1},
-        "reviewer_id": {"text": _("Reviewer ID"), "order": 5, "width": 1},
+        "actor_id": {"text": _("Actor ID"), "order": 5, "width": 1},
         "latest_status": {"text": _("Latest Status"), "order": 6, "width": 2},
         "raw": {"text": _("Raw Data"), "order": 7, "width": 6},
         "created": {"text": _("Created"), "order": 8, "width": 2},

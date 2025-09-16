@@ -2,13 +2,13 @@ from invenio_notify import config, cli, feature_toggle
 from invenio_notify.blueprints import blueprint
 from invenio_notify.resources import (
     InboxAdminResourceConfig,
-    ReviewerAdminResourceConfig,
+    ActorAdminResourceConfig,
     InboxApiResourceConfig,
     EndorsementRequestResourceConfig,
     EndorsementRequestAdminResourceConfig,
     EndorsementAdminResourceConfig,
     InboxAdminResource,
-    ReviewerAdminResource,
+    ActorAdminResource,
     InboxApiResource,
     EndorsementRequestResource,
     EndorsementRequestAdminResource,
@@ -19,14 +19,14 @@ from invenio_notify.services import (
     EndorsementRequestServiceConfig,
     EndorsementAdminServiceConfig,
     NotifyInboxServiceConfig,
-    ReviewerMapServiceConfig,
-    ReviewerServiceConfig,
+    ActorMapServiceConfig,
+    ActorServiceConfig,
     EndorsementReplyService,
     EndorsementRequestService,
     EndorsementAdminService,
     NotifyInboxService,
-    ReviewerMapService,
-    ReviewerService,
+    ActorMapService,
+    ActorService,
 )
 
 
@@ -67,8 +67,8 @@ class InvenioNotify:
         """Initialize the services for notifications."""
         self.notify_inbox_service = NotifyInboxService(config=NotifyInboxServiceConfig)
         self.endorsement_service = EndorsementAdminService(config=EndorsementAdminServiceConfig)
-        self.reviewer_map_service = ReviewerMapService(config=ReviewerMapServiceConfig)
-        self.reviewer_service = ReviewerService(config=ReviewerServiceConfig)
+        self.actor_map_service = ActorMapService(config=ActorMapServiceConfig)
+        self.actor_service = ActorService(config=ActorServiceConfig)
         self.endorsement_request_service = EndorsementRequestService(config=EndorsementRequestServiceConfig)
         self.endorsement_reply_service = EndorsementReplyService(config=EndorsementReplyServiceConfig)
 
@@ -86,9 +86,9 @@ class InvenioNotify:
             service=self.notify_inbox_service,
             config=InboxAdminResourceConfig,
         )
-        self.reviewer_admin_resource = ReviewerAdminResource(
-            service=self.reviewer_service,
-            config=ReviewerAdminResourceConfig,
+        self.actor_admin_resource = ActorAdminResource(
+            service=self.actor_service,
+            config=ActorAdminResourceConfig,
         )
         self.endorsement_admin_resource = EndorsementAdminResource(
             service=self.endorsement_service,
