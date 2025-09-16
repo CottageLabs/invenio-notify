@@ -3,6 +3,7 @@ from typing import Iterable
 from invenio_accounts.models import User
 from invenio_db import db
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.orm import selectinload
 from sqlalchemy_utils import Timestamp
 from sqlalchemy_utils.types import JSONType, UUIDType
 
@@ -305,6 +306,23 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
         index=True,
     )
     endorsement_reply = db.relationship("EndorsementReplyModel", uselist=False)
+
+    @classmethod
+    def query_by_parent_id(cls, parent_id):
+        """Get all endorsements for a parent's children.
+        
+        Args:
+            parent_id: The UUID of the parent record
+            
+        Returns:
+            Query result of all endorsements for the parent's children
+        """
+        return (
+            db.session.query(cls)
+            .join(RDMRecordMetadata, cls.record_id == RDMRecordMetadata.id)
+            .options(selectinload(cls.record))
+            .filter(RDMRecordMetadata.parent_id == parent_id)
+        )
 
 
 class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
