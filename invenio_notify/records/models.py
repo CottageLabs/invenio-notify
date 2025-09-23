@@ -184,7 +184,7 @@ class ActorMapModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     actor_id = db.Column(
         db.Integer(),
-        db.ForeignKey("actor.id", ondelete="CASCADE"),
+        db.ForeignKey("notify_actor.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -216,7 +216,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     If inbox_url, inbox_api_token is set, it will allow Record owners to send endorsement requests.
     """
-    __tablename__ = "actor"
+    __tablename__ = "notify_actor"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -294,7 +294,7 @@ class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     actor_id = db.Column(
         db.Integer,
-        db.ForeignKey("actor.id", ondelete="NO ACTION"),
+        db.ForeignKey("notify_actor.id", ondelete="NO ACTION"),
         nullable=True,
         index=True,
     )
@@ -369,7 +369,7 @@ class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     actor_id = db.Column(
         db.Integer,
-        db.ForeignKey("actor.id", ondelete="NO ACTION"),
+        db.ForeignKey("notify_actor.id", ondelete="NO ACTION"),
         nullable=False,
         index=True,
     )
