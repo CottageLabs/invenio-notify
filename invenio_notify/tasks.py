@@ -140,6 +140,27 @@ def get_notification_type(notification_raw: dict) -> str | None:
     return None
 
 
+def get_workflow_status(notification_raw: dict, noti_type: str) -> str | None:
+    """
+    Extract workflow status from notification activity and type.
+    
+    Args:
+        notification_raw: The raw notification data
+        
+    Returns:
+        str | None: The workflow status constant, or notification type as fallback
+    """
+    if not noti_type:
+        return None
+
+    # Extract activity
+    activity = notification_raw.get('activity')
+    
+    # Look up the workflow status
+    key = (activity, noti_type)
+    return constants.NOTIFICATION_TO_WORKFLOW_STATUS.get(key, noti_type)
+
+
 def get_actor_by_actor_id(notification_raw: dict) -> ActorModel:
     """
     Extract actor data from notification by actor ID.
@@ -180,6 +201,8 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
         record_item: The record ID (string) or RDMRecordMetadata object
         inbox_id: The ID of the notification inbox record
         notification_raw: The raw notification data
+        actor: The actor associated with the notification
+        endo_reply_id: Id of the endorsement reply if applicable
 
     Returns:
         The created endorsement record
@@ -287,6 +310,8 @@ def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
     Args:
         inbox_record: The inbox record to process
         notification_raw: The raw notification data
+        actor: The actor associated with the notification
+        endo_reply_id: Id of the endorsement reply if applicable
         
     Returns:
         bool: True if processing was successful, False otherwise
@@ -344,9 +369,10 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
         log.debug(f"Endorsement request with notification_id {notification_id} not found")
         raise DataNotFound(f"Endorsement request not found for notification id[{inbox_record.id}], notification_id[{notification_id}]")
 
-    # Extract status from notification type
     noti_type = get_notification_type(notification_raw)
-    if not noti_type:
+    # Extract workflow status from notification
+    workflow_status = get_workflow_status(notification_raw, noti_type)
+    if not workflow_status:
         raise DataNotFound(f"Notification type not found in notification {inbox_record.id}")
     # Extract message from notification if available
     message = notification_raw.get('object', {}).get('summary', None)
@@ -357,20 +383,20 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
         create_endorsement_update_notification(
             endorsement_request.record_id,
             endorsement_request.actor.name,
-            noti_type,
+            workflow_status,
             uow
         )
 
     reply = EndorsementReplyModel.create({
         'endorsement_request_id': endorsement_request.id,
         'inbox_id': inbox_record.id,
-        'status': noti_type,
+        'status': workflow_status,
         'message': message
     })
     log.info(f"Created endorsement reply record: {reply.id}")
 
-    # Update endorsement_request.latest_status
-    endorsement_request.latest_status = noti_type
+    # Update endorsement_request.latest_status with workflow status
+    endorsement_request.latest_status = workflow_status
 
     return reply
 
