@@ -26,7 +26,7 @@ def upgrade():
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.Text(), nullable=False),
     sa.Column('actor_id', sa.Text(), nullable=True),
-    sa.Column('inbox_url', sa.Text(), nullable=True),
+    sa.Column('inbox_url', sqlalchemy_utils.types.url.URLType(), nullable=True),
     sa.Column('inbox_api_token', sa.Text(), nullable=True),
     sa.Column('description', sa.Text(), nullable=True),
     sa.Column('created', sa.DateTime(), nullable=False),

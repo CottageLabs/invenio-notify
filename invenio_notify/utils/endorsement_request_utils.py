@@ -56,7 +56,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
         },
         "target": {
             "id": actor.actor_id,
-            "inbox": actor.inbox_url,
+            "inbox": str(actor.inbox_url), # actor.inbox_url is a furl object
             "type": "Service"
         },
         "type": [

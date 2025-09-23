@@ -50,7 +50,7 @@ class UserSchema(Schema):
 class ActorSchema(BaseRecordSchema):
     name = fields.String(required=True)
     actor_id = fields.String(required=False, allow_none=True)
-    inbox_url = fields.String(required=False, allow_none=True)
+    inbox_url = fields.Url(schemes={'http', 'https'}, require_tld=True, required=False, allow_none=True)
     inbox_api_token = fields.String(required=False, allow_none=True)
     description = fields.String(required=False)
 

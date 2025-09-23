@@ -225,7 +225,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
     actor_id = db.Column(db.Text, nullable=True, unique=True)
     """ ID that is used in COAR notification (JSON) """
 
-    inbox_url = db.Column(db.Text, nullable=True)
+    inbox_url = db.Column(URLType, nullable=True)
 
     inbox_api_token = db.Column(db.Text, nullable=True)
 

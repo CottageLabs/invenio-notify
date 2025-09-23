@@ -76,7 +76,7 @@ def send_to_actor_inbox(actor, endorsement_request_data: dict):
     Returns:
         str: Error message if validation fails, None if successful
     """
-    if not actor.inbox_url or not actor.inbox_url.startswith('http'):
+    if not actor.inbox_url:
         current_app.logger.error(
             f'Actor inbox URL is not configured for actor {actor.id} url[{actor.inbox_url}]'
         )
