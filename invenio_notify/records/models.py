@@ -300,6 +300,20 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             .subquery()
         )
         
+        # Subquery to get latest endorsement request by creation date
+        latest_request = (
+            db.session.query(
+                EndorsementRequestModel.actor_id,
+                EndorsementRequestModel.latest_status,
+                func.row_number().over(
+                    partition_by=EndorsementRequestModel.actor_id,
+                    order_by=EndorsementRequestModel.created.desc()
+                ).label('rn')
+            )
+            .filter(EndorsementRequestModel.record_id == record_id)
+            .subquery()
+        )
+        
         # Check if there's at least one available actor
         available_actor = (
             db.session.query(cls.id)
@@ -318,10 +332,25 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                     latest_endorsement.c.rn == 1
                 )
             )
+            .outerjoin(
+                latest_request,
+                and_(
+                    latest_request.c.actor_id == cls.id,
+                    latest_request.c.rn == 1
+                )
+            )
             .filter(
-                or_(
-                    latest_endorsement.c.review_type.is_(None),
-                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
+                and_(
+                    # Exclude actors with completed endorsements/reviews
+                    or_(
+                        latest_endorsement.c.review_type.is_(None),
+                        latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
+                    ),
+                    # Exclude actors with announce_review or announce_endorsement status
+                    or_(
+                        latest_request.c.latest_status.is_(None),
+                        latest_request.c.latest_status.notin_([constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW, constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT])
+                    )
                 )
             )
             .first()
@@ -345,19 +374,6 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         Returns:
             list: List of actor dictionaries with actor_id, actor_name, and status
         """
-        
-        # Get all actors with inbox configuration
-        actors_query = (
-            db.session.query(cls)
-            .filter(
-                and_(
-                    cls.inbox_url.isnot(None),
-                    cls.inbox_api_token.isnot(None),
-                    cls.inbox_url != '',
-                    cls.inbox_api_token != ''
-                )
-            )
-        )
         
         # Subqueries to get latest endorsement and request by creation date
         latest_endorsement = (
@@ -394,6 +410,14 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 latest_endorsement.c.review_type.label('endorsement_status'),
                 latest_request.c.latest_status.label('request_status')
             )
+            .filter(
+                and_(
+                    cls.inbox_url.isnot(None),
+                    cls.inbox_api_token.isnot(None),
+                    cls.inbox_url != '',
+                    cls.inbox_api_token != ''
+                )
+            )
             .outerjoin(
                 latest_endorsement,
                 and_(
@@ -409,9 +433,17 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 )
             )
             .filter(
-                or_(
-                    latest_endorsement.c.review_type.is_(None),
-                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
+                and_(
+                    # Exclude actors with completed endorsements/reviews
+                    or_(
+                        latest_endorsement.c.review_type.is_(None),
+                        latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
+                    ),
+                    # Exclude actors with announce_review or announce_endorsement status
+                    or_(
+                        latest_request.c.latest_status.is_(None),
+                        latest_request.c.latest_status.notin_([constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW, constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT])
+                    )
                 )
             )
         )
