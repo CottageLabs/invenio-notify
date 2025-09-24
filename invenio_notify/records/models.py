@@ -241,7 +241,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     @classmethod
     def has_member_with_email(cls, email, actor_id) -> bool:
-        """Check if a user with given email is a member of a actor with the given actor_id.
+        """Check if a user with given email is a member of an actor with the given actor_id.
         
         Args:
             email: Email address of the user
@@ -259,7 +259,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     @classmethod
     def has_member(cls, user_id, actor_id) -> bool:
-        """Check if a user with given user_id is a member of a actor with the given actor_id.
+        """Check if a user with given user_id is a member of an actor with the given actor_id.
         
         Args:
             user_id: ID of the user
@@ -277,6 +277,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
     @classmethod
     def has_available_actors(cls, record_id) -> bool:
         """Check if there are any available actors for endorsement requests.
+        Uses the same logic as get_available_actors but returns boolean.
         
         Args:
             record_id: UUID of the record
@@ -285,71 +286,42 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             bool: True if there are available actors, False otherwise
         """
         
-        # Check if any actors exist with required configuration
-        configured_actors_exist = (
-            db.session.query(cls.id)
-            .filter(
-                and_(
-                    cls.inbox_url.isnot(None),
-                    cls.inbox_api_token.isnot(None),
-                    cls.inbox_url != '',
-                    cls.inbox_api_token != ''
-                )
+        # Subqueries to get latest endorsement and request by creation date
+        latest_endorsement = (
+            db.session.query(
+                EndorsementModel.actor_id,
+                EndorsementModel.review_type,
+                func.row_number().over(
+                    partition_by=EndorsementModel.actor_id,
+                    order_by=EndorsementModel.created.desc()
+                ).label('rn')
             )
-            .first()
-        )
-        
-        if not configured_actors_exist:
-            return False
-        
-        # For each configured actor, check if they are available for this record
-        # An actor is available if:
-        # 1. No endorsement exists for this record+actor, OR
-        # 2. No endorsement request exists for this record+actor, OR  
-        # 3. Latest endorsement request status is TYPE_TENTATIVE_REJECT
-        
-        configured_actor_ids = (
-            db.session.query(cls.id)
-            .filter(
-                and_(
-                    cls.inbox_url.isnot(None),
-                    cls.inbox_api_token.isnot(None),
-                    cls.inbox_url != '',
-                    cls.inbox_api_token != ''
-                )
-            )
+            .filter(EndorsementModel.record_id == record_id)
             .subquery()
         )
         
-        # Check if there's at least one actor that is available
-        # An actor is available if:
-        # 1. No endorsement exists for that record+actor AND
-        # 2. Either no endorsement request exists OR endorsement request has TYPE_TENTATIVE_REJECT
+        # Check if there's at least one available actor
         available_actor = (
-            db.session.query(configured_actor_ids.c.id)
-            .outerjoin(
-                EndorsementModel,
+            db.session.query(cls.id)
+            .filter(
                 and_(
-                    EndorsementModel.actor_id == configured_actor_ids.c.id,
-                    EndorsementModel.record_id == record_id
+                    cls.inbox_url.isnot(None),
+                    cls.inbox_api_token.isnot(None),
+                    cls.inbox_url != '',
+                    cls.inbox_api_token != ''
                 )
             )
             .outerjoin(
-                EndorsementRequestModel,
+                latest_endorsement,
                 and_(
-                    EndorsementRequestModel.actor_id == configured_actor_ids.c.id,
-                    EndorsementRequestModel.record_id == record_id
+                    latest_endorsement.c.actor_id == cls.id,
+                    latest_endorsement.c.rn == 1
                 )
             )
             .filter(
-                and_(
-                    # No endorsement exists
-                    EndorsementModel.id.is_(None),
-                    # AND either no endorsement request exists OR it has tentative reject status
-                    or_(
-                        EndorsementRequestModel.id.is_(None),
-                        EndorsementRequestModel.latest_status == constants.WORKFLOW_STATUS_TENTATIVE_REJECT
-                    )
+                or_(
+                    latest_endorsement.c.review_type.is_(None),
+                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
                 )
             )
             .first()
@@ -364,7 +336,8 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
               2. Have inbox_api_token configured
               3. inbox_url is not empty
               4. inbox_api_token is not empty
-              5. Either have no endorsements OR have endorsements that aren't completed types
+              5. Either have no endorsements OR have endorsements that aren't completed types,
+                 endorsement are sorted by created date descending
         
         Args:
             record_id: UUID of the record
@@ -373,47 +346,74 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             list: List of actor dictionaries with actor_id, actor_name, and status
         """
         
-        # Get all actors with inbox configuration and their endorsement/request statuses
-        query = (
-            db.session.query(
-                cls.id.label('actor_id'),
-                cls.name.label('actor_name'),
-                cls.inbox_url,
-                cls.inbox_api_token,
-                # Get latest endorsement status
-                func.max(EndorsementModel.review_type).label('endorsement_status'),
-                # Get latest endorsement request status
-                func.max(EndorsementRequestModel.latest_status).label('request_status')
-            )
-            .outerjoin(
-                EndorsementModel,
-                and_(
-                    EndorsementModel.actor_id == cls.id,
-                    EndorsementModel.record_id == record_id
-                )
-            )
-            .outerjoin(
-                EndorsementRequestModel,
-                and_(
-                    EndorsementRequestModel.actor_id == cls.id,
-                    EndorsementRequestModel.record_id == record_id
-                )
-            )
-            # Filter for actors with required inbox configuration
+        # Get all actors with inbox configuration
+        actors_query = (
+            db.session.query(cls)
             .filter(
                 and_(
                     cls.inbox_url.isnot(None),
                     cls.inbox_api_token.isnot(None),
                     cls.inbox_url != '',
-                    cls.inbox_api_token != '',
-                    # Exclude actors who have completed endorsements/reviews for this record
-                    or_(
-                        EndorsementModel.review_type.is_(None),
-                        EndorsementModel.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
-                    )
+                    cls.inbox_api_token != ''
                 )
             )
-            .group_by(cls.id, cls.name, cls.inbox_url, cls.inbox_api_token)
+        )
+        
+        # Subqueries to get latest endorsement and request by creation date
+        latest_endorsement = (
+            db.session.query(
+                EndorsementModel.actor_id,
+                EndorsementModel.review_type,
+                func.row_number().over(
+                    partition_by=EndorsementModel.actor_id,
+                    order_by=EndorsementModel.created.desc()
+                ).label('rn')
+            )
+            .filter(EndorsementModel.record_id == record_id)
+            .subquery()
+        )
+        
+        latest_request = (
+            db.session.query(
+                EndorsementRequestModel.actor_id,
+                EndorsementRequestModel.latest_status,
+                func.row_number().over(
+                    partition_by=EndorsementRequestModel.actor_id,
+                    order_by=EndorsementRequestModel.created.desc()
+                ).label('rn')
+            )
+            .filter(EndorsementRequestModel.record_id == record_id)
+            .subquery()
+        )
+        
+        # Main query with exclusion filter
+        query = (
+            db.session.query(
+                cls.id.label('actor_id'),
+                cls.name.label('actor_name'),
+                latest_endorsement.c.review_type.label('endorsement_status'),
+                latest_request.c.latest_status.label('request_status')
+            )
+            .outerjoin(
+                latest_endorsement,
+                and_(
+                    latest_endorsement.c.actor_id == cls.id,
+                    latest_endorsement.c.rn == 1
+                )
+            )
+            .outerjoin(
+                latest_request,
+                and_(
+                    latest_request.c.actor_id == cls.id,
+                    latest_request.c.rn == 1
+                )
+            )
+            .filter(
+                or_(
+                    latest_endorsement.c.review_type.is_(None),
+                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
+                )
+            )
         )
         
         results = query.all()
@@ -422,13 +422,10 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         for result in results:
             # Determine status based on endorsement and request states
             if result.endorsement_status:
-                # If there's an endorsement, use that status
                 status = result.endorsement_status
             elif result.request_status:
-                # The latest request status is updated when a reply is received
                 status = result.request_status
             else:
-                # No request or endorsement, actor is available
                 status = WORKFLOW_STATUS_AVAILABLE
 
             actors.append({

@@ -339,4 +339,7 @@ NOTIFY_ENDORSEMENT_STATUS_LABELS = {
     WORKFLOW_STATUS_AVAILABLE: {'label': 'Available', 'labelClass': 'green'},
 }
 
-
+# Config variable for endorsement requests react component that determines
+# which workflow states mean that an actor is available to request an endorsement
+# from
+NOTIFY_AVAILABLE_ACTORS = [WORKFLOW_STATUS_TENTATIVE_REJECT, WORKFLOW_STATUS_AVAILABLE]
