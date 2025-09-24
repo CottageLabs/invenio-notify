@@ -10,6 +10,8 @@ from invenio_users_resources.notifications.generators import EmailRecipient
 
 from invenio_rdm_records.records.models import RDMRecordMetadata
 
+from invenio_notify import constants
+
 log = logging.getLogger(__name__)
 
 
@@ -152,6 +154,10 @@ class EndorsementUpdateNotificationBuilder(NotificationBuilder):
             'endorsement_status': endorsement_status,
             'actor_name': actor_name,
             'receiver_email': get_receiver_email(receiver_email, user_id),
+            'WORKFLOW_STATUS_ANNOUNCE_REVIEW': constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW,
+            'WORKFLOW_STATUS_REJECT': constants.WORKFLOW_STATUS_REJECT,
+            'WORKFLOW_STATUS_TENTATIVE_ACCEPT': constants.WORKFLOW_STATUS_TENTATIVE_ACCEPT,
+            'WORKFLOW_STATUS_TENTATIVE_REJECT': constants.WORKFLOW_STATUS_TENTATIVE_REJECT,
         }
 
         return Notification(type=cls.type, context=context, )
