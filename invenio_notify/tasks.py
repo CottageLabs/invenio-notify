@@ -158,7 +158,18 @@ def get_workflow_status(notification_raw: dict, noti_type: str) -> str | None:
     
     # Look up the workflow status
     key = (activity, noti_type)
-    return constants.NOTIFICATION_TO_WORKFLOW_STATUS.get(key, noti_type)
+    workflow_status = constants.NOTIFICATION_TO_WORKFLOW_STATUS.get(key)
+    
+    if workflow_status:
+        return workflow_status
+    
+    # Fallback logic for unsolicited reviews and endorsements
+    if noti_type == constants.TYPE_REVIEW:
+        return constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW
+    elif noti_type == constants.TYPE_ENDORSEMENT:
+        return constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
+
+    return None
 
 
 def get_actor_by_actor_id(notification_raw: dict) -> ActorModel:
@@ -260,7 +271,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
         create_endorsement_update_notification(
             record_id,
             actor_name,
-            actor_type,
+            constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW,
             uow
         )
 
