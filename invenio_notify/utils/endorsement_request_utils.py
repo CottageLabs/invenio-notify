@@ -3,8 +3,8 @@ import uuid
 from invenio_base import invenio_url_for
 from invenio_records_resources.services.records.results import RecordItem
 
-from invenio_notify import constants
-from invenio_notify.records.models import ActorModel, EndorsementRequestModel, EndorsementModel
+from invenio_notify.constants import WORKFLOW_STATUS_TENTATIVE_REJECT
+from invenio_notify.records.models import ActorModel, EndorsementRequestModel
 
 
 def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel, origin_id=None):
@@ -12,6 +12,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
     
     Args:
         user: User object making the endorsement request
+        record: RecordItem object representing the record
         actor: Actor object containing inbox URL and other details
         origin_id: Origin ID from configuration (optional, will be retrieved from config if not provided)
     """
@@ -21,6 +22,11 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
         origin_id = current_app.config.get("NOTIFY_ORIGIN_ID", None)
         if not origin_id:
             raise ValueError("NOTIFY_ORIGIN_ID must be set in invenio.cfg")
+
+    # Check for existing TentativeReject reply to include as inReplyTo
+    status, noti_id = EndorsementRequestModel.get_latest_status(
+        record._record.model.id, actor.id, True
+    )
 
     # define the object structure
     noti_obj = {
@@ -56,7 +62,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
         },
         "target": {
             "id": actor.actor_id,
-            "inbox": actor.inbox_url,
+            "inbox": str(actor.inbox_url), # actor.inbox_url is a furl object
             "type": "Service"
         },
         "type": [
@@ -64,86 +70,9 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
             "coar-notify:EndorsementAction"
         ]
     }
+    
+    # Add inReplyTo if the last EndorsementRequest has TentativeReject status
+    if status == WORKFLOW_STATUS_TENTATIVE_REJECT:
+        data["inReplyTo"] = noti_id
 
     return data
-
-
-def get_overall_endorsement_status(record_id, actor_id):
-    # First check if there's an actual endorsement
-    status = get_latest_endorsement_status(record_id, actor_id)
-    if status:
-        return status
-
-    # If no endorsement, check endorsement request status
-    status = get_latest_endorsement_request_status(record_id, actor_id)
-    if status:
-        return status
-
-    return None
-
-
-def get_available_actors(record_id):
-    """Get list of available actors with their endorsement request status.
-    
-    Args:
-        record_id: UUID of the record
-        user_id: ID of the user making the request
-        
-    Returns:
-        list: List of actor dictionaries with id, name, and status
-    """
-
-    all_actors = ActorModel.query.all()
-    actors = []
-
-    for actor in all_actors:
-        endo_staus = get_overall_endorsement_status(record_id, actor.id)
-
-        # Set status based on endorsement request
-        available = can_send(endo_staus, actor)
-
-        actors.append({
-            "actor_id": actor.id,
-            "actor_name": actor.name,
-            "status": endo_staus or 'available',
-            'available': available,
-        })
-
-    return actors
-
-
-def get_latest_endorsement_request_status(record_id, actor_id):
-    status = (
-        EndorsementRequestModel.query.filter_by(
-            record_id=record_id,
-            actor_id=actor_id,
-        )
-        .order_by(EndorsementRequestModel.created.desc())
-        .with_entities(EndorsementRequestModel.latest_status)
-        .limit(1)
-        .scalar())
-    return status
-
-
-def get_latest_endorsement_status(record_id, actor_id):
-    status = (
-        EndorsementModel.query.filter_by(
-            record_id=record_id,
-            actor_id=actor_id,
-        )
-        .order_by(EndorsementModel.created.desc())
-        .with_entities(EndorsementModel.review_type)
-        .limit(1)
-        .scalar())
-    return status
-
-
-def can_send(endo_status, actor):
-    if not actor or not actor.inbox_url or not actor.inbox_api_token:
-        return False
-
-    available = (
-            not endo_status or
-            endo_status == constants.TYPE_TENTATIVE_REJECT
-    )
-    return available
