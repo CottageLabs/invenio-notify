@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 from invenio_records_resources.services.records.schema import BaseRecordSchema
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, pre_load
 from marshmallow_utils.fields import TZDateTime
 
 
@@ -55,6 +55,12 @@ class ActorSchema(BaseRecordSchema):
     description = fields.String(required=False)
 
     members = fields.List(fields.Nested(UserSchema), required=False, dump_only=True)
+
+    @pre_load
+    def process_empty_strings(self, data, **kwargs):
+        if 'inbox_url' in data and data['inbox_url'] == '':
+            data['inbox_url'] = None
+        return data
 
 
 class AddMemberSchema(BaseRecordSchema):
