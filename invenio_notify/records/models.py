@@ -320,9 +320,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             .filter(
                 and_(
                     cls.inbox_url.isnot(None),
-                    cls.inbox_api_token.isnot(None),
-                    cls.inbox_url != '',
-                    cls.inbox_api_token != ''
+                    cls.inbox_api_token.isnot(None)
                 )
             )
             .outerjoin(
@@ -413,9 +411,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             .filter(
                 and_(
                     cls.inbox_url.isnot(None),
-                    cls.inbox_api_token.isnot(None),
-                    cls.inbox_url != '',
-                    cls.inbox_api_token != ''
+                    cls.inbox_api_token.isnot(None)
                 )
             )
             .outerjoin(

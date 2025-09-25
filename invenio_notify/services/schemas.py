@@ -60,6 +60,8 @@ class ActorSchema(BaseRecordSchema):
     def process_empty_strings(self, data, **kwargs):
         if 'inbox_url' in data and data['inbox_url'] == '':
             data['inbox_url'] = None
+        if 'inbox_api_token' in data and data['inbox_api_token'] == '':
+            data['inbox_api_token'] = None
         return data
 
 
