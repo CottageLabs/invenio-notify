@@ -286,7 +286,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             bool: True if there are available actors, False otherwise
         """
         
-        # Subqueries to get latest endorsement and request by creation date
+        # Subquery to get latest endorsement by creation date
         latest_endorsement = (
             db.session.query(
                 EndorsementModel.actor_id,
@@ -297,20 +297,6 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 ).label('rn')
             )
             .filter(EndorsementModel.record_id == record_id)
-            .subquery()
-        )
-        
-        # Subquery to get latest endorsement request by creation date
-        latest_request = (
-            db.session.query(
-                EndorsementRequestModel.actor_id,
-                EndorsementRequestModel.latest_status,
-                func.row_number().over(
-                    partition_by=EndorsementRequestModel.actor_id,
-                    order_by=EndorsementRequestModel.created.desc()
-                ).label('rn')
-            )
-            .filter(EndorsementRequestModel.record_id == record_id)
             .subquery()
         )
         
@@ -330,25 +316,11 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                     latest_endorsement.c.rn == 1
                 )
             )
-            .outerjoin(
-                latest_request,
-                and_(
-                    latest_request.c.actor_id == cls.id,
-                    latest_request.c.rn == 1
-                )
-            )
             .filter(
-                and_(
-                    # Exclude actors with completed endorsements/reviews
-                    or_(
-                        latest_endorsement.c.review_type.is_(None),
-                        latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
-                    ),
-                    # Exclude actors with announce_review or announce_endorsement status
-                    or_(
-                        latest_request.c.latest_status.is_(None),
-                        latest_request.c.latest_status.notin_([constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW, constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT])
-                    )
+                # Exclude actors with completed endorsements/reviews
+                or_(
+                    latest_endorsement.c.review_type.is_(None),
+                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
                 )
             )
             .first()
@@ -373,7 +345,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             list: List of actor dictionaries with actor_id, actor_name, and status
         """
         
-        # Subqueries to get latest endorsement and request by creation date
+        # Subquery to get latest endorsement by creation date
         latest_endorsement = (
             db.session.query(
                 EndorsementModel.actor_id,
@@ -387,26 +359,12 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             .subquery()
         )
         
-        latest_request = (
-            db.session.query(
-                EndorsementRequestModel.actor_id,
-                EndorsementRequestModel.latest_status,
-                func.row_number().over(
-                    partition_by=EndorsementRequestModel.actor_id,
-                    order_by=EndorsementRequestModel.created.desc()
-                ).label('rn')
-            )
-            .filter(EndorsementRequestModel.record_id == record_id)
-            .subquery()
-        )
-        
         # Main query with exclusion filter
         query = (
             db.session.query(
                 cls.id.label('actor_id'),
                 cls.name.label('actor_name'),
-                latest_endorsement.c.review_type.label('endorsement_status'),
-                latest_request.c.latest_status.label('request_status')
+                latest_endorsement.c.review_type.label('endorsement_status')
             )
             .filter(
                 and_(
@@ -421,25 +379,11 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                     latest_endorsement.c.rn == 1
                 )
             )
-            .outerjoin(
-                latest_request,
-                and_(
-                    latest_request.c.actor_id == cls.id,
-                    latest_request.c.rn == 1
-                )
-            )
             .filter(
-                and_(
-                    # Exclude actors with completed endorsements/reviews
-                    or_(
-                        latest_endorsement.c.review_type.is_(None),
-                        latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
-                    ),
-                    # Exclude actors with announce_review or announce_endorsement status
-                    or_(
-                        latest_request.c.latest_status.is_(None),
-                        latest_request.c.latest_status.notin_([constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW, constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT])
-                    )
+                # Exclude actors with completed endorsements/reviews
+                or_(
+                    latest_endorsement.c.review_type.is_(None),
+                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
                 )
             )
         )
@@ -448,11 +392,9 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         actors = []
         
         for result in results:
-            # Determine status based on endorsement and request states
+            # Determine status based on endorsement state
             if result.endorsement_status:
                 status = result.endorsement_status
-            elif result.request_status:
-                status = result.request_status
             else:
                 status = WORKFLOW_STATUS_AVAILABLE
 
