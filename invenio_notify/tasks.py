@@ -142,26 +142,45 @@ def get_notification_type(notification_raw: dict) -> str | None:
 
 def get_workflow_status(notification_raw: dict, noti_type: str) -> str | None:
     """
-    Extract workflow status from notification activity and type.
+    Extract workflow status from notification type field based on COAR notification structure.
     
     Args:
         notification_raw: The raw notification data
+        noti_type: The notification type (e.g., 'coar-notify:EndorsementAction')
         
     Returns:
-        str | None: The workflow status constant, or notification type as fallback
+        str | None: The workflow status constant
     """
     if not noti_type:
         return None
 
-    # Extract activity
-    activity = notification_raw.get('activity')
+    # Extract type field from notification
+    type_field = notification_raw.get('type', [])
     
-    # Look up the workflow status
-    key = (activity, noti_type)
-    workflow_status = constants.NOTIFICATION_TO_WORKFLOW_STATUS.get(key)
+    # Ensure type_field is a list for consistent processing
+    if isinstance(type_field, str):
+        type_field = [type_field]
     
-    if workflow_status:
-        return workflow_status
+    # Check for simple single-type notifications first
+    for t in type_field:
+        if t == 'TentativeAccept':
+            return constants.WORKFLOW_STATUS_TENTATIVE_ACCEPT
+        elif t == 'TentativeReject':
+            return constants.WORKFLOW_STATUS_TENTATIVE_REJECT
+        elif t == 'Reject':
+            return constants.WORKFLOW_STATUS_REJECT
+    
+    # Check for compound types with activities
+    has_offer = 'Offer' in type_field
+    has_announce = 'Announce' in type_field
+    
+    # Map based on activity + notification type combinations
+    if has_offer and noti_type == constants.TYPE_ENDORSEMENT:
+        return constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
+    elif has_announce and noti_type == constants.TYPE_ENDORSEMENT:
+        return constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
+    elif has_announce and noti_type == constants.TYPE_REVIEW:
+        return constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW
     
     # Fallback logic for unsolicited reviews and endorsements
     if noti_type == constants.TYPE_REVIEW:
