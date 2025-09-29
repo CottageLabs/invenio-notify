@@ -118,6 +118,7 @@ class DummyPCIBackend:
             return
 
         payload = payload_functions[payload_type](record_id, in_reply_to)
+        payload['actor']['id'] = last_notification['target']['id']
 
         # Display source notification with rich formatting
         console.print("\n[bold cyan]Source notification:[/bold cyan]")
