@@ -57,12 +57,6 @@ class InvenioNotify:
             if k.startswith("NOTIFY_"):
                 app.config.setdefault(k, getattr(config, k))
 
-        from invenio_notify.notifications import builders
-        app.config['NOTIFICATIONS_BUILDERS'] = app.config.get('NOTIFICATIONS_BUILDERS', {}) | {
-            b.type: b for b in [builders.NewEndorsementNotificationBuilder,
-                                builders.EndorsementUpdateNotificationBuilder]
-        }
-
     def init_services(self, app):
         """Initialize the services for notifications."""
         self.notify_inbox_service = NotifyInboxService(config=NotifyInboxServiceConfig)
