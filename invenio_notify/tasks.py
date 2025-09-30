@@ -178,9 +178,9 @@ def get_workflow_status(notification_raw: dict, noti_type: str) -> str | None:
     has_announce = 'Announce' in type_field
     
     # Map based on activity + notification type combinations
-    if has_announce and noti_type == constants.TYPE_ENDORSEMENT:
+    if has_announce and noti_type == constants.TYPE_ENDORSEMENT and noti_type in type_field:
         return constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
-    elif has_announce and noti_type == constants.TYPE_REVIEW:
+    elif has_announce and noti_type == constants.TYPE_REVIEW and noti_type in type_field:
         return constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW
 
     return None
