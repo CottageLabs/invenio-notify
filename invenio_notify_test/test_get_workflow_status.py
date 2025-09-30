@@ -8,13 +8,13 @@ from invenio_notify.tasks import get_workflow_status
 class TestGetWorkflowStatus:
     """Test cases for the get_workflow_status function."""
 
-    def test_offer_endorsement_action(self):
-        """Test Offer + coar-notify:EndorsementAction returns request_endorsement."""
+    def test_offer_endorsement_action_returns_none(self):
+        """Test Offer + coar-notify:EndorsementAction returns None (invalid for incoming replies)."""
         notification = {
             "type": ["Offer", "coar-notify:EndorsementAction"]
         }
         result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
-        assert result == constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
+        assert result is None
 
     def test_announce_endorsement_action(self):
         """Test Announce + coar-notify:EndorsementAction returns announce_endorsement."""
@@ -110,21 +110,21 @@ class TestGetWorkflowStatus:
         result = get_workflow_status(notification, "")
         assert result is None
 
-    def test_fallback_endorsement_without_activity(self):
-        """Test fallback to announce_endorsement for endorsement type without recognized activity."""
+    def test_unknown_activity_returns_none(self):
+        """Test unknown activity with endorsement type returns None (no fallback for unsolicited)."""
         notification = {
             "type": ["SomeUnknownActivity", "coar-notify:EndorsementAction"]
         }
         result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
-        assert result == constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
+        assert result is None
 
-    def test_fallback_review_without_activity(self):
-        """Test fallback to announce_review for review type without recognized activity."""
+    def test_unknown_activity_review_returns_none(self):
+        """Test unknown activity with review type returns None (no fallback for unsolicited)."""
         notification = {
             "type": ["SomeUnknownActivity", "coar-notify:ReviewAction"]
         }
         result = get_workflow_status(notification, constants.TYPE_REVIEW)
-        assert result == constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW
+        assert result is None
 
     def test_unknown_notification_type(self):
         """Test unknown notification type returns None."""
@@ -134,23 +134,23 @@ class TestGetWorkflowStatus:
         result = get_workflow_status(notification, "coar-notify:UnknownAction")
         assert result is None
 
-    def test_offer_with_review_type(self):
-        """Test Offer activity with review type (should not match any compound pattern)."""
+    def test_offer_with_review_type_returns_none(self):
+        """Test Offer activity with review type returns None (no defined combination)."""
         notification = {
             "type": ["Offer", "coar-notify:ReviewAction"]
         }
         result = get_workflow_status(notification, constants.TYPE_REVIEW)
-        # Should fall back to announce_review since Offer + Review is not a defined combination
-        assert result == constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW
+        # Should return None since Offer + Review is not a defined combination and no fallback
+        assert result is None
 
-    def test_announce_with_no_matching_notification_type(self):
-        """Test Announce activity with non-matching notification type."""
+    def test_announce_with_no_matching_notification_type_returns_none(self):
+        """Test Announce activity with non-matching notification type returns None."""
         notification = {
             "type": ["Announce", "SomeOtherAction"]
         }
         result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
-        # Should fall back to announce_endorsement
-        assert result == constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
+        # Should return None since notification type doesn't match and no fallback
+        assert result is None
 
     def test_complex_type_with_simple_takes_precedence(self):
         """Test that simple types (like Reject) take precedence over compound types."""
@@ -178,7 +178,7 @@ class TestGetWorkflowStatus:
             "type": ["Offer", "coar-notify:EndorsementAction"]
         }
         result = get_workflow_status(notification_step2, constants.TYPE_ENDORSEMENT)
-        assert result == constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
+        assert result is None  # Offer is outgoing, not valid for incoming replies
         
         # Example from step 5.1: Tentative Accept
         notification_step5_1 = {
