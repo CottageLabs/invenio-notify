@@ -5,12 +5,12 @@ from typing import Optional, Union
 from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
+from invenio_db import db
 from invenio_db.uow import unit_of_work
 from invenio_notifications.services.uow import NotificationOp
 from invenio_pidstore.errors import PIDDoesNotExistError
 
 from coarnotify.factory import COARNotifyFactory
-from invenio_db import db
 from invenio_notify import constants
 from invenio_notify.constants import SUPPORTED_TYPES
 from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder, \
@@ -237,8 +237,8 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     actor_id = actor.id
     log.info(f"Found actor ID {actor_id} for actor_id '{actor.actor_id}'")
 
-    actor_type = get_notification_type(notification_raw)
-    if not actor_type:
+    noti_type = get_notification_type(notification_raw)
+    if not noti_type:
         raise DataNotFound(f"Notification type not found in notification {inbox_id}")
 
     # Handle both string record_id and RDMRecordMetadata object
@@ -258,7 +258,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     endorsement_data = {
         'record_id': record_id,
         'actor_id': actor_id,
-        'review_type': actor_type,
+        'review_type': noti_type,
         'inbox_id': inbox_id,
         'result_url': review_url,
         'actor_name': actor.name,
@@ -268,7 +268,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     # Get actor name for notification
     actor_name = actor.name
 
-    if actor_type == constants.TYPE_ENDORSEMENT:
+    if noti_type == constants.TYPE_ENDORSEMENT:
         # Get the record if we don't have it yet
         record = record or get_record_by_id(record_id)
         uow.register(
@@ -281,7 +281,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
                 ),
             )
         )
-    elif actor_type == constants.TYPE_REVIEW:
+    elif noti_type == constants.TYPE_REVIEW:
         create_endorsement_update_notification(
             record_id,
             actor_name,
