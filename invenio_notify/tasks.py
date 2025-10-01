@@ -140,19 +140,16 @@ def get_notification_type(notification_raw: dict) -> str | None:
     return None
 
 
-def get_workflow_status(notification_raw: dict, noti_type: str) -> str | None:
+def get_workflow_status(notification_raw: dict) -> str | None:
     """
     Extract workflow status from notification type field based on COAR notification structure.
     
     Args:
         notification_raw: The raw notification data
-        noti_type: The notification type (e.g., 'coar-notify:EndorsementAction')
-        
+
     Returns:
         str | None: The workflow status constant
     """
-    if not noti_type:
-        return None
 
     # Extract type field from notification
     type_field = notification_raw.get('type', [])
@@ -178,9 +175,9 @@ def get_workflow_status(notification_raw: dict, noti_type: str) -> str | None:
     has_announce = 'Announce' in type_field
     
     # Map based on activity + notification type combinations
-    if has_announce and noti_type == constants.TYPE_ENDORSEMENT and noti_type in type_field:
+    if has_announce and constants.TYPE_ENDORSEMENT in type_field:
         return constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
-    elif has_announce and noti_type == constants.TYPE_REVIEW and noti_type in type_field:
+    elif has_announce and constants.TYPE_REVIEW in type_field:
         return constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW
 
     return None
@@ -394,16 +391,16 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
         log.debug(f"Endorsement request with notification_id {notification_id} not found")
         raise DataNotFound(f"Endorsement request not found for notification id[{inbox_record.id}], notification_id[{notification_id}]")
 
-    noti_type = get_notification_type(notification_raw)
     # Extract workflow status from notification
-    workflow_status = get_workflow_status(notification_raw, noti_type)
+    workflow_status = get_workflow_status(notification_raw)
     if not workflow_status:
         raise DataNotFound(f"Notification type not found in notification {inbox_record.id}")
     # Extract message from notification if available
     message = notification_raw.get('object', {}).get('summary', None)
 
     # Create the endorsement reply record
-    if noti_type not in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
+    if workflow_status not in {constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT,
+                               constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW}:
         # Review's notification will be sent when endorsement record is created
         create_endorsement_update_notification(
             endorsement_request.record_id,
