@@ -3,21 +3,25 @@
 {% set endorsement_status = notification.context.endorsement_status %}
 {% set actor_name = notification.context.actor_name %}
 {% set account_settings_link = invenio_url_for("invenio_notifications_settings.index") %}
+{% set WORKFLOW_STATUS_ANNOUNCE_REVIEW = notification.context.WORKFLOW_STATUS_ANNOUNCE_REVIEW %}
+{% set WORKFLOW_STATUS_REJECT = notification.context.WORKFLOW_STATUS_REJECT %}
+{% set WORKFLOW_STATUS_TENTATIVE_ACCEPT = notification.context.WORKFLOW_STATUS_TENTATIVE_ACCEPT %}
+{% set WORKFLOW_STATUS_TENTATIVE_REJECT = notification.context.WORKFLOW_STATUS_TENTATIVE_REJECT %}
 
 {%- macro get_status_message(status, record_title, actor_name) -%}
-{%- if status == 'coar-notify:ReviewAction' -%}
+{%- if status == WORKFLOW_STATUS_ANNOUNCE_REVIEW -%}
 {{ _("Your record '{record_title}' has received a peer review notification from '{actor_name}'.").format(
     record_title=record_title, actor_name=actor_name
 ) }}
-{%- elif status == 'Reject' -%}
+{%- elif status == WORKFLOW_STATUS_REJECT -%}
 {{ _("Your endorsement request for '{record_title}' has been rejected by '{actor_name}'.").format(
     record_title=record_title, actor_name=actor_name
 ) }}
-{%- elif status == 'TentativeAccept' -%}
+{%- elif status == WORKFLOW_STATUS_TENTATIVE_ACCEPT -%}
 {{ _("Your endorsement request for '{record_title}' has been tentatively accepted by '{actor_name}'.").format(
     record_title=record_title, actor_name=actor_name
 ) }}
-{%- elif status == 'TentativeReject' -%}
+{%- elif status == WORKFLOW_STATUS_TENTATIVE_REJECT -%}
 {{ _("Your endorsement request for '{record_title}' needs revision. "
    "Please update your request and resubmit for review by '{actor_name}'.").format(
     record_title=record_title, actor_name=actor_name
@@ -31,7 +35,7 @@
 {%- endmacro -%}
 
 {%- block subject -%}
-{%- if endorsement_status == 'coar-notify:ReviewAction' -%}
+{%- if endorsement_status == WORKFLOW_STATUS_ANNOUNCE_REVIEW -%}
 {{ _("🔎 Review notification for '{record_title}'").format(record_title=record_title) }}
 {%- else -%}
 {{ _("📋 Endorsement request status update for '{record_title}'").format(record_title=record_title) }}
@@ -50,7 +54,7 @@
             <a href="{{ record_url }}" class="button">{{ _("View your record")}}</a>
         </td>
     </tr>
-    {% if endorsement_status == 'TentativeReject' %}
+    {% if endorsement_status == WORKFLOW_STATUS_TENTATIVE_REJECT %}
     <tr>
         <td style="background-color:#fff3cd;border:1px solid #ffeaa7;padding:10px;border-radius:4px">
             <strong>{{ _("Action Required:") }}</strong>
@@ -73,7 +77,7 @@
 
 {%- block plain_body -%}
 {{ get_status_message(endorsement_status, record_title, actor_name) }}
-{% if endorsement_status == 'TentativeReject' %}
+{% if endorsement_status == WORKFLOW_STATUS_TENTATIVE_REJECT %}
 {{ _("ACTION REQUIRED: Please review the feedback, update your endorsement request, "
    "and resubmit for consideration.") }}
 {% endif %}
@@ -86,22 +90,21 @@
 {{ account_settings_link }}
 {%- endblock plain_body %}
 
-{# Markdown for Slack/Mattermost/chat #}
 {%- block md_body -%}
-{% if endorsement_status == 'coar-notify:ReviewAction' %}
+{% if endorsement_status == WORKFLOW_STATUS_ANNOUNCE_REVIEW %}
     {{ _("Your record *{record_title}* has received a peer review notification from *{actor_name}*.").format(
         record_title=record_title, actor_name=actor_name
     ) }}
-{% elif endorsement_status == 'Reject' %}
+{% elif endorsement_status == WORKFLOW_STATUS_REJECT %}
     {{ _("Your endorsement request for *{record_title}* has been **rejected** by *{actor_name}*.").format(
         record_title=record_title, actor_name=actor_name
     ) }}
-{% elif endorsement_status == 'TentativeAccept' %}
+{% elif endorsement_status == WORKFLOW_STATUS_TENTATIVE_ACCEPT %}
     {{ _("Your endorsement request for *{record_title}* has been **tentatively accepted** "
        "by *{actor_name}*.").format(
         record_title=record_title, actor_name=actor_name
     ) }}
-{% elif endorsement_status == 'TentativeReject' %}
+{% elif endorsement_status == WORKFLOW_STATUS_TENTATIVE_REJECT %}
     {{ _("Your endorsement request for *{record_title}* **needs revision**. "
        "Please update your request and resubmit for review by *{actor_name}*.").format(
         record_title=record_title, actor_name=actor_name
