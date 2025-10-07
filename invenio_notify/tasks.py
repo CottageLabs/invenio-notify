@@ -5,12 +5,12 @@ from typing import Optional, Union
 from celery import shared_task
 from flask import current_app
 from invenio_access.permissions import system_identity
+from invenio_db import db
 from invenio_db.uow import unit_of_work
 from invenio_notifications.services.uow import NotificationOp
 from invenio_pidstore.errors import PIDDoesNotExistError
 
 from coarnotify.factory import COARNotifyFactory
-from invenio_db import db
 from invenio_notify import constants
 from invenio_notify.constants import SUPPORTED_TYPES
 from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder, \
@@ -140,6 +140,49 @@ def get_notification_type(notification_raw: dict) -> str | None:
     return None
 
 
+def get_workflow_status(notification_raw: dict) -> str | None:
+    """
+    Extract workflow status from notification type field based on COAR notification structure.
+    
+    Args:
+        notification_raw: The raw notification data
+
+    Returns:
+        str | None: The workflow status constant
+    """
+
+    # Extract type field from notification
+    type_field = notification_raw.get('type', [])
+    
+    # If type field is empty or missing, return None
+    if not type_field:
+        return None
+    
+    # Ensure type_field is a list for consistent processing
+    if isinstance(type_field, str):
+        type_field = [type_field]
+    
+    # Check for simple single-type notifications first
+    for t in type_field:
+        if t == constants.TYPE_TENTATIVE_ACCEPT:
+            return constants.WORKFLOW_STATUS_TENTATIVE_ACCEPT
+        elif t == constants.TYPE_TENTATIVE_REJECT:
+            return constants.WORKFLOW_STATUS_TENTATIVE_REJECT
+        elif t == constants.TYPE_REJECT:
+            return constants.WORKFLOW_STATUS_REJECT
+    
+    # Check for compound types with activities
+    has_announce = 'Announce' in type_field
+    
+    # Map based on activity + notification type combinations
+    if has_announce and constants.TYPE_ENDORSEMENT in type_field:
+        return constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
+    elif has_announce and constants.TYPE_REVIEW in type_field:
+        return constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW
+
+    return None
+
+
 def get_actor_by_actor_id(notification_raw: dict) -> ActorModel:
     """
     Extract actor data from notification by actor ID.
@@ -180,6 +223,8 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
         record_item: The record ID (string) or RDMRecordMetadata object
         inbox_id: The ID of the notification inbox record
         notification_raw: The raw notification data
+        actor: The actor associated with the notification
+        endo_reply_id: Id of the endorsement reply if applicable
 
     Returns:
         The created endorsement record
@@ -189,8 +234,8 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     actor_id = actor.id
     log.info(f"Found actor ID {actor_id} for actor_id '{actor.actor_id}'")
 
-    actor_type = get_notification_type(notification_raw)
-    if not actor_type:
+    noti_type = get_notification_type(notification_raw)
+    if not noti_type:
         raise DataNotFound(f"Notification type not found in notification {inbox_id}")
 
     # Handle both string record_id and RDMRecordMetadata object
@@ -210,7 +255,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     endorsement_data = {
         'record_id': record_id,
         'actor_id': actor_id,
-        'review_type': actor_type,
+        'review_type': noti_type,
         'inbox_id': inbox_id,
         'result_url': review_url,
         'actor_name': actor.name,
@@ -220,7 +265,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     # Get actor name for notification
     actor_name = actor.name
 
-    if actor_type == constants.TYPE_ENDORSEMENT:
+    if noti_type == constants.TYPE_ENDORSEMENT:
         # Get the record if we don't have it yet
         record = record or get_record_by_id(record_id)
         uow.register(
@@ -233,11 +278,11 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
                 ),
             )
         )
-    elif actor_type == constants.TYPE_REVIEW:
+    elif noti_type == constants.TYPE_REVIEW:
         create_endorsement_update_notification(
             record_id,
             actor_name,
-            actor_type,
+            constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW,
             uow
         )
 
@@ -287,6 +332,8 @@ def handle_endorsement_and_review(inbox_record: NotifyInboxModel,
     Args:
         inbox_record: The inbox record to process
         notification_raw: The raw notification data
+        actor: The actor associated with the notification
+        endo_reply_id: Id of the endorsement reply if applicable
         
     Returns:
         bool: True if processing was successful, False otherwise
@@ -344,33 +391,34 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
         log.debug(f"Endorsement request with notification_id {notification_id} not found")
         raise DataNotFound(f"Endorsement request not found for notification id[{inbox_record.id}], notification_id[{notification_id}]")
 
-    # Extract status from notification type
-    noti_type = get_notification_type(notification_raw)
-    if not noti_type:
+    # Extract workflow status from notification
+    workflow_status = get_workflow_status(notification_raw)
+    if not workflow_status:
         raise DataNotFound(f"Notification type not found in notification {inbox_record.id}")
     # Extract message from notification if available
     message = notification_raw.get('object', {}).get('summary', None)
 
     # Create the endorsement reply record
-    if noti_type not in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
+    if workflow_status not in {constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT,
+                               constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW}:
         # Review's notification will be sent when endorsement record is created
         create_endorsement_update_notification(
             endorsement_request.record_id,
             endorsement_request.actor.name,
-            noti_type,
+            workflow_status,
             uow
         )
 
     reply = EndorsementReplyModel.create({
         'endorsement_request_id': endorsement_request.id,
         'inbox_id': inbox_record.id,
-        'status': noti_type,
+        'status': workflow_status,
         'message': message
     })
     log.info(f"Created endorsement reply record: {reply.id}")
 
-    # Update endorsement_request.latest_status
-    endorsement_request.latest_status = noti_type
+    # Update endorsement_request.latest_status with workflow status
+    endorsement_request.latest_status = workflow_status
 
     return reply
 

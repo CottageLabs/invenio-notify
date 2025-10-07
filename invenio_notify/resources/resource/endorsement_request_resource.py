@@ -17,12 +17,10 @@ from invenio_records_resources.services.records.results import RecordItem
 
 from invenio_notify import constants
 from invenio_notify.errors import SendRequestFail, BadRequestError
-from invenio_notify.records.models import ActorModel, EndorsementRequestModel
-from invenio_notify.utils import record_utils, endorsement_request_utils
+from invenio_notify.records.models import ActorModel, EndorsementRequestModel, EndorsementModel
+from invenio_notify.utils import record_utils
 from invenio_notify.utils.endorsement_request_utils import (
     create_endorsement_request_data,
-    get_available_actors,
-    can_send
 )
 from invenio_notify.utils.record_utils import resolve_record_from_pid
 from invenio_rdm_records.records import RDMRecord
@@ -62,7 +60,7 @@ def create_endorsement_request_record(endorsement_request_data, record_id, user_
         "user_id": user_id,
         "actor_id": actor_id,
         "raw": endorsement_request_data,
-        "latest_status": constants.STATUS_REQUEST_ENDORSEMENT,
+        "latest_status": constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT,
     })
 
 
@@ -76,7 +74,7 @@ def send_to_actor_inbox(actor, endorsement_request_data: dict):
     Returns:
         str: Error message if validation fails, None if successful
     """
-    if not actor.inbox_url or not actor.inbox_url.startswith('http'):
+    if not actor.inbox_url:
         current_app.logger.error(
             f'Actor inbox URL is not configured for actor {actor.id} url[{actor.inbox_url}]'
         )
@@ -138,14 +136,28 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
         actor_id = data['actor_id']
 
         actor = ActorModel.query.filter_by(id=actor_id).one()
+
+        if not actor or not actor.inbox_url or not actor.inbox_api_token:
+            raise BadRequestError('Actor not available for endorsement request')
+
         record: RecordItem = record_utils.read_record_item(system_identity, pid_value)
         user = User.query.get(g.identity.id)
 
         validate_owner_id(record._record, user.id)
 
-        endo_status = endorsement_request_utils.get_overall_endorsement_status(record._record.model.id, actor_id)
-        if not can_send(endo_status, actor):
-            raise BadRequestError('Actor not available for endorsement request')
+        record_id = record._record.model.id
+
+        # First check if there's an actual endorsement
+        status = EndorsementModel.get_latest_status(record_id, actor_id)
+        if status:
+            raise BadRequestError(f'Actor not available for endorsement request')
+
+        # If no endorsement, check endorsement request status
+        status = EndorsementRequestModel.get_latest_status(record_id, actor_id)
+
+        # If there is a previous request, only allow if the status is TentativeReject
+        if status and status != constants.WORKFLOW_STATUS_TENTATIVE_REJECT:
+            raise BadRequestError(f'Actor not available for endorsement request')
 
         endorsement_request_data = create_endorsement_request_data(user, record, actor)
         send_to_actor_inbox(actor, endorsement_request_data)
@@ -173,5 +185,5 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
 
         validate_owner_id(record, user_id)
 
-        actors = get_available_actors(record.id)
+        actors = ActorModel.get_available_actors(record.id)
         return actors, 200

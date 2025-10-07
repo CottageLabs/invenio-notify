@@ -1,5 +1,8 @@
 from invenio_i18n import lazy_gettext as _
 
+from invenio_notify.constants import WORKFLOW_STATUS_REQUEST_ENDORSEMENT, WORKFLOW_STATUS_TENTATIVE_ACCEPT, \
+    WORKFLOW_STATUS_TENTATIVE_REJECT, WORKFLOW_STATUS_REJECT, WORKFLOW_STATUS_AVAILABLE
+
 NOTIFY_INBOX_SEARCH = {
     "facets": [],
     "sort": [
@@ -296,4 +299,47 @@ NOTIFY_ENDORSEMENT_REQUEST_SORT_OPTIONS = {
     ),
 }
 
+"""Configuration for endorsement status labels.
 
+This configuration defines how endorsement statuses are displayed in the UI.
+Each status can be configured in two ways:
+
+1. String format (simple):
+   - The value is a string representing the display label
+   
+2. Dictionary format (advanced):
+   - 'label': The display text for the status
+   - 'labelClass': CSS class for styling (e.g., 'red', 'green', 'orange')  
+   - 'labelTitle': Optional tooltip text shown on hover
+
+Examples:
+    NOTIFY_ENDORSEMENT_STATUS_LABELS = {
+        # String format - simple label with default styling
+        'pending': 'Awaiting Review',
+        
+        # Dictionary format - full control over appearance
+        'approved': {
+            'label': 'Approved',
+            'labelClass': 'green',
+            'labelTitle': 'This endorsement has been approved'
+        },
+        
+        # Dictionary format - minimal (labelTitle is optional)
+        'rejected': {
+            'label': 'Rejected', 
+            'labelClass': 'red'
+        }
+    }
+"""
+NOTIFY_ENDORSEMENT_STATUS_LABELS = {
+    WORKFLOW_STATUS_TENTATIVE_ACCEPT: 'In progress',
+    WORKFLOW_STATUS_REJECT: {'label': 'Rejected', 'labelClass': 'red'},
+    WORKFLOW_STATUS_TENTATIVE_REJECT: {'label': 'Not endorsed in current form', 'labelClass': 'orange'},
+    WORKFLOW_STATUS_REQUEST_ENDORSEMENT: 'Pending',
+    WORKFLOW_STATUS_AVAILABLE: {'label': 'Available', 'labelClass': 'green'},
+}
+
+# Config variable for endorsement requests react component that determines
+# which workflow states mean that an actor is available to request an endorsement
+# from
+NOTIFY_AVAILABLE_ACTORS = [WORKFLOW_STATUS_TENTATIVE_REJECT, WORKFLOW_STATUS_AVAILABLE]

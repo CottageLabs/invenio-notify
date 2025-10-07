@@ -9,9 +9,14 @@ TYPE_TENTATIVE_REJECT = 'TentativeReject'
 SUPPORTED_TYPES = [TYPE_REVIEW, TYPE_ENDORSEMENT, TYPE_TENTATIVE_ACCEPT, TYPE_REJECT, TYPE_TENTATIVE_REJECT]
 """ List of supported notification types that can be processed by the notify  """
 
-# Status constants
-STATUS_REQUEST_ENDORSEMENT = 'Request Endorsement'
-
+# Workflow status constants
+WORKFLOW_STATUS_REQUEST_ENDORSEMENT = 'request_endorsement'
+WORKFLOW_STATUS_TENTATIVE_ACCEPT = 'tentative_accept'
+WORKFLOW_STATUS_TENTATIVE_REJECT = 'tentative_reject'
+WORKFLOW_STATUS_ANNOUNCE_REVIEW = 'announce_review'
+WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT = 'announce_endorsement'
+WORKFLOW_STATUS_REJECT = 'reject'
+WORKFLOW_STATUS_AVAILABLE = 'available' # This is not COAR standard, used internally.
 
 
 STATUS_NOT_ACCEPTED = 422

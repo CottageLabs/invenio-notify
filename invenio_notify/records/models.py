@@ -2,12 +2,13 @@ from typing import Iterable
 
 from invenio_accounts.models import User
 from invenio_db import db
+from sqlalchemy import and_, or_, func
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import selectinload
-from sqlalchemy_utils import Timestamp
-from sqlalchemy_utils.types import JSONType, UUIDType
+from sqlalchemy_utils.types import JSONType, UUIDType, URLType
 
 from invenio_notify import constants
+from invenio_notify.constants import WORKFLOW_STATUS_AVAILABLE
 from invenio_notify.errors import NotExistsError
 from invenio_notify.records.mixins import UTCTimestamp
 from invenio_rdm_records.records.models import RDMRecordMetadata
@@ -184,7 +185,7 @@ class ActorMapModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     actor_id = db.Column(
         db.Integer(),
-        db.ForeignKey("actor.id", ondelete="CASCADE"),
+        db.ForeignKey("notify_actor.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -216,7 +217,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     If inbox_url, inbox_api_token is set, it will allow Record owners to send endorsement requests.
     """
-    __tablename__ = "actor"
+    __tablename__ = "notify_actor"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -225,7 +226,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
     actor_id = db.Column(db.Text, nullable=True, unique=True)
     """ ID that is used in COAR notification (JSON) """
 
-    inbox_url = db.Column(db.Text, nullable=True)
+    inbox_url = db.Column(URLType, nullable=True)
 
     inbox_api_token = db.Column(db.Text, nullable=True)
 
@@ -240,7 +241,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     @classmethod
     def has_member_with_email(cls, email, actor_id) -> bool:
-        """Check if a user with given email is a member of a actor with the given actor_id.
+        """Check if a user with given email is a member of an actor with the given actor_id.
         
         Args:
             email: Email address of the user
@@ -258,7 +259,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     @classmethod
     def has_member(cls, user_id, actor_id) -> bool:
-        """Check if a user with given user_id is a member of a actor with the given actor_id.
+        """Check if a user with given user_id is a member of an actor with the given actor_id.
         
         Args:
             user_id: ID of the user
@@ -272,6 +273,138 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                   .filter(ActorMapModel.user_id == user_id, cls.actor_id == actor_id)
                   .first())
         return result is not None
+
+    @classmethod
+    def has_available_actors(cls, record_id) -> bool:
+        """Check if there are any available actors for endorsement requests.
+        Uses the same logic as get_available_actors but returns boolean.
+        
+        Args:
+            record_id: UUID of the record
+            
+        Returns:
+            bool: True if there are available actors, False otherwise
+        """
+        
+        # Subquery to get latest endorsement by creation date
+        latest_endorsement = (
+            db.session.query(
+                EndorsementModel.actor_id,
+                EndorsementModel.review_type,
+                func.row_number().over(
+                    partition_by=EndorsementModel.actor_id,
+                    order_by=EndorsementModel.created.desc()
+                ).label('rn')
+            )
+            .filter(EndorsementModel.record_id == record_id)
+            .subquery()
+        )
+        
+        # Check if there's at least one available actor
+        available_actor = (
+            db.session.query(cls.id)
+            .filter(
+                and_(
+                    cls.inbox_url.isnot(None),
+                    cls.inbox_api_token.isnot(None)
+                )
+            )
+            .outerjoin(
+                latest_endorsement,
+                and_(
+                    latest_endorsement.c.actor_id == cls.id,
+                    latest_endorsement.c.rn == 1
+                )
+            )
+            .filter(
+                # Exclude actors with completed endorsements/reviews
+                or_(
+                    latest_endorsement.c.review_type.is_(None),
+                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
+                )
+            )
+            .first()
+        )
+        
+        return available_actor is not None
+
+    @classmethod
+    def get_available_actors(cls, record_id):
+        """Get list of all actors that:
+              1. Have inbox_url configured
+              2. Have inbox_api_token configured
+              3. inbox_url is not empty
+              4. inbox_api_token is not empty
+              5. Either have no endorsements OR have endorsements that aren't completed types,
+                 endorsement are sorted by created date descending
+        
+        Args:
+            record_id: UUID of the record
+            
+        Returns:
+            list: List of actor dictionaries with actor_id, actor_name, and status
+        """
+        
+        # Subquery to get latest endorsement by creation date
+        latest_endorsement = (
+            db.session.query(
+                EndorsementModel.actor_id,
+                EndorsementModel.review_type,
+                func.row_number().over(
+                    partition_by=EndorsementModel.actor_id,
+                    order_by=EndorsementModel.created.desc()
+                ).label('rn')
+            )
+            .filter(EndorsementModel.record_id == record_id)
+            .subquery()
+        )
+        
+        # Main query with exclusion filter
+        query = (
+            db.session.query(
+                cls.id.label('actor_id'),
+                cls.name.label('actor_name'),
+                latest_endorsement.c.review_type.label('endorsement_status')
+            )
+            .filter(
+                and_(
+                    cls.inbox_url.isnot(None),
+                    cls.inbox_api_token.isnot(None)
+                )
+            )
+            .outerjoin(
+                latest_endorsement,
+                and_(
+                    latest_endorsement.c.actor_id == cls.id,
+                    latest_endorsement.c.rn == 1
+                )
+            )
+            .filter(
+                # Exclude actors with completed endorsements/reviews
+                or_(
+                    latest_endorsement.c.review_type.is_(None),
+                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
+                )
+            )
+        )
+        
+        results = query.all()
+        actors = []
+        
+        for result in results:
+            # Determine status based on endorsement state
+            if result.endorsement_status:
+                status = result.endorsement_status
+            else:
+                status = WORKFLOW_STATUS_AVAILABLE
+
+            actors.append({
+                "actor_id": result.actor_id,
+                "actor_name": result.actor_name,
+                "status": status,
+            })
+        
+        return actors
 
 
 class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
@@ -294,7 +427,7 @@ class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     actor_id = db.Column(
         db.Integer,
-        db.ForeignKey("actor.id", ondelete="NO ACTION"),
+        db.ForeignKey("notify_actor.id", ondelete="NO ACTION"),
         nullable=True,
         index=True,
     )
@@ -322,6 +455,20 @@ class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
         index=True,
     )
     endorsement_reply = db.relationship("EndorsementReplyModel", uselist=False)
+
+    @classmethod
+    def get_latest_status(cls, record_id, actor_id):
+        """Get latest endorsement status for record and actor."""
+        return (
+            cls.query.filter_by(
+                record_id=record_id,
+                actor_id=actor_id,
+            )
+            .order_by(cls.created.desc())
+            .with_entities(cls.review_type)
+            .limit(1)
+            .scalar()
+        )
 
     @classmethod
     def query_by_parent_id(cls, parent_id):
@@ -369,7 +516,7 @@ class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     actor_id = db.Column(
         db.Integer,
-        db.ForeignKey("actor.id", ondelete="NO ACTION"),
+        db.ForeignKey("notify_actor.id", ondelete="NO ACTION"),
         nullable=False,
         index=True,
     )
@@ -379,9 +526,39 @@ class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
     """ Raw notification data as JSON """
 
     latest_status = db.Column(db.Text, nullable=False)
-    """ Latest status, e.g., 'Request Endorsement', 'Reject', 'Announce Endorsement' """
+    """ Latest status, e.g., 'coar-notify:EndorsementAction', 'Request Endorsement', 'Reject', 'Announce Endorsement'
+        This field is updated when a reply is received."""
 
     replies = db.relationship("EndorsementReplyModel", back_populates="endorsement_request")
+
+    @classmethod
+    def get_latest_status(cls, record_id, actor_id, include_id=False):
+        """Get latest endorsement request status for record and actor.
+        
+        Args:
+            record_id: UUID of the record
+            actor_id: ID of the actor
+            include_id: If True, returns (status, notification_id) tuple
+            
+        Returns:
+            str: latest status if include_notification_id=False
+            tuple: (status, notification_id) if include_notification_id=True
+            None: if no request found
+        """
+        query = (
+            cls.query.filter_by(
+                record_id=record_id,
+                actor_id=actor_id,
+            )
+            .order_by(cls.created.desc())
+            .limit(1)
+        )
+        
+        if include_id:
+            result = query.with_entities(cls.latest_status, cls.notification_id).first()
+            return result if result else (None, None)
+        else:
+            return query.with_entities(cls.latest_status).scalar()
 
     @classmethod
     def update_latest_status_by_request_id(cls, endorsement_request_id):
@@ -396,7 +573,7 @@ class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
                          .limit(1)
                          .scalar())
 
-        latest_status = latest_status or constants.STATUS_REQUEST_ENDORSEMENT
+        latest_status = latest_status or constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
 
         cls.update({'latest_status': latest_status}, endorsement_request_id)
         return latest_status
