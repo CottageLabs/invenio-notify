@@ -12,11 +12,11 @@ from invenio_vocabularies.records.api import Vocabulary
 
 from .fake_datacite_client import FakeDataCiteClient
 from invenio_notify.constants import NOTIFY_PCI_ENDORSEMENT, NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT
-from invenio_notify_test.builders.inbox_test_data_builder import *  # noqa
-from invenio_notify_test.fixtures.endorsement_request_fixture import *  # noqa
-from invenio_notify_test.fixtures.inbox_fixture import *  # noqa
-from invenio_notify_test.fixtures.actor_fixture import *  # noqa
-from invenio_notify_test.fixtures.user_fixture import *  # noqa
+from tests.builders.inbox_test_data_builder import *  # noqa
+from tests.fixtures.endorsement_request_fixture import *  # noqa
+from tests.fixtures.inbox_fixture import *  # noqa
+from tests.fixtures.actor_fixture import *  # noqa
+from tests.fixtures.user_fixture import *  # noqa
 from invenio_rdm_records.proxies import current_rdm_records
 from invenio_rdm_records.resources.serializers import DataCite43JSONSerializer
 

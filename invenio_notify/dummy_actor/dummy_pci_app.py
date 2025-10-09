@@ -11,7 +11,7 @@ from coarnotify.exceptions import NotifyException
 from coarnotify.server import COARNotifyReceipt, COARNotifyServer, COARNotifyServiceBinding
 from invenio_notify.utils.notify_response import response_coar_notify_receipt, \
     create_default_msg_by_status
-from invenio_notify_test.fixtures.inbox_payload import payload_endorsement_resp, payload_review, \
+from tests.fixtures.inbox_payload import payload_endorsement_resp, payload_review, \
     payload_tentative_accept, payload_reject, payload_tentative_reject
 
 app = Flask(__name__)

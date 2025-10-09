@@ -1,7 +1,7 @@
 import pytest
 
 from invenio_notify.records.models import EndorsementReplyModel, EndorsementRequestModel
-from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request
+from tests.fixtures.endorsement_request_fixture import create_endorsement_request
 
 
 @pytest.fixture

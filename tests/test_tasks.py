@@ -5,10 +5,10 @@ from invenio_notify import constants
 from invenio_notify.records.models import NotifyInboxModel, EndorsementModel, EndorsementRequestModel, \
     EndorsementReplyModel
 from invenio_notify.tasks import inbox_processing, mark_as_processed
-from invenio_notify_test.fixtures import inbox_payload
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox
-from invenio_notify_test.fixtures.inbox_payload import payload_endorsement_resp
-from invenio_notify_test.fixtures.inbox_payload import payload_review, \
+from tests.fixtures import inbox_payload
+from tests.fixtures.inbox_fixture import create_inbox
+from tests.fixtures.inbox_payload import payload_endorsement_resp
+from tests.fixtures.inbox_payload import payload_review, \
     payload_reject
 from invenio_rdm_records.proxies import current_rdm_records_service
 

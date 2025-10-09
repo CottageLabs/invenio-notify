@@ -7,12 +7,12 @@ from invenio_notify.proxies import (
     current_notify,
     current_actor_service,
 )
-from invenio_notify_test.fixtures.endorsement_reply_fixture import create_endorsement_reply
-from invenio_notify_test.fixtures.endorsement_request_fixture import create_endorsement_request
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox
-from invenio_notify_test.fixtures.actor_fixture import create_actor
-from invenio_notify_test.fixtures.actor_map_fixture import create_actor_map
-from invenio_notify_test.utils import BasicDbServiceTestHelper
+from tests.fixtures.endorsement_reply_fixture import create_endorsement_reply
+from tests.fixtures.endorsement_request_fixture import create_endorsement_request
+from tests.fixtures.inbox_fixture import create_inbox
+from tests.fixtures.actor_fixture import create_actor
+from tests.fixtures.actor_map_fixture import create_actor_map
+from tests.utils import BasicDbServiceTestHelper
 
 
 class TestActorMapService(BasicDbServiceTestHelper):

@@ -36,7 +36,7 @@ def create_endorsement_request_data(actor_id, record_id, latest_status="Request 
 def create_endorsement_request(superuser_identity, create_actor, db, minimal_record):
     """Fixture to create an endorsement request."""
     def _create_endorsement_request(record_id=None, actor_id=None, latest_status="Request Endorsement", user_id=None, notification_id=None):
-        from invenio_notify_test.fixtures.record_fixture import prepare_test_rdm_record
+        from tests.fixtures.record_fixture import prepare_test_rdm_record
         if actor_id is None:
             actor = create_actor()
             actor_id = actor.id

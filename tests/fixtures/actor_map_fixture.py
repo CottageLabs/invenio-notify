@@ -1,8 +1,8 @@
 import pytest
 
 from invenio_notify.records.models import ActorMapModel
-from invenio_notify_test.fixtures.actor_fixture import create_actor
-from invenio_notify_test.utils import resolve_user_id
+from tests.fixtures.actor_fixture import create_actor
+from tests.utils import resolve_user_id
 
 
 @pytest.fixture

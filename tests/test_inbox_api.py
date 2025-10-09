@@ -4,14 +4,14 @@ from invenio_oauth2server.models import Token
 from invenio_notify.records.models import ActorMapModel
 from invenio_notify.scopes import inbox_scope
 from invenio_notify.utils import user_utils
-from invenio_notify_test.fixtures.inbox_payload import (
+from tests.fixtures.inbox_payload import (
     payload_review,
     payload_endorsement_resp,
     payload_tentative_accept,
     payload_reject,
     payload_tentative_reject
 )
-from invenio_notify_test.fixtures.actor_fixture import create_actor
+from tests.fixtures.actor_fixture import create_actor
 
 
 def create_scope_token(user):

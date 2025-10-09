@@ -1,5 +1,5 @@
-from invenio_notify_test.builders.inbox_test_data_builder import inbox_test_data_builder
-from invenio_notify_test.fixtures.inbox_payload import payload_reject
+from tests.builders.inbox_test_data_builder import inbox_test_data_builder
+from tests.fixtures.inbox_payload import payload_reject
 from invenio_rdm_records.proxies import current_rdm_records
 
 

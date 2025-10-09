@@ -2,12 +2,12 @@ from invenio_accounts.testutils import create_test_user
 
 from invenio_notify.proxies import current_actor_service
 from invenio_notify.records.models import ActorModel
-from invenio_notify_test.fixtures.actor_fixture import (
+from tests.fixtures.actor_fixture import (
     create_actor,
     actor_data,
     sample_actors,
 )
-from invenio_notify_test.fixtures.user_fixture import create_test_users
+from tests.fixtures.user_fixture import create_test_users
 
 
 def test_create_model(db, superuser_identity):

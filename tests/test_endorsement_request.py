@@ -1,7 +1,7 @@
 import uuid
 
 from invenio_notify.records.models import EndorsementRequestModel
-from invenio_notify_test.fixtures.endorsement_request_fixture import (
+from tests.fixtures.endorsement_request_fixture import (
     create_endorsement_request,
 )
 

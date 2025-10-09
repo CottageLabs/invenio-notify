@@ -3,8 +3,8 @@ import uuid
 import pytest
 
 from invenio_notify.records.models import NotifyInboxModel
-from invenio_notify_test.fixtures.inbox_payload import payload_review
-from invenio_notify_test.utils import resolve_user_id
+from tests.fixtures.inbox_payload import payload_review
+from tests.utils import resolve_user_id
 
 
 @pytest.fixture

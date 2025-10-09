@@ -1,8 +1,8 @@
 import pytest
 
 from coarnotify.factory import COARNotifyFactory
-from invenio_notify_test.fixtures.endorsement_request_payload import payload_endorsement_request
-from invenio_notify_test.fixtures.inbox_payload import (
+from tests.fixtures.endorsement_request_payload import payload_endorsement_request
+from tests.fixtures.inbox_payload import (
     payload_review,
     payload_endorsement_resp,
     payload_tentative_accept,
