@@ -6,9 +6,11 @@ from invenio_access.permissions import system_identity
 from invenio_administration.permissions import administration_access_action
 from invenio_app.factory import create_app as _create_app
 from invenio_files_rest.models import Location
+from invenio_rdm_records.services.pids import providers
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
 
+from .fake_datacite_client import FakeDataCiteClient
 from invenio_notify.constants import NOTIFY_PCI_ENDORSEMENT, NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT
 from invenio_notify_test.builders.inbox_test_data_builder import *  # noqa
 from invenio_notify_test.fixtures.endorsement_request_fixture import *  # noqa
@@ -16,6 +18,7 @@ from invenio_notify_test.fixtures.inbox_fixture import *  # noqa
 from invenio_notify_test.fixtures.actor_fixture import *  # noqa
 from invenio_notify_test.fixtures.user_fixture import *  # noqa
 from invenio_rdm_records.proxies import current_rdm_records
+from invenio_rdm_records.resources.serializers import DataCite43JSONSerializer
 
 RunningApp = namedtuple(
     "RunningApp",
@@ -217,10 +220,59 @@ def rdm_record(db, superuser_identity, minimal_record, resource_type_v, location
 
     return record
 
+def _(x):
+    """Identity function for string extraction."""
+    return x
+
 
 @pytest.fixture(scope="module")
-def app_config(app_config):
+def mock_datacite_client():
+    """Mock DataCite client."""
+    return FakeDataCiteClient
+
+
+@pytest.fixture(scope="module")
+def app_config(app_config, mock_datacite_client):
     app_config["NOTIFY_ORIGIN_ID"] = "yoooooooooooooooooooooo"
     app_config[NOTIFY_PCI_ENDORSEMENT] = True
     app_config[NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT] = True
+    
+    # Enable DOI minting...
+    app_config["DATACITE_ENABLED"] = True
+    app_config["DATACITE_USERNAME"] = "INVALID"
+    app_config["DATACITE_PASSWORD"] = "INVALID"
+    app_config["DATACITE_PREFIX"] = "10.1234"
+    app_config["DATACITE_DATACENTER_SYMBOL"] = "TEST"
+    # ...but fake it
+
+    app_config["RDM_PERSISTENT_IDENTIFIER_PROVIDERS"] = [
+        # DataCite DOI provider with fake client
+        providers.DataCitePIDProvider(
+            "datacite",
+            client=mock_datacite_client("datacite", config_prefix="DATACITE"),
+            label=_("DOI"),
+        ),
+        # DOI provider for externally managed DOIs
+        providers.ExternalPIDProvider(
+            "external",
+            "doi",
+            validators=[providers.BlockedPrefixes(config_names=["DATACITE_PREFIX"])],
+            label=_("DOI"),
+        ),
+        # OAI identifier
+        providers.OAIPIDProvider(
+            "oai",
+            label=_("OAI ID"),
+        ),
+    ]
+    app_config["RDM_PARENT_PERSISTENT_IDENTIFIER_PROVIDERS"] = [
+        # DataCite Concept DOI provider
+        providers.DataCitePIDProvider(
+            "datacite",
+            client=mock_datacite_client("datacite", config_prefix="DATACITE"),
+            serializer=DataCite43JSONSerializer(schema_context={"is_parent": True}),
+            label=_("Concept DOI"),
+        ),
+    ]
+    
     return app_config

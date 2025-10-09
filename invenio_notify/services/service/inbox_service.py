@@ -1,4 +1,6 @@
-from flask import current_app
+from flask import current_app, g
+from idutils.normalizers import normalize_doi
+from idutils.validators import is_doi
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 from sqlalchemy.exc import IntegrityError
@@ -16,7 +18,9 @@ from invenio_notify.proxies import current_inbox_service
 from invenio_notify.records.models import ActorModel
 from invenio_notify.tasks import get_notification_type
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
+from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.proxies import current_rdm_records
 from invenio_rdm_records.services import RDMRecordService
 from .base_service import BasicDbService
 from sqlalchemy import or_, cast, String
@@ -43,6 +47,20 @@ def get_record_id_from_notification(raw: dict) -> str:
     if not record_url:
         current_app.logger.error('No record URL found in notification')
         raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'No record URL found')
+
+    # Check if record_url is a DOI
+    if is_doi(record_url):
+        # Extract the normalized DOI from the URI
+        normalized_doi = normalize_doi(record_url)
+        pids_service = current_rdm_records.records_service.pids
+
+        try:
+           record = pids_service.resolve(g.identity, normalized_doi, "doi")
+           return record["id"]
+        except PIDDoesNotExistError as e:
+            current_app.logger.error(f'No record with the DOI {record_url} exists: {e}')
+        except Exception as e:
+            current_app.logger.error(f'Unexpected error while searching for records with DOI {record_url}: {e}')
 
     return get_recid_by_record_url(record_url)
 

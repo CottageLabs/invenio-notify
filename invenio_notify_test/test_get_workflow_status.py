@@ -13,7 +13,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["Offer", "coar-notify:EndorsementAction"]
         }
-        result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
+        result = get_workflow_status(notification)
         assert result is None
 
     def test_announce_endorsement_action(self):
@@ -21,7 +21,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["Announce", "coar-notify:EndorsementAction"]
         }
-        result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
+        result = get_workflow_status(notification)
         assert result == constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
 
     def test_announce_review_action(self):
@@ -29,7 +29,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["Announce", "coar-notify:ReviewAction"]
         }
-        result = get_workflow_status(notification, constants.TYPE_REVIEW)
+        result = get_workflow_status(notification)
         assert result == constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW
 
     def test_tentative_accept(self):
@@ -37,7 +37,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": "TentativeAccept"
         }
-        result = get_workflow_status(notification, constants.TYPE_TENTATIVE_ACCEPT)
+        result = get_workflow_status(notification)
         assert result == constants.WORKFLOW_STATUS_TENTATIVE_ACCEPT
 
     def test_tentative_reject(self):
@@ -45,7 +45,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": "TentativeReject"
         }
-        result = get_workflow_status(notification, constants.TYPE_TENTATIVE_REJECT)
+        result = get_workflow_status(notification)
         assert result == constants.WORKFLOW_STATUS_TENTATIVE_REJECT
 
     def test_reject(self):
@@ -53,7 +53,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": "Reject"
         }
-        result = get_workflow_status(notification, constants.TYPE_REJECT)
+        result = get_workflow_status(notification)
         assert result == constants.WORKFLOW_STATUS_REJECT
 
     def test_tentative_accept_in_list(self):
@@ -61,7 +61,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["TentativeAccept", "SomeOtherType"]
         }
-        result = get_workflow_status(notification, constants.TYPE_TENTATIVE_ACCEPT)
+        result = get_workflow_status(notification)
         assert result == constants.WORKFLOW_STATUS_TENTATIVE_ACCEPT
 
     def test_tentative_reject_in_list(self):
@@ -69,7 +69,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["SomeOtherType", "TentativeReject"]
         }
-        result = get_workflow_status(notification, constants.TYPE_TENTATIVE_REJECT)
+        result = get_workflow_status(notification)
         assert result == constants.WORKFLOW_STATUS_TENTATIVE_REJECT
 
     def test_reject_in_list(self):
@@ -77,7 +77,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["Reject"]
         }
-        result = get_workflow_status(notification, constants.TYPE_REJECT)
+        result = get_workflow_status(notification)
         assert result == constants.WORKFLOW_STATUS_REJECT
 
     def test_empty_type_list(self):
@@ -85,29 +85,13 @@ class TestGetWorkflowStatus:
         notification = {
             "type": []
         }
-        result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
+        result = get_workflow_status(notification)
         assert result is None
 
     def test_missing_type_field(self):
         """Test missing type field returns None."""
         notification = {}
-        result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
-        assert result is None
-
-    def test_none_notification_type(self):
-        """Test None notification type returns None."""
-        notification = {
-            "type": ["Announce", "coar-notify:EndorsementAction"]
-        }
-        result = get_workflow_status(notification, None)
-        assert result is None
-
-    def test_empty_notification_type(self):
-        """Test empty notification type returns None."""
-        notification = {
-            "type": ["Announce", "coar-notify:EndorsementAction"]
-        }
-        result = get_workflow_status(notification, "")
+        result = get_workflow_status(notification)
         assert result is None
 
     def test_unknown_activity_returns_none(self):
@@ -115,7 +99,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["SomeUnknownActivity", "coar-notify:EndorsementAction"]
         }
-        result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
+        result = get_workflow_status(notification)
         assert result is None
 
     def test_unknown_activity_review_returns_none(self):
@@ -123,7 +107,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["SomeUnknownActivity", "coar-notify:ReviewAction"]
         }
-        result = get_workflow_status(notification, constants.TYPE_REVIEW)
+        result = get_workflow_status(notification)
         assert result is None
 
     def test_unknown_notification_type(self):
@@ -131,7 +115,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["Announce", "coar-notify:UnknownAction"]
         }
-        result = get_workflow_status(notification, "coar-notify:UnknownAction")
+        result = get_workflow_status(notification)
         assert result is None
 
     def test_offer_with_review_type_returns_none(self):
@@ -139,7 +123,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["Offer", "coar-notify:ReviewAction"]
         }
-        result = get_workflow_status(notification, constants.TYPE_REVIEW)
+        result = get_workflow_status(notification)
         # Should return None since Offer + Review is not a defined combination and no fallback
         assert result is None
 
@@ -148,7 +132,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["Announce", "SomeOtherAction"]
         }
-        result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
+        result = get_workflow_status(notification)
         # Should return None since notification type doesn't match and no fallback
         assert result is None
 
@@ -157,7 +141,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["Reject", "Announce", "coar-notify:EndorsementAction"]
         }
-        result = get_workflow_status(notification, constants.TYPE_ENDORSEMENT)
+        result = get_workflow_status(notification)
         # Should return reject (simple type takes precedence)
         assert result == constants.WORKFLOW_STATUS_REJECT
 
@@ -166,7 +150,7 @@ class TestGetWorkflowStatus:
         notification = {
             "type": ["TentativeAccept", "Reject", "TentativeReject"]
         }
-        result = get_workflow_status(notification, constants.TYPE_TENTATIVE_ACCEPT)
+        result = get_workflow_status(notification)
         # Should return tentative_accept (first match in the function's check order)
         assert result == constants.WORKFLOW_STATUS_TENTATIVE_ACCEPT
 
@@ -177,47 +161,47 @@ class TestGetWorkflowStatus:
         notification_step2 = {
             "type": ["Offer", "coar-notify:EndorsementAction"]
         }
-        result = get_workflow_status(notification_step2, constants.TYPE_ENDORSEMENT)
+        result = get_workflow_status(notification_step2)
         assert result is None  # Offer is outgoing, not valid for incoming replies
         
         # Example from step 5.1: Tentative Accept
         notification_step5_1 = {
             "type": "TentativeAccept"
         }
-        result = get_workflow_status(notification_step5_1, constants.TYPE_TENTATIVE_ACCEPT)
+        result = get_workflow_status(notification_step5_1)
         assert result == constants.WORKFLOW_STATUS_TENTATIVE_ACCEPT
         
         # Example from step 6: Reject
         notification_step6 = {
             "type": "Reject"
         }
-        result = get_workflow_status(notification_step6, constants.TYPE_REJECT)
+        result = get_workflow_status(notification_step6)
         assert result == constants.WORKFLOW_STATUS_REJECT
         
         # Example from step 10.1: Announce Review
         notification_step10_1 = {
             "type": ["Announce", "coar-notify:ReviewAction"]
         }
-        result = get_workflow_status(notification_step10_1, constants.TYPE_REVIEW)
+        result = get_workflow_status(notification_step10_1)
         assert result == constants.WORKFLOW_STATUS_ANNOUNCE_REVIEW
         
         # Example from step 10.2: Announce Endorsement
         notification_step10_2 = {
             "type": ["Announce", "coar-notify:EndorsementAction"]
         }
-        result = get_workflow_status(notification_step10_2, constants.TYPE_ENDORSEMENT)
+        result = get_workflow_status(notification_step10_2)
         assert result == constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
         
         # Example from step 13: Tentative Reject
         notification_step13 = {
             "type": "TentativeReject"
         }
-        result = get_workflow_status(notification_step13, constants.TYPE_TENTATIVE_REJECT)
+        result = get_workflow_status(notification_step13)
         assert result == constants.WORKFLOW_STATUS_TENTATIVE_REJECT
         
         # Example from step 15: Reject (another example)
         notification_step15 = {
             "type": "Reject"
         }
-        result = get_workflow_status(notification_step15, constants.TYPE_REJECT)
+        result = get_workflow_status(notification_step15)
         assert result == constants.WORKFLOW_STATUS_REJECT
