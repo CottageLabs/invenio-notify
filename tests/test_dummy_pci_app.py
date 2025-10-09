@@ -3,7 +3,7 @@ import pytest
 from unittest.mock import patch
 
 from invenio_notify.dummy_actor.dummy_pci_app import app
-from invenio_notify_test.fixtures.endorsement_request_payload import payload_endorsement_request
+from tests.fixtures.endorsement_request_payload import payload_endorsement_request
 
 
 @patch('invenio_notify.dummy_actor.dummy_pci_app.DummyPCIBackend')

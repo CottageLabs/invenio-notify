@@ -3,8 +3,8 @@ from unittest.mock import patch, Mock
 from invenio_records_resources.services.records.results import RecordItem
 
 from invenio_notify.resources.resource import endorsement_request_resource
-from invenio_notify_test.fixtures.actor_fixture import create_multiple_actors
-from invenio_notify_test.fixtures.user_fixture import different_user
+from tests.fixtures.actor_fixture import create_multiple_actors
+from tests.fixtures.user_fixture import different_user
 
 
 class TestListActors:

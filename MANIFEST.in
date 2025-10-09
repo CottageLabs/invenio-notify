@@ -14,7 +14,7 @@ recursive-include invenio_notify *.jinja
 recursive-include invenio_notify *.js
 recursive-include invenio_notify *.json
 recursive-include invenio_notify *.py
-recursive-include invenio_notify_test *.py
+recursive-include tests *.py
 
 # Include specific docs_sphinx css files but exclude build directory
 include docs_sphinx/_static/css/custom.css

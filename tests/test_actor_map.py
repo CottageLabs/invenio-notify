@@ -1,7 +1,7 @@
 from invenio_notify.records.models import ActorMapModel
 from invenio_notify.proxies import current_notify
-from invenio_notify_test.fixtures.actor_map_fixture import create_actor_map_dict
-from invenio_notify_test.fixtures.actor_fixture import create_actor
+from tests.fixtures.actor_map_fixture import create_actor_map_dict
+from tests.fixtures.actor_fixture import create_actor
 
 
 def test_create_model(db, superuser_identity, create_actor):

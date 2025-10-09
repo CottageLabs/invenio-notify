@@ -4,7 +4,7 @@ from invenio_search import current_search_client
 
 from invenio_notify.constants import TYPE_ENDORSEMENT, TYPE_REVIEW
 from invenio_notify.records.models import EndorsementModel, ActorModel
-from invenio_notify_test.fixtures.record_fixture import prepare_test_rdm_record
+from tests.fixtures.record_fixture import prepare_test_rdm_record
 from invenio_rdm_records.proxies import current_rdm_records_service
 
 

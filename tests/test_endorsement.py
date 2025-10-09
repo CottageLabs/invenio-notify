@@ -6,10 +6,10 @@ from sqlalchemy.exc import StatementError
 
 from invenio_notify import proxies, constants
 from invenio_notify.records.models import EndorsementModel
-from invenio_notify_test.fixtures.endorsement_fixture import create_endorsement
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox
-from invenio_notify_test.fixtures.record_fixture import prepare_test_rdm_record
-from invenio_notify_test.fixtures.actor_fixture import create_actor
+from tests.fixtures.endorsement_fixture import create_endorsement
+from tests.fixtures.inbox_fixture import create_inbox
+from tests.fixtures.record_fixture import prepare_test_rdm_record
+from tests.fixtures.actor_fixture import create_actor
 
 
 def test_model_create(db, superuser_identity, minimal_record, create_actor):

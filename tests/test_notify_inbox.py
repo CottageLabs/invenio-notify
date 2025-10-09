@@ -1,7 +1,7 @@
 from invenio_notify.proxies import current_inbox_service
 from invenio_notify.records.models import NotifyInboxModel
-from invenio_notify_test.fixtures.inbox_fixture import create_inbox
-from invenio_notify_test.fixtures.inbox_payload import payload_review
+from tests.fixtures.inbox_fixture import create_inbox
+from tests.fixtures.inbox_payload import payload_review
 
 
 def test_create_model(db, superuser_identity, create_inbox):
