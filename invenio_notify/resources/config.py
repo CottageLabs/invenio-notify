@@ -62,6 +62,11 @@ class InboxApiResourceConfig(RecordResourceConfig):
     """Configuration for the inbox API resource."""
     blueprint_name = "inbox_api"
     url_prefix = ""  # No prefix needed as route is defined directly
+    
+    request_body_parsers = {
+        "application/json": RequestBodyParser(JSONDeserializer()),
+        "application/ld+json": RequestBodyParser(JSONDeserializer()),
+    }
 
 
 class EndorsementRequestResourceConfig(ResourceConfig, ConfiguratorMixin):
