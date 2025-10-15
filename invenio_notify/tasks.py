@@ -249,6 +249,9 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
         record = record_item
         record_id = str(record.id)
 
+    # An endorsement object should have ietf:cite-as but a review does not. The endorsement should be cited.
+    # For a review, the object will not have ietf:cite-as, but the context may have it.
+    # https://coar-notify.net/catalogue/workflows/repository-pci/10.1/
     review_url = notification_raw['object'].get(constants.KEY_INBOX_REVIEW_URL) or notification_raw['context'].get(
         constants.KEY_INBOX_REVIEW_URL)
     if not review_url:
