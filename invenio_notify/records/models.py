@@ -300,17 +300,17 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             .subquery()
         )
         
-        # Subquery to check for pending endorsement requests
-        pending_request = (
+        # Subquery to get latest endorsement request status
+        latest_request = (
             db.session.query(
-                EndorsementRequestModel.actor_id
+                EndorsementRequestModel.actor_id,
+                EndorsementRequestModel.latest_status,
+                func.row_number().over(
+                    partition_by=EndorsementRequestModel.actor_id,
+                    order_by=EndorsementRequestModel.created.desc()
+                ).label('rn')
             )
-            .filter(
-                and_(
-                    EndorsementRequestModel.record_id == record_id,
-                    EndorsementRequestModel.latest_status == constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
-                )
-            )
+            .filter(EndorsementRequestModel.record_id == record_id)
             .subquery()
         )
         
@@ -331,8 +331,11 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 )
             )
             .outerjoin(
-                pending_request,
-                pending_request.c.actor_id == cls.id
+                latest_request,
+                and_(
+                    latest_request.c.actor_id == cls.id,
+                    latest_request.c.rn == 1
+                )
             )
             .filter(
                 # Exclude actors with completed endorsements/reviews or pending requests
@@ -341,7 +344,10 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                         latest_endorsement.c.review_type.is_(None),
                         latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
                     ),
-                    pending_request.c.actor_id.is_(None)
+                    '''or_(
+                        latest_request.c.latest_status.is_(None),
+                        latest_request.c.latest_status != constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
+                    )'''
                 )
             )
             .first()
@@ -358,7 +364,6 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
               4. inbox_api_token is not empty
               5. Either have no endorsements OR have endorsements that aren't completed types,
                  endorsement are sorted by created date descending
-              6. Don't have pending endorsement requests
         
         Args:
             record_id: UUID of the record
@@ -381,17 +386,17 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             .subquery()
         )
         
-        # Subquery to check for pending endorsement requests
-        pending_request = (
+        # Subquery to get latest endorsement request status
+        latest_request = (
             db.session.query(
-                EndorsementRequestModel.actor_id
+                EndorsementRequestModel.actor_id,
+                EndorsementRequestModel.latest_status,
+                func.row_number().over(
+                    partition_by=EndorsementRequestModel.actor_id,
+                    order_by=EndorsementRequestModel.created.desc()
+                ).label('rn')
             )
-            .filter(
-                and_(
-                    EndorsementRequestModel.record_id == record_id,
-                    EndorsementRequestModel.latest_status == constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
-                )
-            )
+            .filter(EndorsementRequestModel.record_id == record_id)
             .subquery()
         )
         
@@ -400,6 +405,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             db.session.query(
                 cls.id.label('actor_id'),
                 cls.name.label('actor_name'),
+                latest_request.c.latest_status.label('request_status'),
                 latest_endorsement.c.review_type.label('endorsement_status')
             )
             .filter(
@@ -416,8 +422,11 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 )
             )
             .outerjoin(
-                pending_request,
-                pending_request.c.actor_id == cls.id
+                latest_request,
+                and_(
+                    latest_request.c.actor_id == cls.id,
+                    latest_request.c.rn == 1
+                )
             )
             .filter(
                 # Exclude actors with completed endorsements/reviews or pending requests
@@ -426,7 +435,10 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                         latest_endorsement.c.review_type.is_(None),
                         latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
                     ),
-                    pending_request.c.actor_id.is_(None)
+                    '''or_(
+                        latest_request.c.latest_status.is_(None),
+                        latest_request.c.latest_status != constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
+                    )'''
                 )
             )
         )
@@ -435,9 +447,9 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         actors = []
         
         for result in results:
-            # Determine status based on endorsement state
-            if result.endorsement_status:
-                status = result.endorsement_status
+            # Determine status based on request status first, then endorsement state
+            if result.request_status:
+                status = result.request_status
             else:
                 status = WORKFLOW_STATUS_AVAILABLE
 
