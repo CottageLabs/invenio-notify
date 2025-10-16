@@ -37,6 +37,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
             "mediaType": "text/html",
             "type": ["Page", "sorg:AboutPage"],
         },
+        "ietf:cite-as": record.data["links"]["self_html"],
     }
 
     if 'doi' in record.data['links']:
