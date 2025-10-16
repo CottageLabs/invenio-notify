@@ -338,16 +338,10 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 )
             )
             .filter(
-                # Exclude actors with completed endorsements/reviews or pending requests
-                and_(
-                    or_(
-                        latest_endorsement.c.review_type.is_(None),
-                        latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
-                    ),
-                    '''or_(
-                        latest_request.c.latest_status.is_(None),
-                        latest_request.c.latest_status != constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
-                    )'''
+                # Exclude actors with completed endorsements/reviews
+                or_(
+                    latest_endorsement.c.review_type.is_(None),
+                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
                 )
             )
             .first()
@@ -429,16 +423,10 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 )
             )
             .filter(
-                # Exclude actors with completed endorsements/reviews or pending requests
-                and_(
-                    or_(
-                        latest_endorsement.c.review_type.is_(None),
-                        latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
-                    ),
-                    '''or_(
-                        latest_request.c.latest_status.is_(None),
-                        latest_request.c.latest_status != constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
-                    )'''
+                # Exclude actors with completed endorsements/reviews
+                or_(
+                    latest_endorsement.c.review_type.is_(None),
+                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
                 )
             )
         )
