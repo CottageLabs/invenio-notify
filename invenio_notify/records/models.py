@@ -577,31 +577,52 @@ class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
     @classmethod
     def get_latest_status(cls, record_id, actor_id, include_id=False):
         """Get latest endorsement request status for record and actor.
+        Optionally includes the notification ID of the latest reply with the matching status.
         
         Args:
             record_id: UUID of the record
             actor_id: ID of the actor
-            include_id: If True, returns (status, notification_id) tuple
+            include_id: If True, returns (status, reply_notification_id) tuple
             
         Returns:
-            str: latest status if include_notification_id=False
-            tuple: (status, notification_id) if include_notification_id=True
+            str: latest status if include_id=False
+            tuple: (status, reply_notification_id) if include_id=True
             None: if no request found
         """
-        query = (
+        # Get the latest endorsement request
+        request = (
             cls.query.filter_by(
                 record_id=record_id,
                 actor_id=actor_id,
             )
             .order_by(cls.created.desc())
-            .limit(1)
+            .first()
         )
         
+        if not request:
+            return (None, None) if include_id else None
+            
         if include_id:
-            result = query.with_entities(cls.latest_status, cls.notification_id).first()
-            return result if result else (None, None)
+            # Find the most recent reply with the matching status
+            reply_with_status = (
+                EndorsementReplyModel.query
+                .filter_by(
+                    endorsement_request_id=request.id,
+                    status=request.latest_status
+                )
+                .join(NotifyInboxModel, EndorsementReplyModel.inbox_id == NotifyInboxModel.id)
+                .order_by(EndorsementReplyModel.created.desc())
+                .with_entities(EndorsementReplyModel.status, NotifyInboxModel.notification_id)
+                .first()
+            )
+            
+            if reply_with_status:
+                return reply_with_status
+            else:
+                # No matching reply found
+                return (request.latest_status, None)
         else:
-            return query.with_entities(cls.latest_status).scalar()
+            return request.latest_status
 
     @classmethod
     def update_latest_status_by_request_id(cls, endorsement_request_id):
