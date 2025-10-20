@@ -354,9 +354,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         """Get list of all actors that:
               1. Have inbox_url configured
               2. Have inbox_api_token configured
-              3. inbox_url is not empty
-              4. inbox_api_token is not empty
-              5. Either have no endorsements OR have endorsements that aren't completed types,
+              3. Either have no endorsements OR have endorsements that aren't completed types,
                  endorsement are sorted by created date descending
         
         Args:
@@ -435,16 +433,10 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         actors = []
         
         for result in results:
-            # Determine status based on request status first, then endorsement state
-            if result.request_status:
-                status = result.request_status
-            else:
-                status = WORKFLOW_STATUS_AVAILABLE
-
             actors.append({
                 "actor_id": result.actor_id,
                 "actor_name": result.actor_name,
-                "status": status,
+                "status": result.request_status or WORKFLOW_STATUS_AVAILABLE,
             })
         
         return actors
