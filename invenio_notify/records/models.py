@@ -338,11 +338,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 )
             )
             .filter(
-                # Exclude actors with completed endorsements/reviews
-                or_(
-                    latest_endorsement.c.review_type.is_(None),
-                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
-                )
+                latest_endorsement.c.review_type.is_(None)
             )
             .first()
         )
@@ -398,7 +394,6 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 cls.id.label('actor_id'),
                 cls.name.label('actor_name'),
                 latest_request.c.latest_status.label('request_status'),
-                latest_endorsement.c.review_type.label('endorsement_status')
             )
             .filter(
                 and_(
@@ -421,11 +416,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 )
             )
             .filter(
-                # Exclude actors with completed endorsements/reviews
-                or_(
-                    latest_endorsement.c.review_type.is_(None),
-                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
-                )
+                latest_endorsement.c.review_type.is_(None)
             )
         )
         
