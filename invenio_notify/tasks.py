@@ -11,6 +11,8 @@ from invenio_notifications.services.uow import NotificationOp
 from invenio_pidstore.errors import PIDDoesNotExistError
 
 from coarnotify.factory import COARNotifyFactory
+from marshmallow import ValidationError
+
 from invenio_notify import constants
 from invenio_notify.constants import SUPPORTED_TYPES
 from invenio_notify.notifications.builders import NewEndorsementNotificationBuilder, \
@@ -153,15 +155,15 @@ def get_workflow_status(notification_raw: dict) -> str | None:
 
     # Extract type field from notification
     type_field = notification_raw.get('type', [])
-    
+
     # If type field is empty or missing, return None
     if not type_field:
         return None
-    
+
     # Ensure type_field is a list for consistent processing
     if isinstance(type_field, str):
         type_field = [type_field]
-    
+
     # Check for simple single-type notifications first
     for t in type_field:
         if t == constants.TYPE_TENTATIVE_ACCEPT:
@@ -170,10 +172,10 @@ def get_workflow_status(notification_raw: dict) -> str | None:
             return constants.WORKFLOW_STATUS_TENTATIVE_REJECT
         elif t == constants.TYPE_REJECT:
             return constants.WORKFLOW_STATUS_REJECT
-    
+
     # Check for compound types with activities
     has_announce = 'Announce' in type_field
-    
+
     # Map based on activity + notification type combinations
     if has_announce and constants.TYPE_ENDORSEMENT in type_field:
         return constants.WORKFLOW_STATUS_ANNOUNCE_ENDORSEMENT
@@ -247,9 +249,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
         record = record_item
         record_id = str(record.id)
 
-    review_url = notification_raw['object'].get(constants.KEY_INBOX_REVIEW_URL)
-    if not review_url:
-        log.warning(f"Could not extract review_url from notification {inbox_id} use object.id instead")
+    review_url = notification_raw['object'].get(constants.KEY_INBOX_REVIEW_URL) or notification_raw['object'].get('id')
 
     # Create the endorsement record data
     endorsement_data = {
@@ -467,6 +467,9 @@ def inbox_processing():
         except DataNotFound as e:
             log.warning(f"Failed to process inbox record {inbox_record.id}: {e}")
             mark_as_processed(inbox_record, e.message)
+        except ValidationError as e:
+            log.warning(f"Failed to process inbox record {inbox_record.id}, validation error: {e}")
+            mark_as_processed(inbox_record, str(e))
 
 
 @shared_task

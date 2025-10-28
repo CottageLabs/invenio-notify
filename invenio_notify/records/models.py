@@ -300,6 +300,20 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             .subquery()
         )
         
+        # Subquery to get latest endorsement request status
+        latest_request = (
+            db.session.query(
+                EndorsementRequestModel.actor_id,
+                EndorsementRequestModel.latest_status,
+                func.row_number().over(
+                    partition_by=EndorsementRequestModel.actor_id,
+                    order_by=EndorsementRequestModel.created.desc()
+                ).label('rn')
+            )
+            .filter(EndorsementRequestModel.record_id == record_id)
+            .subquery()
+        )
+        
         # Check if there's at least one available actor
         available_actor = (
             db.session.query(cls.id)
@@ -316,12 +330,15 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                     latest_endorsement.c.rn == 1
                 )
             )
-            .filter(
-                # Exclude actors with completed endorsements/reviews
-                or_(
-                    latest_endorsement.c.review_type.is_(None),
-                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
+            .outerjoin(
+                latest_request,
+                and_(
+                    latest_request.c.actor_id == cls.id,
+                    latest_request.c.rn == 1
                 )
+            )
+            .filter(
+                latest_endorsement.c.review_type.is_(None)
             )
             .first()
         )
@@ -333,9 +350,7 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         """Get list of all actors that:
               1. Have inbox_url configured
               2. Have inbox_api_token configured
-              3. inbox_url is not empty
-              4. inbox_api_token is not empty
-              5. Either have no endorsements OR have endorsements that aren't completed types,
+              3. Either have no endorsements OR have endorsements that aren't completed types,
                  endorsement are sorted by created date descending
         
         Args:
@@ -359,12 +374,26 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
             .subquery()
         )
         
+        # Subquery to get latest endorsement request status
+        latest_request = (
+            db.session.query(
+                EndorsementRequestModel.actor_id,
+                EndorsementRequestModel.latest_status,
+                func.row_number().over(
+                    partition_by=EndorsementRequestModel.actor_id,
+                    order_by=EndorsementRequestModel.created.desc()
+                ).label('rn')
+            )
+            .filter(EndorsementRequestModel.record_id == record_id)
+            .subquery()
+        )
+        
         # Main query with exclusion filter
         query = (
             db.session.query(
                 cls.id.label('actor_id'),
                 cls.name.label('actor_name'),
-                latest_endorsement.c.review_type.label('endorsement_status')
+                latest_request.c.latest_status.label('request_status'),
             )
             .filter(
                 and_(
@@ -379,12 +408,15 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                     latest_endorsement.c.rn == 1
                 )
             )
-            .filter(
-                # Exclude actors with completed endorsements/reviews
-                or_(
-                    latest_endorsement.c.review_type.is_(None),
-                    latest_endorsement.c.review_type.notin_([constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT])
+            .outerjoin(
+                latest_request,
+                and_(
+                    latest_request.c.actor_id == cls.id,
+                    latest_request.c.rn == 1
                 )
+            )
+            .filter(
+                latest_endorsement.c.review_type.is_(None)
             )
         )
         
@@ -392,16 +424,10 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         actors = []
         
         for result in results:
-            # Determine status based on endorsement state
-            if result.endorsement_status:
-                status = result.endorsement_status
-            else:
-                status = WORKFLOW_STATUS_AVAILABLE
-
             actors.append({
                 "actor_id": result.actor_id,
                 "actor_name": result.actor_name,
-                "status": status,
+                "status": result.request_status or WORKFLOW_STATUS_AVAILABLE,
             })
         
         return actors
@@ -534,31 +560,52 @@ class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
     @classmethod
     def get_latest_status(cls, record_id, actor_id, include_id=False):
         """Get latest endorsement request status for record and actor.
+        Optionally includes the notification ID of the latest reply with the matching status.
         
         Args:
             record_id: UUID of the record
             actor_id: ID of the actor
-            include_id: If True, returns (status, notification_id) tuple
+            include_id: If True, returns (status, reply_notification_id) tuple
             
         Returns:
-            str: latest status if include_notification_id=False
-            tuple: (status, notification_id) if include_notification_id=True
+            str: latest status if include_id=False
+            tuple: (status, reply_notification_id) if include_id=True
             None: if no request found
         """
-        query = (
+        # Get the latest endorsement request
+        request = (
             cls.query.filter_by(
                 record_id=record_id,
                 actor_id=actor_id,
             )
             .order_by(cls.created.desc())
-            .limit(1)
+            .first()
         )
         
+        if not request:
+            return (None, None) if include_id else None
+            
         if include_id:
-            result = query.with_entities(cls.latest_status, cls.notification_id).first()
-            return result if result else (None, None)
+            # Find the most recent reply with the matching status
+            reply_with_status = (
+                EndorsementReplyModel.query
+                .filter_by(
+                    endorsement_request_id=request.id,
+                    status=request.latest_status
+                )
+                .join(NotifyInboxModel, EndorsementReplyModel.inbox_id == NotifyInboxModel.id)
+                .order_by(EndorsementReplyModel.created.desc())
+                .with_entities(EndorsementReplyModel.status, NotifyInboxModel.notification_id)
+                .first()
+            )
+            
+            if reply_with_status:
+                return reply_with_status
+            else:
+                # No matching reply found
+                return (request.latest_status, None)
         else:
-            return query.with_entities(cls.latest_status).scalar()
+            return request.latest_status
 
     @classmethod
     def update_latest_status_by_request_id(cls, endorsement_request_id):

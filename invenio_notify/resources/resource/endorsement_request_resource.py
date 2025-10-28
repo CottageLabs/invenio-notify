@@ -85,7 +85,7 @@ def send_to_actor_inbox(actor, endorsement_request_data: dict):
             actor.inbox_url,
             json=endorsement_request_data,
             headers={
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/ld+json',
                 'Authorization': f'Bearer {actor.inbox_api_token}',
             },
             timeout=30

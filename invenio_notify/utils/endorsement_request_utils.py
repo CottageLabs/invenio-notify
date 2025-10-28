@@ -7,6 +7,14 @@ from invenio_notify.constants import WORKFLOW_STATUS_TENTATIVE_REJECT
 from invenio_notify.records.models import ActorModel, EndorsementRequestModel
 
 
+def _get_user_name(user):
+    if 'full_name' in user.user_profile and user.user_profile['full_name']:
+        return user.user_profile['full_name']
+    elif user.username:
+        return user.username
+
+    return user.email
+
 def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel, origin_id=None):
     """Create endorsement request data following COAR notification structure.
     
@@ -37,6 +45,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
             "mediaType": "text/html",
             "type": ["Page", "sorg:AboutPage"],
         },
+        "ietf:cite-as": record.data["links"]["self_html"],
     }
 
     if 'doi' in record.data['links']:
@@ -50,7 +59,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
         ],
         "actor": {
             "id": f"mailto:{user.email}",
-            "name": user.username if user.username else user.email,
+            "name": _get_user_name(user),
             "type": "Person"
         },
         "id": f"urn:uuid:{uuid.uuid4()}",
