@@ -1,9 +1,7 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
 #
-# This file is part of Invenio.
-# Copyright (C) 2016-2018 CERN.
-#
-# Invenio is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
 
 """init notify"""
 

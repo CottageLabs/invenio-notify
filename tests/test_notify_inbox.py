@@ -1,3 +1,8 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from invenio_notify.proxies import current_inbox_service
 from invenio_notify.records.models import NotifyInboxModel
 from tests.fixtures.inbox_fixture import create_inbox

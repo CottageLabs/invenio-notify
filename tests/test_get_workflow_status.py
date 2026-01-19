@@ -1,5 +1,10 @@
 """Unit tests for the get_workflow_status function."""
 
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 import pytest
 from invenio_notify import constants
 from invenio_notify.tasks import get_workflow_status

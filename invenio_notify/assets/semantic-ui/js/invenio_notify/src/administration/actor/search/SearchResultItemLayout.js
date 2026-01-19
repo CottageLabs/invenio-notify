@@ -1,3 +1,10 @@
+/*
+ * Copyright (C) 2025-2026 Cottage Labs.
+ *
+ * Invenio-Notify is free software; you can redistribute it and/or modify
+ * it under the terms of the MIT License; see LICENSE file for more details.
+ */
+
 import { BoolFormatter, Actions } from "@js/invenio_administration";
 import PropTypes from "prop-types";
 import React, { Component } from "react";

@@ -1,5 +1,10 @@
 """Test get record id from notification using a doi."""
 
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 import pytest
 from unittest.mock import patch
 from invenio_rdm_records.proxies import current_rdm_records
