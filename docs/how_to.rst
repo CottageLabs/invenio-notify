@@ -10,7 +10,18 @@ This guide provides step-by-step instructions for working with Invenio-Notify.
 Create API access token
 ------------------------
 
-To create an access token:
+Create a user who will be able to send notifications.
+
+You will need to create an access token for the user who will send notifications.  This can only be done via the command line:
+
+    invenio tokens create --scope=notify:inbox -n "Notify Inbox" -u <email address of user>
+
+.. tip::
+   Copy the token immediately - it is displayed only once and cannot be retrieved later from
+   the website.
+
+
+To create an access token via the UI (not possible unless scope is set to public, which it isn't):
 
 1. Navigate to **Security → Applications** page in your Invenio instance
 2. Click the **"New token"** button
@@ -18,32 +29,39 @@ To create an access token:
 4. In the scopes selection, select **notify:inbox**
 5. Click **"Create"** button
 
-.. tip::
-   Copy the token immediately - it is displayed only once and cannot be retrieved later from 
-   the website.
+
 
 Add role and create notification
 --------------------------------
 
-.. code-block:: bash
+1. add role/action `coarnotify` to user
 
-   # add role/action `coarnotify` to user
    invenio access allow coarnotify user <user_email>
 
-   # At this point you need to make a new actor record via the UI
+2. At this point you need to make a new actor record via the UI, as a general Invenio adminstrator
 
-   # administration-access for access admin page
-   invenio notify user add <user_email> <actor_id>
-   # example
+To create an invenio admin, make an account and give it the admin access role
+
+    invenio users create <admin user> --password testing --active --confirm
+    invenio access allow administration-access user <admin user>
+
+3. administration-access for access admin page
+
+    invenio notify user add <user_email> <actor_id>
+
+for example
+
    invenio notify user add admina@dev.dev evolbiol.peercommunityin.org
 
-   # create a notification  
-   # review_1.json can be found in the docs/examples/review_1.json
+4. create a demo notification
+
+review_1.json can be found in the docs/examples/review_1.json, you should modify this to include your Actor ID created above
+
    curl -X POST -i https://127.0.0.1:5000/api/notify/inbox/somerecordid \
         -k \
         -H "Content-Type: application/json" \
-        -H "Authorization: Bearer ehFjcA7aOSv9YTc6rahaxGPCAETenKqt3efRVoJTVP1clBW7gUMHvB8cZ5Rs" \
-        -d @$INVNOTI_NOTE/coar_examples/review_1.json
+        -H "Authorization: Bearer <YOUR ACCESS TOKEN>" \
+        -d @review_1.json
 
 * Check the result, go to https://127.0.0.1:5000/administration/notify-inbox?q=&l=list&p=1&s=20
 
