@@ -32,8 +32,8 @@ class EndorsementReplyService(BasicDbService):
         if 'endorsement_request_id' in data and 'status' in data:
             request_record = EndorsementRequestModel.get(data['endorsement_request_id'])
             EndorsementRequestModel.update(
-                {'latest_status': data['status']},
-                data['endorsement_request_id']
+                data={'latest_status': data['status']},
+                id=data['endorsement_request_id']
             )
 
         return result
