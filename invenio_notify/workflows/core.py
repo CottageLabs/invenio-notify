@@ -6,6 +6,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Optional
 
+from coarnotify.core.notify import NotifyPattern
 from invenio_db.uow import unit_of_work
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_rdm_records.records.models import RDMRecordMetadata, RDMParentMetadata
@@ -123,3 +124,13 @@ def get_user_id_by_record(record: RDMRecordMetadata) -> int:
         raise DataNotFound("User ID not found for record")
 
     return int(user_id)
+
+def identify_supported_type(notification: NotifyPattern, supported):
+    noti_types = notification.type
+    if isinstance(noti_types, str):
+        noti_types = [noti_types]
+
+    for t in supported:
+        if t in noti_types:
+            return t
+    return None

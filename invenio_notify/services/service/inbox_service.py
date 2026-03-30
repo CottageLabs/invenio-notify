@@ -21,7 +21,6 @@ from invenio_notify import constants
 from invenio_notify.errors import COARProcessFail
 from invenio_notify.proxies import current_inbox_service
 from invenio_notify.records.models import ActorModel
-from invenio_notify.tasks import get_notification_type
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 from invenio_pidstore.errors import PIDDoesNotExistError
 from invenio_rdm_records.proxies import current_rdm_records_service
@@ -176,14 +175,15 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
         # FIXME: we need to chase down all the usages of the raw notification, and use the library properly
-        raw = notification.to_jsonld()
-        if not get_notification_type(raw):
-            current_app.logger.info(f'Unknown type: [{record_id=}]{raw.get("type")}')
-            raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
+        # raw = notification.to_jsonld()
+        # if not identify_supported_type(notification):
+        #     current_app.logger.info(f'Unknown type: [{record_id=}]{raw.get("type")}')
+        #     raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
 
         records_service: RDMRecordService = current_rdm_records_service
         records_service.record_cls.pid.resolve(record_id)
 
+        raw = notification.to_jsonld()
         current_app.logger.debug(f'client input raw: {raw}')
         try:
             inbox_record = {"notification_id": notification_id, "raw": raw, 'record_id': record_id}

@@ -6,6 +6,7 @@
 import logging
 
 from celery import shared_task
+from coarnotify.core.notify import NotifyPattern
 from coarnotify.factory import COARNotifyFactory
 
 from invenio_notify.records.models import NotifyInboxModel, ActorModel
@@ -18,21 +19,50 @@ WORKFLOWS = [endorsement]
 
 log = logging.getLogger(__name__)
 
-def get_actor_by_actor_id(notification_raw: dict) -> ActorModel:
+# def get_actor_by_actor_id(notification_raw: dict) -> ActorModel:
+#     """
+#     Extract actor data from notification by actor ID.
+#
+#     Args:
+#         notification_raw: The raw notification data
+#
+#     Returns:
+#         ActorModel if found
+#
+#     Raises:
+#         DataNotFound: If actor ID is not found or actor doesn't exist
+#     """
+#     # Extract actor ID from notification
+#     actor_id = notification_raw.get('actor', {}).get('id', None)
+#     if not actor_id:
+#         raise DataNotFound(f"Actor ID not found in notification, actor[{actor_id}]")
+#
+#     # Find ActorModel with matching actor_id
+#     actor = ActorModel.query.filter_by(actor_id=actor_id).first()
+#     if not actor:
+#         raise DataNotFound(f"Actor not found, actor_id[{actor_id}]")
+#
+#     return actor
+
+
+def get_actor_by_actor_id(notification: NotifyPattern) -> ActorModel:
     """
     Extract actor data from notification by actor ID.
-    
+
     Args:
         notification_raw: The raw notification data
-        
+
     Returns:
         ActorModel if found
-        
+
     Raises:
         DataNotFound: If actor ID is not found or actor doesn't exist
     """
     # Extract actor ID from notification
-    actor_id = notification_raw.get('actor', {}).get('id', None)
+    actor_id = None
+    if notification.actor:
+        actor_id = notification.actor.id
+
     if not actor_id:
         raise DataNotFound(f"Actor ID not found in notification, actor[{actor_id}]")
 
@@ -43,13 +73,11 @@ def get_actor_by_actor_id(notification_raw: dict) -> ActorModel:
 
     return actor
 
-
 def inbox_processing():
     for workflow in WORKFLOWS:
         for inbox_record in NotifyInboxModel.unprocessed_records():
             try:
                 notification = COARNotifyFactory.get_by_object(inbox_record.raw)
-                notification_raw: dict = notification.to_jsonld()
             except Exception as e:
                 msg = f"Failed to decode inbox json {inbox_record.id}: {e}"
                 log.error(msg)
@@ -58,7 +86,7 @@ def inbox_processing():
 
             # Get actor using the utility function
             try:
-                actor = get_actor_by_actor_id(notification_raw)
+                actor = get_actor_by_actor_id(notification)
             except DataNotFound as e:
                 log.warning(f"Failed to get actor: {e}")
                 mark_as_processed(inbox_record, e.message)
