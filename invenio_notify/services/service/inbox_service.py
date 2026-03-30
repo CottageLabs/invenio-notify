@@ -31,45 +31,6 @@ from .base_service import BasicDbService
 from sqlalchemy import or_, cast, String
 
 
-def get_record_id_from_notification(raw: dict) -> str:
-    """Extract record ID from notification data.
-
-    Args:
-        raw (dict): Raw notification data
-
-    Returns:
-        str: Record ID extracted from notification
-
-    Raises:
-        COARProcessFail: If no record URL is found
-    """
-    record_url = None
-    if raw.get('context', {}).get('id'):
-        record_url = raw['context']['id']
-    elif raw.get('object', {}).get('object', {}).get('id'):
-        record_url = raw['object']['object']['id']
-
-    if not record_url:
-        current_app.logger.error('No record URL found in notification')
-        raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'No record URL found')
-
-    # Check if record_url is a DOI
-    if is_doi(record_url):
-        # Extract the normalized DOI from the URI
-        normalized_doi = normalize_doi(record_url)
-        pids_service = current_rdm_records.records_service.pids
-
-        try:
-           record = pids_service.resolve(g.identity, normalized_doi, "doi")
-           return record["id"]
-        except PIDDoesNotExistError as e:
-            current_app.logger.error(f'No record with the DOI {record_url} exists: {e}')
-        except Exception as e:
-            current_app.logger.error(f'Unexpected error while searching for records with DOI {record_url}: {e}')
-
-    return get_recid_by_record_url(record_url)
-
-
 class NotifyInboxService(BasicDbService):
 
     def _create_search_filters(self, query_param):
@@ -95,7 +56,7 @@ class NotifyInboxService(BasicDbService):
         return super().search(identity, params, search_preference, expand, filter_maker=self._create_search_filters,
                               **kwargs)
 
-    def receive_notification(self, notification_raw: dict, identity) -> COARNotifyReceipt:
+    def receive_notification(self, identity, notification_raw: dict) -> COARNotifyReceipt:
         """Process a COAR notification with injected identity.
 
         Args:
@@ -136,6 +97,53 @@ class NotifyInboxService(BasicDbService):
             schema=self.schema_api
         )
 
+    def get_record_id_from_notification(self, notification: NotifyPattern) -> str:
+        """Extract record ID from notification data.
+
+        Args:
+            raw (dict): Raw notification data
+
+        Returns:
+            str: Record ID extracted from notification
+
+        Raises:
+            COARProcessFail: If no record URL is found
+        """
+        record_url = None
+        ctx = notification.context
+        if ctx is not None:
+            record_url = ctx.id
+        if record_url is None:
+            obj = notification.object
+            if obj is not None:
+                record_url = obj.id
+
+        # record_url = None
+        # if raw.get('context', {}).get('id'):
+        #     record_url = raw['context']['id']
+        # elif raw.get('object', {}).get('object', {}).get('id'):
+        #     record_url = raw['object']['object']['id']
+
+        if not record_url:
+            current_app.logger.error('No record URL found in notification')
+            raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'No record URL found')
+
+        # Check if record_url is a DOI
+        if is_doi(record_url):
+            # Extract the normalized DOI from the URI
+            normalized_doi = normalize_doi(record_url)
+            pids_service = current_rdm_records.records_service.pids
+
+            try:
+                record = pids_service.resolve(g.identity, normalized_doi, "doi")
+                return record["id"]
+            except PIDDoesNotExistError as e:
+                current_app.logger.error(f'No record with the DOI {record_url} exists: {e}')
+            except Exception as e:
+                current_app.logger.error(f'Unexpected error while searching for records with DOI {record_url}: {e}')
+
+        return get_recid_by_record_url(record_url)
+
 
 class InboxCOARBinding(COARNotifyServiceBinding):
     """COAR notification binding with injectable identity."""
@@ -152,19 +160,23 @@ class InboxCOARBinding(COARNotifyServiceBinding):
     def notification_received(self, notification: NotifyPattern) -> COARNotifyReceipt:
         current_app.logger.debug('called notification_received')
 
-        raw = notification.to_jsonld()
-        record_id = get_record_id_from_notification(raw)
+        # raw = notification.to_jsonld()
+        record_id = current_inbox_service.get_record_id_from_notification(notification)
 
-        notification_id = raw.get('id')
+        # notification_id = raw.get('id')
+        notification_id = notification.id
         if not notification_id:
             current_app.logger.error('Missing notification ID in COAR notification')
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, 'Missing notification ID')
 
-        actor_id = raw['actor']['id']
+        # actor_id = raw['actor']['id']
+        actor_id = notification.actor.id
         if not ActorModel.has_member(self._identity.id, actor_id):
             current_app.logger.warning(f'Actor id not match with user: {actor_id}, {self._identity.id}')
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
+        # FIXME: we need to chase down all the usages of the raw notification, and use the library properly
+        raw = notification.to_jsonld()
         if not get_notification_type(raw):
             current_app.logger.info(f'Unknown type: [{record_id=}]{raw.get("type")}')
             raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
@@ -190,3 +202,4 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             raise COARProcessFail(constants.STATUS_BAD_REQUEST, f'Failed to create inbox record')
 
         return COARNotifyReceipt(COARNotifyReceipt.ACCEPTED)
+

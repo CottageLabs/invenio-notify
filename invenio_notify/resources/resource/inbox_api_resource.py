@@ -69,7 +69,7 @@ class InboxApiResource(Resource):
             raise ValueError("Request data is required")
 
         result = self.service.receive_notification(
+            g.identity,
             notification_raw=data,
-            identity=g.identity
         )
         return response_coar_notify_receipt(result)

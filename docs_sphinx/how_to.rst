@@ -30,6 +30,8 @@ Add role and create notification
    # add role/action `coarnotify` to user
    invenio access allow coarnotify user <user_email>
 
+   # At this point you need to make a new actor record via the UI
+
    # administration-access for access admin page
    invenio notify user add <user_email> <actor_id>
    # example

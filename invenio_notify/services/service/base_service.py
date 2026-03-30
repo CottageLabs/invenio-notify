@@ -9,7 +9,7 @@ from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.base.utils import map_search_params
 
-re_url_record_id = regex.compile(r'/records/(.*?)$')
+# re_url_record_id = regex.compile(r'/records/(.*?)$')
 
 
 class BasicDbService(RecordService):

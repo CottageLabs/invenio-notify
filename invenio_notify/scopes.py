@@ -11,4 +11,5 @@ inbox_scope = Scope(
     id_="notify:inbox",
     group="notify",
     help_text=_("Allow sending notification to the inbox."),
+    internal=True
 )
