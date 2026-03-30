@@ -86,8 +86,8 @@ node_modules
 .mcp.json
 
 # Documentation
-docs_sphinx_output/
-docs_sphinx/_build/
+docs_output/
+docs/_build/
 
 ### Generated diagram files
-docs_sphinx/_static/mmd/*.png
+docs/_static/mmd/*.png

@@ -23,7 +23,7 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DIAGRAM_DIR="${PROJECT_ROOT}/docs/diagram"
-OUTPUT_DIR="${PROJECT_ROOT}/docs_sphinx/_static/mmd"
+OUTPUT_DIR="${PROJECT_ROOT}/docs/_static/mmd"
 
 # Logging functions
 log_info() {

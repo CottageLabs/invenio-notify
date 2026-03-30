@@ -25,7 +25,7 @@ invenio-cli services setup
 
 Features
 ------------------------------------
-See `docs_sphinx/how_to.rst <docs_sphinx/how_to.rst>`_ for detailed instructions on how to use and test features.
+See `docs/how_to.rst <docs/how_to.rst>`_ for detailed instructions on how to use and test features.
 
 ## Workflow Diagram
 See the [notify workflow diagram](docs/diagram/notify_workflow.mmd) to understand the complete notification process flow.
