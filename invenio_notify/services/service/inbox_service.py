@@ -171,7 +171,7 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         # actor_id = raw['actor']['id']
         actor_id = notification.actor.id
         if not ActorModel.has_member(self._identity.id, actor_id):
-            current_app.logger.warning(f'Actor id not match with user: {actor_id}, {self._identity.id}')
+            current_app.logger.warning(f'Actor ID did not match with user: {actor_id}, {self._identity.id}')
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
         # FIXME: we need to chase down all the usages of the raw notification, and use the library properly

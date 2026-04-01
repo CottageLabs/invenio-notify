@@ -1,33 +1,16 @@
-# How to install
+# Invenio Notify
 
-Follow quick start guide in the official documentation
+This is an extension to the [InvenioRDM](https://inveniosoftware.org/products/rdm/) platform which enables support 
+for the [COAR Notify](https://coar-notify.net/) standard for message exchange in Scholarly Infrastructure..
 
-* https://inveniordm.docs.cern.ch/install/
+## Installation
 
-```bash
+See `docs/install.rst <docs/install.rst>`_ for detailed instructions on how to install and set up the package.
 
-# clone coarnotifypy and install it
-cd coarnotifypy
-pip install -e . 
+## Outline of Capabilities
 
+### Endorsement Workflow
 
-cd my-site
-invenio-cli packages install /your_path/invenio-notify/  
-invenio-cli packages install /your_path/invenio-rdm-records/
-invenio-cli packages install /your_path/invenio-app-rdm/
-
-# some how my alembic upgrade not working, re-build services instead
-# invenio alembic upgrade
-invenio-cli services destroy
-invenio-cli services setup
-
-```
-
-Features
-------------------------------------
-See `docs/how_to.rst <docs/how_to.rst>`_ for detailed instructions on how to use and test features.
-
-## Workflow Diagram
 See the [notify workflow diagram](docs/diagram/notify_workflow.mmd) to understand the complete notification process flow.
 
 

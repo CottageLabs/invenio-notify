@@ -492,11 +492,14 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
 
     endorsement_reply_id = db.Column(
         db.Integer,
-        db.ForeignKey("endorsement_reply.id", ondelete="SET NULL"),
+        db.ForeignKey("notify_endorsement_reply.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
-    endorsement_reply = db.relationship("EndorsementReplyModel", uselist=False)
+    # endorsement_reply = db.relationship("EndorsementReplyModel", foreign_keys=[endorsement_reply_id], uselist=False)
+    endorsement_reply = db.relationship("EndorsementReplyModel", foreign_keys="[EndorsementModel.endorsement_reply_id]",
+                                        primaryjoin="EndorsementModel.endorsement_reply_id == EndorsementReplyModel.id",
+                                        uselist=False)
 
     @classmethod
     def get_latest_status(cls, record_id, actor_id):
@@ -656,7 +659,7 @@ class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
 
     endorsement_request_id = db.Column(
         db.Integer,
-        db.ForeignKey("endorsement_request.id", ondelete="CASCADE"),
+        db.ForeignKey("notify_endorsement_request.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )

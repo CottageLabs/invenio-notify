@@ -1,0 +1,64 @@
+{
+	"properties": {
+		"notify": {
+			"type": "object",
+			"properties": {
+				"has_reviews": {
+					"type": "boolean"
+				}
+			}
+		},
+		"endorsements": {
+			"type": "object",
+			"properties": {
+				"actor_id": {
+					"type": "long"
+				},
+				"actor_name": {
+					"type": "text",
+					"fields": {
+						"keyword": {
+							"type": "keyword",
+							"ignore_above": 256
+						}
+					}
+				},
+				"endorsement_count": {
+					"type": "integer"
+				},
+				"review_count": {
+					"type": "integer"
+				},
+				"endorsement_list": {
+					"type": "object",
+					"properties": {
+						"created": {
+							"type": "date"
+						},
+						"url": {
+							"type": "keyword"
+						},
+						"index": {
+							"type": "integer"
+						}
+					}
+				},
+				"review_list": {
+					"type": "object",
+					"properties": {
+						"created": {
+							"type": "date"
+						},
+						"url": {
+							"type": "keyword"
+						},
+						"index": {
+							"type": "integer"
+						}
+					}
+				}
+			}
+		}
+	}
+}
+

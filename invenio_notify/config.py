@@ -304,6 +304,10 @@ NOTIFY_ENDORSEMENT_REQUEST_SORT_OPTIONS = {
     ),
 }
 
+##############################
+## Endorsement Workflow Config
+
+
 """Configuration for endorsement status labels.
 
 This configuration defines how endorsement statuses are displayed in the UI.
@@ -356,3 +360,178 @@ NOTIFY_PCI_ENDORSEMENT = True
 NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT = True
 
 NOTIFY_ORIGIN_ID = 'https://127.0.0.1:5000/'
+
+###########################################
+## Invenio Config overrides
+
+from invenio_drafts_resources.services.records.config import is_record
+from invenio_records_resources.services.records.facets import TermsFacet
+from invenio_records_resources.services import RecordEndpointLink
+from invenio_rdm_records.config import RDM_FACETS, RDM_SEARCH
+from invenio_rdm_records.services import RDMRecordServiceConfig
+from invenio_rdm_records.services.config import RDMSearchOptions
+
+def is_record_owner(record, ctx):
+    from flask import g
+    return (is_record(record, ctx)
+            and hasattr(g, "identity") and hasattr(g.identity, "id")
+            and record.parent.access.owner.owner_id == g.identity.id)
+
+has_reviews = TermsFacet(
+    field="notify.has_reviews",
+    label=_("Has reviews"),
+    value_labels={"true": _("Yes"), "false": _("No")},
+)
+
+RDMSearchOptions.facets["has_reviews"] = has_reviews
+
+RDMRecordServiceConfig.links_item.update({
+    # Endorsements Requests
+    "endorsement_request": RecordEndpointLink("endorsement_request.send", when=is_record_owner),
+    "endorsement_request_actors": RecordEndpointLink("endorsement_request.list_actors", when=is_record_owner)
+})
+
+RDM_FACETS["has_reviews"] = {
+    "facet": has_reviews,
+    "ui": {
+        "field": "notify.has_reviews",
+    },
+}
+
+RDM_SEARCH["facets"].append("has_reviews")
+
+
+
+# class NotifySearchOptions(RDMSearchOptions):
+#     facets = {
+#         "resource_type": facets.resource_type,
+#         "languages": facets.language,
+#         "access_status": facets.access_status,
+#         "has_reviews": facets.has_reviews,
+#     }
+#
+#
+# RDM_SEARCH_OPTIONS_CLS = NotifySearchOptions
+
+# RDM_FACETS = {
+#     "access_status": {
+#         "facet": facets.access_status,
+#         "ui": {
+#             "field": "access.status",
+#         },
+#     },
+#     "is_published": {
+#         "facet": facets.is_published,
+#         "ui": {
+#             "field": "is_published",
+#         },
+#     },
+#     "file_type": {
+#         "facet": facets.filetype,
+#         "ui": {
+#             "field": "files.types",
+#         },
+#     },
+#     "language": {
+#         "facet": facets.language,
+#         "ui": {
+#             "field": "languages",
+#         },
+#     },
+#     "resource_type": {
+#         "facet": facets.resource_type,
+#         "ui": {
+#             "field": "resource_type.type",
+#             "childAgg": {
+#                 "field": "resource_type.subtype",
+#             },
+#         },
+#     },
+#     "subject": {
+#         "facet": facets.subject,
+#         "ui": {
+#             "field": "subjects.subject",
+#         },
+#     },
+#     # subject_nested is deprecated and should be removed.
+#     # subject_combined does require a pre-existing change to indexed documents,
+#     # so it's unclear if a direct replacement is right.
+#     # Keeping it around until v13 might be better. On the flipside it is an incorrect
+#     # facet...
+#     "subject_nested": {
+#         "facet": facets.subject_nested,
+#         "ui": {
+#             "field": "subjects.scheme",
+#             "childAgg": {
+#                 "field": "subjects.subject",
+#             },
+#         },
+#     },
+#     "subject_combined": {
+#         "facet": facets.subject_combined,
+#         "ui": {
+#             "field": "subjects.scheme",
+#             "childAgg": {
+#                 "field": "subjects.subject",
+#             },
+#         },
+#     },
+#     "publication_date": {
+#         "facet": facets.publication_date,
+#         "ui": {
+#             "field": "publication_date",
+#             "type": "date",
+#             "separator": "..",
+#         },
+#     },
+#
+#     "has_reviews": {
+#         "facet": facets.has_reviews,
+#         "ui": {
+#             "field": "notify.has_reviews",
+#         },
+#     },
+# }
+
+# RDM_SEARCH = {
+#     "facets": ["publication_date", "access_status", "file_type", "resource_type", "has_reviews"],
+#     "sort": [
+#         "bestmatch",
+#         "newest",
+#         "oldest",
+#         "version",
+#         "mostviewed",
+#         "mostdownloaded",
+#     ],
+#     "query_parser_cls": QueryParser.factory(
+#         mapping={
+#             "internal_notes.note": RestrictedTerm(system_permission),
+#             "internal_notes.id": RestrictedTerm(system_permission),
+#             "internal_notes.added_by": RestrictedTerm(system_permission),
+#             "internal_notes.timestamp": RestrictedTerm(system_permission),
+#             "_exists_": RestrictedTermValue(
+#                 system_permission, word=word_internal_notes
+#             ),
+#         },
+#         tree_transformer_cls=SearchFieldTransformer,
+#     ),
+# }
+# """Record search configuration.
+#
+# The configuration has four possible keys:
+#
+# - ``facets`` - A list of facet names which must have been defined in
+#   ``RDM_FACETS``.
+# - ``sort`` -  A list of sort option names which must have been defined in
+#   ``RDM_SORT_OPTIONS``.
+# - ``sort_default`` - The default sort option when a query is provided. Must be
+#   a single sort option name which must have been defined in
+#   ``RDM_SORT_OPTIONS``. If not provided, will use the first element of
+#   the ``sort`` list.
+# - ``sort_default_no_query`` - The default sort option when no query is
+#   provided. Must be a single sort option name which must have been defined in
+#   ``RDM_SORT_OPTIONS``. If not provided, will use the second element of
+#   the ``sort`` list.
+# """
+
+
