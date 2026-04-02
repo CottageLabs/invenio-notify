@@ -42,6 +42,25 @@ To add users with notify capabilities, go to the `docs/getting_started.rst` file
 
     curl -XPUT -H "Content-Type: application/json" -d @invenio-notify/invenio_notify/records/mappings/notify-record-v8.0.0.json http://localhost:9200/<record-index-name>/_mapping
 
+5. To be able to process incoming notifications you will need to set up the regular processing job.  You can do this as a superuser in the admin area as follows:
+
+* Go to https://127.0.0.1:5000/administration/jobs
+* Click "Create" on the top left
+* Fill in the details as follows (free-text fields can be amended as desired):
+ * Name: "Process notify inbox"
+ * Description: "Process incoming notifications using the configured workflows"
+ * Queue: Low (or whatever queue you want to use for this job)
+ * Task: "Process notify inbox" (this is the name of the task registered by the module, and will be available in the dropdown list)
+ * Active: checked
+
+You can also run this job manually from the command line with:
+
+.. code-block:: bash
+
+    invenio notify run
+
+This will run the job one-time, so you would need to set this up with a cron job or other scheduler to run it on a regular basis.
+
 
 Configuration
 =============

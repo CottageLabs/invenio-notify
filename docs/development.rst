@@ -5,7 +5,14 @@ Development Installation
 
 2. Clone this module to your local environment
 
-3. Create a virtual environment for development.
+3. Create a virtual environment for development.  The virtual environment will need to be for python 3.12, and you may also need to install iPython, and upgrade pip
+
+.. code-block:: bash
+
+   python3.12 -m venv .venv
+   source .venv/bin/activate
+   pip install ipython
+   pip install --upgrade pip
 
 4. Install the module in development/editable mode:
 
@@ -14,6 +21,8 @@ Development Installation
    pip install -e .
 
 5. Run through a regular invenio installation.  Short instructions
+
+You may wish to delete any pre-existing Pipfile.lock at this point to avoid any confusion.
 
 .. code-block:: bash
 

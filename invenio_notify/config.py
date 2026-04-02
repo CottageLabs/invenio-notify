@@ -370,6 +370,10 @@ from invenio_records_resources.services import RecordEndpointLink
 from invenio_rdm_records.config import RDM_FACETS, RDM_SEARCH
 from invenio_rdm_records.services import RDMRecordServiceConfig
 from invenio_rdm_records.services.config import RDMSearchOptions
+from marshmallow import fields
+from marshmallow_utils.fields import NestedAttribute
+from invenio_notify.services.schemas import EndorsementSchema, NotifySchema
+from invenio_rdm_records.services.schemas import RDMRecordSchema
 
 def is_record_owner(record, ctx):
     from flask import g
@@ -400,7 +404,22 @@ RDM_FACETS["has_reviews"] = {
 
 RDM_SEARCH["facets"].append("has_reviews")
 
+class NotifyEnabledRDMRecordSchema(RDMRecordSchema):
+    endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
+    notify = NestedAttribute(NotifySchema, dump_only=True)
 
+RDM_RECORD_SCHEMA = NotifyEnabledRDMRecordSchema
+
+# _UNSET = object()
+# _rdm_record_schema = _UNSET
+#
+# def __getattr__(name):
+#     if name == "RDM_RECORD_SCHEMA":
+#         global _rdm_record_schema
+#         if _rdm_record_schema is _UNSET:
+#             _rdm_record_schema = NotifyEnabledRDMRecordSchema
+#         return _rdm_record_schema
+#     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 # class NotifySearchOptions(RDMSearchOptions):
 #     facets = {
