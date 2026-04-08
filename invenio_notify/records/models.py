@@ -334,10 +334,10 @@ class ActorModel(db.Model, Timestamp, DbOperationMixin):
         available_actor = (
             db.session.query(cls.id)
             .filter(
-                and_(
+                #and_(
                     cls.inbox_url.isnot(None),
-                    cls.inbox_api_token.isnot(None)
-                )
+                #    cls.inbox_api_token.isnot(None)
+                #)
             )
             .outerjoin(
                 latest_endorsement,

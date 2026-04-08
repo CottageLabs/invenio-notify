@@ -16,7 +16,7 @@ from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
 
 from .fake_datacite_client import FakeDataCiteClient
-from invenio_notify.constants import NOTIFY_PCI_ENDORSEMENT, NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT
+from invenio_notify.constants import NOTIFY_ENDORSEMENT_RECEIVE, NOTIFY_ENDORSEMENT_REQUEST
 from tests.builders.inbox_test_data_builder import *  # noqa
 from tests.fixtures.endorsement_request_fixture import *  # noqa
 from tests.fixtures.inbox_fixture import *  # noqa
@@ -239,8 +239,8 @@ def mock_datacite_client():
 @pytest.fixture(scope="module")
 def app_config(app_config, mock_datacite_client):
     app_config["NOTIFY_ORIGIN_ID"] = "yoooooooooooooooooooooo"
-    app_config[NOTIFY_PCI_ENDORSEMENT] = True
-    app_config[NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT] = True
+    app_config[NOTIFY_ENDORSEMENT_RECEIVE] = True
+    app_config[NOTIFY_ENDORSEMENT_REQUEST] = True
     
     # Enable DOI minting...
     app_config["DATACITE_ENABLED"] = True

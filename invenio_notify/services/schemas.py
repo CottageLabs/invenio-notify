@@ -112,12 +112,6 @@ class EndorsementSchema(Schema):
         """Meta attributes for the schema."""
 
         unknown = EXCLUDE
-    def __init__(self, *args, **kwargs):
-        """
-        Injects the dumper into the schema processors.
-        """
-        kw = {**kwargs, "dumpers": [EndorsementsDumperExt("endorsements")]}
-        super().__init__(*args, **kw)
 
     actor_id = fields.Integer(required=True)
     review_count = fields.Integer()

@@ -8,6 +8,89 @@ from invenio_i18n import lazy_gettext as _
 from invenio_notify.constants import WORKFLOW_STATUS_REQUEST_ENDORSEMENT, WORKFLOW_STATUS_TENTATIVE_ACCEPT, \
     WORKFLOW_STATUS_TENTATIVE_REJECT, WORKFLOW_STATUS_REJECT, WORKFLOW_STATUS_AVAILABLE
 
+###############################
+## General Notify configuration
+## NOTIFY_ prefixed
+
+NOTIFY_ORIGIN_ID = 'https://127.0.0.1:5000/'
+"""
+This is the URL which is used in the `origin.id` field of all outgoing notifications.  
+See https://coar-notify.net/specification/1.0.1/
+
+This is distinct from the `origin.inbox` which will be dynamically generated for your instance
+"""
+
+##############################
+## Endorsement Workflow Config
+## NOTIFY_ENDORSEMENT_ prefixed
+
+NOTIFY_ENDORSEMENT_RECEIVE = True
+"""
+Enables the ability to receive endorsement and review notifications for actors using the
+Endorsement workflow.  If set to true, while NOTIFY_ENDORSEMENT_REQUEST is set to False
+your repository will support only this workflow: https://coar-notify.net/catalogue/workflows/pci-sciety/
+"""
+
+NOTIFY_ENDORSEMENT_REQUEST = True
+"""
+Enables the ability to send endorsement requests, and thus enables the full Endorsement workflow
+as documented here https://coar-notify.net/catalogue/workflows/repository-pci/
+
+For this to work NOTIFY_ENDORSEMENT_RECEIVE MUST be set to True.
+"""
+
+NOTIFY_ENDORSEMENT_STATUS_LABELS = {
+    WORKFLOW_STATUS_TENTATIVE_ACCEPT: 'In progress',
+    WORKFLOW_STATUS_REJECT: {'label': 'Rejected', 'labelClass': 'red'},
+    WORKFLOW_STATUS_TENTATIVE_REJECT: {'label': 'Not endorsed in current form', 'labelClass': 'orange'},
+    WORKFLOW_STATUS_REQUEST_ENDORSEMENT: 'Pending',
+    WORKFLOW_STATUS_AVAILABLE: {'label': 'Available', 'labelClass': 'green'},
+}
+"""Configuration for endorsement status labels.
+
+This configuration defines how endorsement statuses are displayed in the UI.
+Each status can be configured in two ways:
+
+1. String format (simple):
+   - The value is a string representing the display label
+
+2. Dictionary format (advanced):
+   - 'label': The display text for the status
+   - 'labelClass': CSS class for styling (e.g., 'red', 'green', 'orange')  
+   - 'labelTitle': Optional tooltip text shown on hover
+
+Examples:
+    NOTIFY_ENDORSEMENT_STATUS_LABELS = {
+        # String format - simple label with default styling
+        'pending': 'Awaiting Review',
+
+        # Dictionary format - full control over appearance
+        'approved': {
+            'label': 'Approved',
+            'labelClass': 'green',
+            'labelTitle': 'This endorsement has been approved'
+        },
+
+        # Dictionary format - minimal (labelTitle is optional)
+        'rejected': {
+            'label': 'Rejected', 
+            'labelClass': 'red'
+        }
+    }
+"""
+
+
+NOTIFY_ENDORSEMENT_AVAILABLE_ACTORS = [WORKFLOW_STATUS_TENTATIVE_REJECT, WORKFLOW_STATUS_AVAILABLE]
+"""
+Config variable for endorsement requests react component that determines
+which workflow states mean that an actor is available to request an endorsement
+from
+"""
+
+###########################################
+## General admin configuration
+## (You probably don't need to change this)
+
 NOTIFY_INBOX_SEARCH = {
     "facets": [],
     "sort": [
@@ -304,62 +387,7 @@ NOTIFY_ENDORSEMENT_REQUEST_SORT_OPTIONS = {
     ),
 }
 
-##############################
-## Endorsement Workflow Config
 
-
-"""Configuration for endorsement status labels.
-
-This configuration defines how endorsement statuses are displayed in the UI.
-Each status can be configured in two ways:
-
-1. String format (simple):
-   - The value is a string representing the display label
-   
-2. Dictionary format (advanced):
-   - 'label': The display text for the status
-   - 'labelClass': CSS class for styling (e.g., 'red', 'green', 'orange')  
-   - 'labelTitle': Optional tooltip text shown on hover
-
-Examples:
-    NOTIFY_ENDORSEMENT_STATUS_LABELS = {
-        # String format - simple label with default styling
-        'pending': 'Awaiting Review',
-        
-        # Dictionary format - full control over appearance
-        'approved': {
-            'label': 'Approved',
-            'labelClass': 'green',
-            'labelTitle': 'This endorsement has been approved'
-        },
-        
-        # Dictionary format - minimal (labelTitle is optional)
-        'rejected': {
-            'label': 'Rejected', 
-            'labelClass': 'red'
-        }
-    }
-"""
-NOTIFY_ENDORSEMENT_STATUS_LABELS = {
-    WORKFLOW_STATUS_TENTATIVE_ACCEPT: 'In progress',
-    WORKFLOW_STATUS_REJECT: {'label': 'Rejected', 'labelClass': 'red'},
-    WORKFLOW_STATUS_TENTATIVE_REJECT: {'label': 'Not endorsed in current form', 'labelClass': 'orange'},
-    WORKFLOW_STATUS_REQUEST_ENDORSEMENT: 'Pending',
-    WORKFLOW_STATUS_AVAILABLE: {'label': 'Available', 'labelClass': 'green'},
-}
-
-# Config variable for endorsement requests react component that determines
-# which workflow states mean that an actor is available to request an endorsement
-# from
-NOTIFY_AVAILABLE_ACTORS = [WORKFLOW_STATUS_TENTATIVE_REJECT, WORKFLOW_STATUS_AVAILABLE]
-
-# Enables rest API endpoint and p1 functionality
-NOTIFY_PCI_ENDORSEMENT = True
-
-# enables sending
-NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT = True
-
-NOTIFY_ORIGIN_ID = 'https://127.0.0.1:5000/'
 
 ###########################################
 ## Invenio Config overrides
@@ -375,40 +403,42 @@ from marshmallow_utils.fields import NestedAttribute
 from invenio_notify.services.schemas import EndorsementSchema, NotifySchema
 from invenio_rdm_records.services.schemas import RDMRecordSchema
 
-def is_record_owner(record, ctx):
-    from flask import g
-    return (is_record(record, ctx)
-            and hasattr(g, "identity") and hasattr(g.identity, "id")
-            and record.parent.access.owner.owner_id == g.identity.id)
+# def is_record_owner(record, ctx):
+#     from flask import g
+#     return (is_record(record, ctx)
+#             and hasattr(g, "identity") and hasattr(g.identity, "id")
+#             and record.parent.access.owner.owner_id == g.identity.id)
 
-has_reviews = TermsFacet(
-    field="notify.has_reviews",
-    label=_("Has reviews"),
-    value_labels={"true": _("Yes"), "false": _("No")},
-)
+# has_reviews = TermsFacet(
+#     field="notify.has_reviews",
+#     label=_("Has reviews"),
+#     value_labels={"true": _("Yes"), "false": _("No")},
+# )
 
-RDMSearchOptions.facets["has_reviews"] = has_reviews
+# RDMSearchOptions.facets["has_reviews"] = has_reviews
 
-RDMRecordServiceConfig.links_item.update({
-    # Endorsements Requests
-    "endorsement_request": RecordEndpointLink("endorsement_request.send", when=is_record_owner),
-    "endorsement_request_actors": RecordEndpointLink("endorsement_request.list_actors", when=is_record_owner)
-})
+# RDMRecordServiceConfig.links_item.update({
+#     # Endorsements Requests
+#     "endorsement_request": RecordEndpointLink("endorsement_request.send", when=is_record_owner),
+#     "endorsement_request_actors": RecordEndpointLink("endorsement_request.list_actors", when=is_record_owner)
+# })
 
-RDM_FACETS["has_reviews"] = {
-    "facet": has_reviews,
-    "ui": {
-        "field": "notify.has_reviews",
-    },
-}
+# RDM_FACETS["has_reviews"] = {
+#     "facet": has_reviews,
+#     "ui": {
+#         "field": "notify.has_reviews",
+#     },
+# }
+#
+# RDM_SEARCH["facets"].append("has_reviews")
 
-RDM_SEARCH["facets"].append("has_reviews")
+# class NotifyEnabledRDMRecordSchema(RDMRecordSchema):
+#     endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
+#     notify = NestedAttribute(NotifySchema, dump_only=True)
+#
+# RDM_RECORD_SCHEMA = NotifyEnabledRDMRecordSchema
 
-class NotifyEnabledRDMRecordSchema(RDMRecordSchema):
-    endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
-    notify = NestedAttribute(NotifySchema, dump_only=True)
-
-RDM_RECORD_SCHEMA = NotifyEnabledRDMRecordSchema
+# RDMRecord.dumpers.extensions += [MyDumpers]
 
 # _UNSET = object()
 # _rdm_record_schema = _UNSET

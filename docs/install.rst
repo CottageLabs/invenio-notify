@@ -65,4 +65,38 @@ This will run the job one-time, so you would need to set this up with a cron job
 Configuration
 =============
 
-TODO
+Basic configuration
+-------------------
+
+The primary configuration you may want to set are as follows:
+
+* ``NOTIFY_ORIGIN_ID`` - this specifies the URL which will be used in the `origin.id` field of all outgoing notifications.  See https://coar-notify.net/specification/1.0.1/ for more details on this field and its purpose.
+
+* ``NOTIFY_ENDORSEMENT_RECEIVE`` - defaults to `True` and enables the ability to receive endorsement and review notifications for actors using the Endorsement workflow.  If set to true, while NOTIFY_ENDORSEMENT_REQUEST is set to False your repository will support only this workflow: https://coar-notify.net/catalogue/workflows/pci-sciety/
+
+* ``NOTIFY_ENDORSEMENT_REQUEST`` - defaults to `True` and enables the ability to send endorsement requests, and thus enables the full Endorsement workflow as documented here https://coar-notify.net/catalogue/workflows/repository-pci/.  For this to work ``NOTIFY_ENDORSEMENT_RECEIVE`` MUST be set to True.
+
+
+Search configuration
+--------------------
+
+If you want to add facets to the search results to enable filtering by reviews, you can add the following facet to your configuration:
+
+.. code-block:: python
+
+    from invenio_i18n import lazy_gettext as _
+
+    has_reviews = TermsFacet(
+        field="notify.has_reviews",
+        label=_("Has reviews"),
+        value_labels={"true": _("Yes"), "false": _("No")},
+    )
+
+    RDM_FACETS["has_reviews"] = {
+        "facet": has_reviews,
+        "ui": {
+            "field": "notify.has_reviews",
+        },
+    }
+
+    RDM_SEARCH["facets"].append("has_reviews")
