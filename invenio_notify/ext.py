@@ -2,12 +2,14 @@
 #
 #  Invenio-Notify is free software; you can redistribute it and/or modify
 #  it under the terms of the MIT License; see LICENSE file for more details.
+from invenio_base import invenio_url_for
 from invenio_drafts_resources.services.records.config import is_record
 from invenio_records_resources.services import RecordEndpointLink
 from marshmallow import fields
 from marshmallow_utils.fields import NestedAttribute
 
 from invenio_notify.records.dumpers import EndorsementsDumperExt, NotifyDumperExt
+from invenio_notify.records.models import ActorModel
 from invenio_notify.records.systemfields import NotifyField, EndorsementsField
 from invenio_notify.services.schemas import NotifySchema, EndorsementSchema
 from invenio_rdm_records.services import RDMRecordService, RDMRecordServiceConfig
@@ -17,7 +19,10 @@ from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_records_resources.services.records.facets import TermsFacet
 from invenio_i18n import lazy_gettext as _
 
-from invenio_notify import config, cli, feature_toggle
+from invenio_notify.notifications import builders as notify_notifications
+
+
+from invenio_notify import config, cli, feature_toggle, constants
 from invenio_notify.blueprints import blueprint
 from invenio_notify.resources import (
     InboxAdminResourceConfig,
@@ -102,6 +107,25 @@ class InvenioNotify:
         cfg.schema.endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
         cfg.schema.notify = NestedAttribute(NotifySchema, dump_only=True)
 
+        # Signposting
+        sp = app.config.get("APP_RDM_RECORD_LANDING_PAGE_EXT_SIGNPOSTING_CONTRIBUTIONS")
+        if sp:
+            app.config.get("APP_RDM_RECORD_LANDING_PAGE_EXT_SIGNPOSTING_CONTRIBUTIONS").append(notify_signposts)
+
+        # sidebar templates for detail page
+        app.config.get("APP_RDM_DETAIL_SIDE_BAR_TEMPLATES").extend([
+            "invenio_notify/records/details/side_bar/endorsements.html",
+            "invenio_notify/records/details/side_bar/endorsement_request.html"
+        ])
+
+        app.config.get("NOTIFICATIONS_BUILDERS").update({
+            notify_notifications.NewEndorsementNotificationBuilder.type: notify_notifications.NewEndorsementNotificationBuilder,
+            notify_notifications.EndorsementUpdateNotificationBuilder.type: notify_notifications.EndorsementUpdateNotificationBuilder
+        })
+
+        # Globals required by jinja2
+        app.jinja_env.globals["notify_enable_endorsement_request_section"] = enable_endorsement_request_sidebar
+
 
     def init_services(self, app):
         """Initialize the services for notifications."""
@@ -152,3 +176,24 @@ def is_record_owner(record, ctx):
     return (is_record(record, ctx)
             and hasattr(g, "identity") and hasattr(g.identity, "id")
             and record.parent.access.owner.owner_id == g.identity.id)
+
+def enable_endorsement_request_sidebar(record):
+    # Check if endorsement requests section should be displayed
+    # Only check for logged in users, record owners, and if the feature is enabled
+    from flask import current_app as app, current_user
+    enable_endorsement_request_section = False
+    if app.config.get(constants.NOTIFY_ENDORSEMENT_RECEIVE) and app.config.get(constants.NOTIFY_ENDORSEMENT_REQUEST):
+        if current_user.is_authenticated:
+            # Check if user is the record owner
+            if record._record.parent.access.owned_by.owner_id == current_user.id:
+                try:
+                    enable_endorsement_request_section = ActorModel.has_available_actors(record._record.id)
+                except Exception:
+                    pass
+    return enable_endorsement_request_section
+
+def notify_signposts(app, record):
+    if app.config.get(constants.NOTIFY_ENDORSEMENT_RECEIVE, False):
+        inbox = invenio_url_for("inbox_api.receive_notification")
+        return f' , <{inbox}> ; rel="http://www.w3.org/ns/ldp#inbox"'
+    return None
