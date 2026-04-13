@@ -4,6 +4,9 @@
 #  it under the terms of the MIT License; see LICENSE file for more details.
 from invenio_base import invenio_url_for
 from invenio_drafts_resources.services.records.config import is_record
+from invenio_rdm_records.services.schemas import RDMRecordSchema
+
+from invenio_rdm_records.records import RDMRecord
 from invenio_records.dumpers import SearchDumper
 from invenio_records_resources.services import RecordEndpointLink
 from marshmallow import fields
@@ -105,6 +108,12 @@ class InvenioNotify:
         if builders.EndorsementUpdateNotificationBuilder.type not in nbs:
             nbs[builders.EndorsementUpdateNotificationBuilder.type] = builders.EndorsementUpdateNotificationBuilder
 
+        if app.config.get("NOTIFY_USE_RDM_RECORD_EXTENSION", True):
+            app.config["RDM_RECORD_CLS"] = NotifyEnabledRDMRecord
+
+        if app.config.get("NOTIFY_USE_RDM_RECORD_SCHEMA_EXTENSION", True):
+            app.config["RDM_RECORD_SCHEMA"] = NotifyEnabledRDMRecordSchema
+
         # Globals required by jinja2
         app.jinja_env.filters["notify_enable_endorsement_request_section"] = enable_endorsement_request_sidebar
 
@@ -135,7 +144,6 @@ class InvenioNotify:
                 config=InboxApiResourceConfig,
             )
 
-
         self.inbox_admin_resource = InboxAdminResource(
             service=self.notify_inbox_service,
             config=InboxAdminResourceConfig,
@@ -157,32 +165,51 @@ class InvenioNotify:
             config=EndorsementRequestAdminResourceConfig,
         )
 
-# class NotifyMixin:
-#     endorsements = EndorsementsField()
-#
-#     dumper = SearchDumper(RDMRecord.dumper._extensions + [EndorsementsDumperExt("endorsements")])
-#
-#
-# class NotifyEnabledRDMRecord(RDMRecord, NotifyMixin):
-#     pass
-#
-# RDM_RECORD_CLS = NotifyEnabledRDMRecord
+class NotifyRDMRecordMixin:
+    """
+    Add this class to any extension of RDMRecord to add the Notify capabilities
+    """
+    endorsements = EndorsementsField()
+    notify = NotifyField()
 
+    # FIXME: there doesn't seem to be a way to extend the dumper on a module, so we
+    # are creating and binding a new dumper based on the RDMRecords settings, so we
+    # don't lose anything from the core implementation
+    dumper = SearchDumper(extensions=RDMRecord.dumper._extensions + [
+        EndorsementsDumperExt("endorsements"),
+        NotifyDumperExt("notify")
+    ])
+
+
+class NotifyEnabledRDMRecord(RDMRecord, NotifyRDMRecordMixin):
+    """
+    A class which we can use to enable RDMRecord on an otherwise vanilla InvenioRDM or
+    one which doesn't otherwise extend RDMRecord.
+    """
+    pass
+
+class NotifyRDMRecordSchemaMixin:
+    endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
+    notify = NestedAttribute(NotifySchema, dump_only=True)
+
+
+class NotifyEnabledRDMRecordSchema(RDMRecordSchema, NotifyRDMRecordSchemaMixin):
+    pass
 
 
 def finalize_app(app):
     # Further extend RDMRecordService, which can't be done until after RDMRecordService.build has
     # been called in some earlier init stage
-    RDMRecordServiceConfig.record_cls.dumper._extensions.append(EndorsementsDumperExt("endorsements"))
-    RDMRecordServiceConfig.record_cls.dumper._extensions.append(NotifyDumperExt("notify"))
-
-    # Custom system fields on RDMRecord
-    RDMRecordServiceConfig.record_cls.endorsements = EndorsementsField()
-    RDMRecordServiceConfig.record_cls.notify = NotifyField()
+    # RDMRecordServiceConfig.record_cls.dumper._extensions.append(EndorsementsDumperExt("endorsements"))
+    # RDMRecordServiceConfig.record_cls.dumper._extensions.append(NotifyDumperExt("notify"))
+    #
+    # # Custom system fields on RDMRecord
+    # RDMRecordServiceConfig.record_cls.endorsements = EndorsementsField()
+    # RDMRecordServiceConfig.record_cls.notify = NotifyField()
 
     # Custom schemas on RDMRecordSchema
-    RDMRecordServiceConfig.schema.endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
-    RDMRecordServiceConfig.schema.notify = NestedAttribute(NotifySchema, dump_only=True)
+    # RDMRecordServiceConfig.schema.endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
+    # RDMRecordServiceConfig.schema.notify = NestedAttribute(NotifySchema, dump_only=True)
     # now add our operational parameters to the various objects
     # with app.app_context():
     #     svc: RDMRecordService = current_rdm_records_service

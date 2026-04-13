@@ -123,10 +123,4 @@ class EndorsementSchema(Schema):
 
 class NotifySchema(Schema):
     """Schema for notification settings."""
-    def __init__(self, *args, **kwargs):
-        """Injects the dumper into the schema processors.
-        """
-        kw = {**kwargs, "dumpers": [NotifyDumperExt("notify")]}
-        super().__init__(*args, **kw)
-
     has_reviews = fields.Boolean()

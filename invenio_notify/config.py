@@ -20,6 +20,24 @@ See https://coar-notify.net/specification/1.0.1/
 This is distinct from the `origin.inbox` which will be dynamically generated for your instance
 """
 
+NOTIFY_USE_RDM_RECORD_EXTENSION = True
+"""
+Should the notify module patch in its own RDMRecord class?  If set to true, this will override
+RDMRecord with NotifyEnabledRDMRecord.  If set to false you MUST specify your own implementation
+of RDMRecord using the RDM_RECORD_CLS config variable, and that implementation MUST include 
+the Notify extension, which can be done by extending the NotifyRDMRecordMixin class as well as the RDMRecord class.
+See the documentation for more details.
+"""
+
+NOTIFY_USE_RDM_RECORD_SCHEMA_EXTENSION = True
+"""
+Should the notify module patch in its own RDMRecordSchema class?  If set to true, this will override
+RDMRecordSchema with NotifyEnabledRDMRecordSchema.  If set to false you MUST specify your own implementation
+of RDMRecordSchema using the RDM_RECORD_SCHEMA config variable, and that implementation MUST include 
+the Notify extension, which can be done by extending the NotifyRDMRecordSchemaMixin class as well as the RDMRecordSchema class.
+See the documentation for more details.
+"""
+
 ##############################
 ## Endorsement Workflow Config
 ## NOTIFY_ENDORSEMENT_ prefixed
