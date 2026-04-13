@@ -412,10 +412,10 @@ class ActorModel(db.Model, Timestamp, DbOperationMixin):
                 latest_request.c.latest_status.label('request_status'),
             )
             .filter(
-                and_(
+                #and_(
                     cls.inbox_url.isnot(None),
-                    cls.inbox_api_token.isnot(None)
-                )
+                #    cls.inbox_api_token.isnot(None)
+                #)
             )
             .outerjoin(
                 latest_endorsement,

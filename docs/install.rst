@@ -19,7 +19,7 @@ In your ``site/pyproject.toml`` (create this if it does not exist)
         "setuptools<81.0.0"
     ]
 
-(Note that ``setuptools`` may not be necessary here, but is include to avoid a potential issue with the latest version of setuptools and ``pkg_resources`` deprecation/removal)
+(Note that ``setuptools`` may not be necessary here, but is included to avoid a potential issue with the latest version of setuptools and ``pkg_resources`` deprecation/removal)
 
 2. Configure your InvenioRDM instance to override any of the module's configuration values for your local requirements.  See the section below on Configuration options.
 
@@ -91,13 +91,11 @@ In order to load the notify javascript widgets on the details pages, you will ne
         themes={
             "semantic-ui": dict(
                 entry={
-                    "notify": "invenio_notify/assets/semantic-ui/js/landing_page/notify.js"
+                    "notify": "./js/invenio_notify/src/landing_page/notify.js"
                 },
             ),
         },
     )
-
-Ensuring that the path to the ``invenio_notify`` module is correct
 
 
 

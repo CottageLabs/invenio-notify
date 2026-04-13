@@ -4,6 +4,7 @@
 #  it under the terms of the MIT License; see LICENSE file for more details.
 from invenio_base import invenio_url_for
 from invenio_drafts_resources.services.records.config import is_record
+from invenio_records.dumpers import SearchDumper
 from invenio_records_resources.services import RecordEndpointLink
 from marshmallow import fields
 from marshmallow_utils.fields import NestedAttribute
@@ -19,7 +20,7 @@ from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_records_resources.services.records.facets import TermsFacet
 from invenio_i18n import lazy_gettext as _
 
-from invenio_notify.notifications import builders as notify_notifications
+from invenio_notify.notifications import builders
 
 
 from invenio_notify import config, cli, feature_toggle, constants
@@ -82,49 +83,38 @@ class InvenioNotify:
             if k.startswith("NOTIFY_"):
                 app.config.setdefault(k, getattr(config, k))
 
-        # now add our operational parameters to the various objects
-        svc: RDMRecordService = current_rdm_records_service
+        # Signposting
+        sp = app.config.get("APP_RDM_RECORD_LANDING_PAGE_EXT_SIGNPOSTING_CONTRIBUTIONS")
+        if sp:
+            if notify_signposts not in sp:
+                sp.append(notify_signposts)
+
+        # sidebar templates for detail page
+        endorsement_sidebar = app.config.get(constants.NOTIFY_ENDORSEMENT_SIDEBAR_TEMPLATE)
+        endorsement_request_sidebar = app.config.get(constants.NOTIFY_ENDORSEMENT_REQUEST_SIDEBAR_TEMPLATE)
+        sidebars = app.config.get("APP_RDM_DETAIL_SIDE_BAR_TEMPLATES")
+        if endorsement_sidebar not in sidebars:
+            sidebars.append(endorsement_sidebar)
+        if endorsement_request_sidebar not in sidebars:
+            sidebars.append(endorsement_request_sidebar)
+
+        # notification builders
+        nbs = app.config.get("NOTIFICATIONS_BUILDERS")
+        if builders.NewEndorsementNotificationBuilder.type not in nbs:
+            nbs[builders.NewEndorsementNotificationBuilder.type] = builders.NewEndorsementNotificationBuilder
+        if builders.EndorsementUpdateNotificationBuilder.type not in nbs:
+            nbs[builders.EndorsementUpdateNotificationBuilder.type] = builders.EndorsementUpdateNotificationBuilder
+
+        # Globals required by jinja2
+        app.jinja_env.filters["notify_enable_endorsement_request_section"] = enable_endorsement_request_sidebar
 
         # Links on RDMRecordServiceConfig
-        cfg: RDMRecordServiceConfig = svc.config
-        svc.config.links_item.update({
+        # RDMrecordServiceConfig can't be configured away, so we can rely on this specific class being available
+        RDMRecordServiceConfig.links_item.update({
             # Endorsements Requests
             "endorsement_request": RecordEndpointLink("endorsement_request.send", when=is_record_owner),
             "endorsement_request_actors": RecordEndpointLink("endorsement_request.list_actors", when=is_record_owner)
         })
-
-        # Custom dumpers on RDMRecord SearchDumper
-        # Note that there's no API for adding extensions, so we are directly accessing a private
-        # variable
-        cfg.record_cls.dumper._extensions.append(EndorsementsDumperExt("endorsements"))
-        cfg.record_cls.dumper._extensions.append(NotifyDumperExt("notify"))
-
-        # Custom system fields on RDMRecord
-        cfg.record_cls.endorsements = EndorsementsField()
-        cfg.record_cls.notify = NotifyField()
-
-        # Custom schemas on RDMRecordSchema
-        cfg.schema.endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
-        cfg.schema.notify = NestedAttribute(NotifySchema, dump_only=True)
-
-        # Signposting
-        sp = app.config.get("APP_RDM_RECORD_LANDING_PAGE_EXT_SIGNPOSTING_CONTRIBUTIONS")
-        if sp:
-            app.config.get("APP_RDM_RECORD_LANDING_PAGE_EXT_SIGNPOSTING_CONTRIBUTIONS").append(notify_signposts)
-
-        # sidebar templates for detail page
-        app.config.get("APP_RDM_DETAIL_SIDE_BAR_TEMPLATES").extend([
-            "invenio_notify/records/details/side_bar/endorsements.html",
-            "invenio_notify/records/details/side_bar/endorsement_request.html"
-        ])
-
-        app.config.get("NOTIFICATIONS_BUILDERS").update({
-            notify_notifications.NewEndorsementNotificationBuilder.type: notify_notifications.NewEndorsementNotificationBuilder,
-            notify_notifications.EndorsementUpdateNotificationBuilder.type: notify_notifications.EndorsementUpdateNotificationBuilder
-        })
-
-        # Globals required by jinja2
-        app.jinja_env.globals["notify_enable_endorsement_request_section"] = enable_endorsement_request_sidebar
 
 
     def init_services(self, app):
@@ -167,8 +157,57 @@ class InvenioNotify:
             config=EndorsementRequestAdminResourceConfig,
         )
 
+# class NotifyMixin:
+#     endorsements = EndorsementsField()
+#
+#     dumper = SearchDumper(RDMRecord.dumper._extensions + [EndorsementsDumperExt("endorsements")])
+#
+#
+# class NotifyEnabledRDMRecord(RDMRecord, NotifyMixin):
+#     pass
+#
+# RDM_RECORD_CLS = NotifyEnabledRDMRecord
+
+
+
 def finalize_app(app):
-    """Finalise the app."""
+    # Further extend RDMRecordService, which can't be done until after RDMRecordService.build has
+    # been called in some earlier init stage
+    RDMRecordServiceConfig.record_cls.dumper._extensions.append(EndorsementsDumperExt("endorsements"))
+    RDMRecordServiceConfig.record_cls.dumper._extensions.append(NotifyDumperExt("notify"))
+
+    # Custom system fields on RDMRecord
+    RDMRecordServiceConfig.record_cls.endorsements = EndorsementsField()
+    RDMRecordServiceConfig.record_cls.notify = NotifyField()
+
+    # Custom schemas on RDMRecordSchema
+    RDMRecordServiceConfig.schema.endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
+    RDMRecordServiceConfig.schema.notify = NestedAttribute(NotifySchema, dump_only=True)
+    # now add our operational parameters to the various objects
+    # with app.app_context():
+    #     svc: RDMRecordService = current_rdm_records_service
+    #
+    #     # Links on RDMRecordServiceConfig
+    #     cfg: RDMRecordServiceConfig = svc.config
+    #     svc.config.links_item.update({
+    #         # Endorsements Requests
+    #         "endorsement_request": RecordEndpointLink("endorsement_request.send", when=is_record_owner),
+    #         "endorsement_request_actors": RecordEndpointLink("endorsement_request.list_actors", when=is_record_owner)
+    #     })
+    #
+    #     # Custom dumpers on RDMRecord SearchDumper
+    #     # Note that there's no API for adding extensions, so we are directly accessing a private
+    #     # variable
+    #     cfg.record_cls.dumper._extensions.append(EndorsementsDumperExt("endorsements"))
+    #     cfg.record_cls.dumper._extensions.append(NotifyDumperExt("notify"))
+    #
+    #     # Custom system fields on RDMRecord
+    #     cfg.record_cls.endorsements = EndorsementsField()
+    #     cfg.record_cls.notify = NotifyField()
+    #
+    #     # Custom schemas on RDMRecordSchema
+    #     cfg.schema.endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
+    #     cfg.schema.notify = NestedAttribute(NotifySchema, dump_only=True)
     pass
 
 def is_record_owner(record, ctx):
@@ -180,7 +219,8 @@ def is_record_owner(record, ctx):
 def enable_endorsement_request_sidebar(record):
     # Check if endorsement requests section should be displayed
     # Only check for logged in users, record owners, and if the feature is enabled
-    from flask import current_app as app, current_user
+    from flask import current_app as app
+    from flask_login import current_user
     enable_endorsement_request_section = False
     if app.config.get(constants.NOTIFY_ENDORSEMENT_RECEIVE) and app.config.get(constants.NOTIFY_ENDORSEMENT_REQUEST):
         if current_user.is_authenticated:

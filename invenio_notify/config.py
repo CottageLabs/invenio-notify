@@ -87,6 +87,9 @@ which workflow states mean that an actor is available to request an endorsement
 from
 """
 
+NOTIFY_ENDORSEMENT_SIDEBAR_TEMPLATE = "invenio_notify/records/details/side_bar/endorsements.html"
+NOTIFY_ENDORSEMENT_REQUEST_SIDEBAR_TEMPLATE = "invenio_notify/records/details/side_bar/endorsement_request.html"
+
 ###########################################
 ## General admin configuration
 ## (You probably don't need to change this)

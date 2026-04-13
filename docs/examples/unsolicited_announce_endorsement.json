@@ -1,0 +1,37 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/activitystreams",
+    "https://coar-notify.net"
+  ],
+  "actor": {
+    "id": "{actor_id}",
+    "name": "Review Service",
+    "type": "Service"
+  },
+  "context": {
+    "id": "{record_url}"
+  },
+  "id": "urn:uuid:c147aa7b-9fed-45ef-a933-a8a68decd462",
+  "object": {
+    "id": "https://review-service.org/endorsements/12345",
+    "ietf:cite-as": "https://review-service.org/endorsements/12345",
+    "type": [
+      "Page",
+      "sorg:WebPage"
+    ]
+  },
+  "origin": {
+    "id": "{actor_id}",
+    "inbox": "{actor_inbox}",
+    "type": "Service"
+  },
+  "target": {
+    "id": "https://research-organisation.org/repository",
+    "inbox": "https://research-organisation.org/inbox/",
+    "type": "Service"
+  },
+  "type": [
+    "Announce",
+    "coar-notify:EndorsementAction"
+  ]
+}
