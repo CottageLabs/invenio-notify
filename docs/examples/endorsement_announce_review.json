@@ -1,0 +1,37 @@
+{
+  "@context": [
+    "https://www.w3.org/ns/activitystreams",
+    "https://coar-notify.net"
+  ],
+  "actor": {
+    "id": "{actor_id}",
+    "name": "Review Service",
+    "type": "Service"
+  },
+  "context": {
+    "id": "{record_url}"
+  },
+  "id": "urn:uuid:9c0e1201-e8c4-4500-8ae8-60b402d90c8e",
+  "object": {
+    "id": "https://review-service.com/review/geo/202103/0021",
+    "ietf:cite-as": "https://review-service.com/review/geo/202103/0021",
+    "type": [
+      "Page",
+      "sorg:Review"
+    ]
+  },
+  "origin": {
+    "id": "{actor_id}",
+    "inbox": "{actor_inbox}",
+    "type": "Service"
+  },
+  "target": {
+    "id": "https://generic-service.com/system",
+    "inbox": "https://generic-service.com/system/inbox/",
+    "type": "Service"
+  },
+  "type": [
+    "Announce",
+    "coar-notify:ReviewAction"
+  ]
+}

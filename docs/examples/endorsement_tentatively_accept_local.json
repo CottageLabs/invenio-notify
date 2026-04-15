@@ -4,24 +4,24 @@
 		"https://coar-notify.net"
 	],
 	"actor": {
-		"id": "{actor_id}",
+		"id": "http://127.0.0.1:5005/actor",
 		"name": "Review Service",
 		"type": "Service"
 	},
 	"id": "urn:uuid:dff0e446-969e-42dd-8eaf-14cfbbe3dc97",
-	"inReplyTo": "{endorsement_request_id}",
+	"inReplyTo": "urn:uuid:c345e04883b74d2d84390709ec963164",
 	"object": {
 		"actor": {
 			"id": "https://orcid.org/0000-0002-1825-0097",
 			"name": "Josiah Carberry",
 			"type": "Person"
 		},
-		"id": "{endorsement_request_id}",
+		"id": "urn:uuid:c345e04883b74d2d84390709ec963164",
 		"object": {
-			"id": "{record_id}",
-			"ietf:cite-as": "{record_id}",
+			"id": "https://127.0.0.1:5000/records/s1r68-2xc88",
+			"ietf:cite-as": "https://127.0.0.1:5000/records/s1r68-2xc88",
 			"ietf:item": {
-				"id": "{record_id}",
+				"id": "https://127.0.0.1:5000/records/s1r68-2xc88",
 				"mediaType": "text/html",
 				"type": [
 					"Page",
@@ -36,8 +36,8 @@
       		"type": "Service"
 		},
 		"target": {
-			"id": "{actor_id}",
-			"inbox": "{actor_inbox}",
+			"id": "http://127.0.0.1:5005/actor",
+			"inbox": "http://127.0.0.1:5005/inbox",
 			"type": "Service"
 		},
 		"type": [
@@ -46,8 +46,8 @@
 		]
 	},
 	"origin": {
-		"id": "{actor_id}",
-		"inbox": "{actor_inbox}",
+		"id": "http://127.0.0.1:5005/actor",
+		"inbox": "http://127.0.0.1:5005/inbox",
 		"type": "Service"
 	},
 	"summary": "The offer has been tentatively accepted, subject to further review.",

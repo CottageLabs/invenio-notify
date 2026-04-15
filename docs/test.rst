@@ -82,6 +82,10 @@ in the ``STORE_DIR`` property of your local settings file.
 In your InvenioRDM instance, go to https://127.0.0.1:5000/administration/actor as an administrator and add an Actor
 record which gives http://127.0.0.1:5005/inbox as the inbox URL.  (The Actor ID can be any URL, but for clarity it's best to use the inbox URL as the Actor ID in this case).
 
+3. Add your user who will send notifications to the Actor you just created.
+
+Go to https://127.0.0.1:5000/administration/actor and select Members from under Actions, and add the user account.
+
 
 Successful Endorsement Test
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -115,8 +119,72 @@ Go to https://127.0.0.1:5000/administration/endorsement-request to see the endor
 
 5. Issue a Tentative Accept notification from the test inbox
 
+Make a copy of the ``endorsement_tentatively_accept.json`` file from the ``docs/examples`` directory and edit it to replace the placeholder values with appropriate values for your system, ensuring that the ``inReplyTo`` field matches the id of the endorsement request you just sent.
 
+Post this notification to the test inbox with the following command, replacing ``<your_notification.json>`` with the path to your edited notification:
 
+Run the following CURL command to post the notification to the inbox.  Replace ``<YOUR ACCESS TOKEN>`` and ``<endorsement_tentatively_accept_local.json>`` with the appropriate values.
 
+.. code-block::
 
+   curl -X POST -i https://127.0.0.1:5000/api/notify/inbox \
+        -k \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer <YOUR ACCESS TOKEN>" \
+        -d @<endorsement_tentatively_accept_local.json>
 
+6. Check the Tentative Accept notification has been received
+
+Go to https://127.0.0.1:5000/administration/notify-inbox and see the notification in the inbox
+
+7. Run the workflow processor
+
+On the command line, run the following command to process the notifications:
+
+.. code-block::
+
+    invenio notify run
+
+When you reload the page at https://127.0.0.1:5000/administration/notify-inbox you should see the tentatively accepted notification
+has been processed
+
+8. Check that the status of the endorsement request has updated
+
+Go to the record page from which you requested an endorsement, ensuring you are logged in as the record owner,
+and check that the status for the test inbox has been updated to "In progress".
+
+9. Send the endorsement and a review from the test actor
+
+Make copies of ``endorsement_announce_endorsement.json`` and ``endorsement_announce_review.json`` from the ``docs/examples`` directory, and edit them to replace the placeholder values with appropriate values for your system, ensuring that the ``inReplyTo`` field in both notifications matches the id of the endorsement request you sent.
+
+Run the following CURL commands to post the notifications to the inbox.  Replace ``<YOUR ACCESS TOKEN>`` and ``<endorsement_announce_endorsement_local.json>`` and ``<endorsement_announce_review_local.json>`` with the appropriate values.
+
+.. code-block::
+
+   curl -X POST -i https://127.0.0.1:5000/api/notify/inbox \
+        -k \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer <YOUR ACCESS TOKEN>" \
+        -d @<endorsement_announce_endorsement_local.json>
+
+.. code-block::
+
+   curl -X POST -i https://127.0.0.1:5000/api/notify/inbox \
+        -k \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer <YOUR ACCESS TOKEN>" \
+        -d @<endorsement_announce_review_local.json>
+
+10. Run the workflow processor again
+
+On the command line, run the following command to process the notifications:
+
+.. code-block::
+
+    invenio notify run
+
+11. Check the endorsement and review have been processed
+
+Go to the record page as the record owner.  You should find that endorsement/review appear in the Endorsements side panel.
+
+Meanwhile, the Test Inbox is no longer listed in the Endorsement Request section of the sidebar, as the endorsement request has now been completed.
