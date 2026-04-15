@@ -13,7 +13,7 @@ from tests.fixtures.record_fixture import prepare_test_rdm_record
 from invenio_rdm_records.proxies import current_rdm_records_service
 
 
-def test_record_indexing_with_endorsements(db, superuser_identity, minimal_record, 
+def test_record_indexing_with_endorsements(search_with_notify_mapping, db, superuser_identity, minimal_record,
                                          resource_type_v, location):
     """Test that a record with endorsements gets indexed with non-empty endorsements array."""
     # Create a test record
@@ -83,8 +83,8 @@ def test_record_indexing_with_endorsements(db, superuser_identity, minimal_recor
     assert endorsement_item['url'] == 'https://test-actor.example.com/endorsement/123'
 
 
-def test_record_indexing_with_mixed_endorsements_and_reviews(db, superuser_identity, 
-                                                           minimal_record, resource_type_v, 
+def test_record_indexing_with_mixed_endorsements_and_reviews(search_with_notify_mapping, db, superuser_identity,
+                                                           minimal_record, resource_type_v,
                                                            location):
     """Test that a record with both endorsements and reviews gets indexed correctly."""
     # Create a test record
@@ -147,7 +147,7 @@ def test_record_indexing_with_mixed_endorsements_and_reviews(db, superuser_ident
     assert endorsement_data['review_list'][0]['url'] == 'https://mixed-actor.example.com/review/456'
 
 
-def test_record_indexing_with_multiple_actors(db, superuser_identity, minimal_record, 
+def test_record_indexing_with_multiple_actors(search_with_notify_mapping, db, superuser_identity, minimal_record,
                                                resource_type_v, location):
     """Test that a record with endorsements from multiple actors gets indexed correctly."""
     # Create a test record

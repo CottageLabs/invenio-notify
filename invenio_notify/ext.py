@@ -181,7 +181,7 @@ class NotifyRDMRecordMixin:
     ])
 
 
-class NotifyEnabledRDMRecord(RDMRecord, NotifyRDMRecordMixin):
+class NotifyEnabledRDMRecord(NotifyRDMRecordMixin, RDMRecord):
     """
     A class which we can use to enable RDMRecord on an otherwise vanilla InvenioRDM or
     one which doesn't otherwise extend RDMRecord.

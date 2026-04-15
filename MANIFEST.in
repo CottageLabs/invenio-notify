@@ -14,6 +14,7 @@ recursive-include invenio_notify *.jinja
 recursive-include invenio_notify *.js
 recursive-include invenio_notify *.json
 recursive-include invenio_notify *.py
+recursive-include invenio_notify *.svg
 recursive-include tests *.py
 
 # Include specific docs css files but exclude build directory
