@@ -181,13 +181,12 @@ class NotifyRDMRecordMixin:
     ])
 
 
-class NotifyEnabledRDMRecord(RDMRecord, NotifyRDMRecordMixin):
+class NotifyEnabledRDMRecord(NotifyRDMRecordMixin, RDMRecord):
     """
     A class which we can use to enable RDMRecord on an otherwise vanilla InvenioRDM or
     one which doesn't otherwise extend RDMRecord.
     """
-    # Notify dumper needs to be explicitly set, otherwise RDMRecord dumper takes precedence
-    dumper = NotifyRDMRecordMixin.dumper
+    pass
 
 class NotifyRDMRecordSchemaMixin:
     endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
