@@ -108,6 +108,12 @@ class NotifyInboxService(BasicDbService):
         Raises:
             COARProcessFail: If no record URL is found
         """
+        # Try each location the record URL may appear, in order of preference:
+        # 1. context.id (Announce-type patterns: AnnounceReview, AnnounceEndorsement)
+        # 2. object.object.id (reply-type patterns: TentativeAccept, Reject, TentativeReject —
+        #    notification.object is a nested NotifyPattern via NestedPatternObjectMixin, and
+        #    its .object holds the record reference)
+        # 3. object.id (fallback)
         record_url = None
         ctx = notification.context
         if ctx is not None:
@@ -115,13 +121,11 @@ class NotifyInboxService(BasicDbService):
         if record_url is None:
             obj = notification.object
             if obj is not None:
-                record_url = obj.id
-
-        # record_url = None
-        # if raw.get('context', {}).get('id'):
-        #     record_url = raw['context']['id']
-        # elif raw.get('object', {}).get('object', {}).get('id'):
-        #     record_url = raw['object']['object']['id']
+                nested_obj = obj.object if hasattr(obj, 'object') else None
+                if nested_obj is not None:
+                    record_url = nested_obj.id
+                if record_url is None:
+                    record_url = obj.id
 
         if not record_url:
             current_app.logger.error('No record URL found in notification')
