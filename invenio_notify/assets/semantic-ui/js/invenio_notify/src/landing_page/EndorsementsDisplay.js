@@ -153,7 +153,7 @@ const EndorsementsDisplayContent = ({ record, allVersions, versionsLoading, vers
                     >
 
                         <Header as="div" className="ui left aligned header small mb-0 trigger">
-                            {hasReviews && <Icon name={activeIndices.includes(endorsementIndex) ? "caret down" : "caret right"}/>}
+                            {hasReviews && <Icon name="caret right"/>}
                             {endorsement.actor_name}{endorsement.review_count > 0 && ` (${endorsement.review_count})`}
                         </Header>
 
