@@ -89,7 +89,7 @@ class BasicDbService(RecordService):
             raise_errors=True,
         )
 
-        self.record_cls.update(valid_data, id)
+        self.record_cls.update(data=valid_data, id=id)
 
         return self.result_item(
             self,

@@ -57,3 +57,66 @@ Go to https://127.0.0.1:5000/administration/notify-inbox
 
 You should see the both the review and endorsement notifications listed with a "Process Date" showing they were recently processed.
 
+
+Full Endorsements Workflow
+--------------------------
+
+Setup
+^^^^^
+
+1. You will need an external COAR Notify inbox to receive notifications from your InvenioRDM instance.
+
+The Python library used by this module can provide a local Notify inbox that you can use for such testing.  Full documentation for this is here https://coar-notify.github.io/coarnotifypy/build/html/test_server.html
+
+Set up a local test server and start it with
+
+.. code-block:: console
+
+    export COARNOTIFY_SETTINGS=/path/to/local.cfg; python coarnotify/test/server/inbox.py
+
+You will now be able to check for any notifications sent by InvenioRDM to that inbox in the directory you specified
+in the ``STORE_DIR`` property of your local settings file.
+
+2. You will need to set the Actor for your external inbox from step (1).
+
+In your InvenioRDM instance, go to https://127.0.0.1:5000/administration/actor as an administrator and add an Actor
+record which gives http://127.0.0.1:5005/inbox as the inbox URL.  (The Actor ID can be any URL, but for clarity it's best to use the inbox URL as the Actor ID in this case).
+
+
+Successful Endorsement Test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+1. See the Endorsement Request options
+
+Go to a record details page in your InvenioRDM instance for a record that you are the owner of (you may impersonate
+the owner if you are an administrator).
+
+On the right you should find an "Endorsement Request" section, which includes the test inbox you created during setup.
+
+2. Send an endorsement request
+
+Select the test inbox from the sidebar widget and click "Request".  After a short pause you should see a message
+saying your endorsement request has been successfully sent.
+
+You will also see that the Test inbox is no longer available in the pull-down list, as you can only have one active endorsement request at a time for a given Actor.
+
+In the status table below you will see the test inbox listed with a status of "Pending".
+
+3. Check the endorsement request has arrived in the test inbox
+
+Go to the directory you specified in the ``STORE_DIR`` property of your local settings file for the test server.  You
+should see a file which starts with the timestamp of when you sent the notification.
+
+Open the file and confirm that there is a suitable JSON endorsement request.
+
+4. See the endorsement request in the admin area
+
+Go to https://127.0.0.1:5000/administration/endorsement-request to see the endorsement request that was issued
+
+5. Issue a Tentative Accept notification from the test inbox
+
+
+
+
+
+
