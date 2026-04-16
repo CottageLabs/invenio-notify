@@ -258,6 +258,10 @@ export class EndorsementRequestDropdown extends Component {
         const {actorOptions, selectedActorId, error, endoReqSuccess} = this.state;
         const endorsementRequestOptions = this.getAvailableActorOptions(actorOptions, this.props.availableActors);
 
+        // Actors with an 'available' status will not be displayed in the table (filter applied below)
+        // but are available to select from the dropdown
+        const filteredActorOptions = actorOptions.filter((option) => { return option.status !== 'available'});
+
         return (
             <>
                 {error && (
@@ -293,8 +297,8 @@ export class EndorsementRequestDropdown extends Component {
                         onSubmit={this.handleSubmit}
                     />
                 )}
-                {actorOptions.length > 0 && (
-                    <ActorListTable actorOptions={actorOptions} statusLabels={this.props.statusLabels}/>
+                {filteredActorOptions.length > 0 && (
+                    <ActorListTable actorOptions={filteredActorOptions} statusLabels={this.props.statusLabels}/>
                 )}
             </>
         );
