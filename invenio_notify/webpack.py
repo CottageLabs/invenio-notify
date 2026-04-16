@@ -16,6 +16,8 @@ notify = WebpackThemeBundle(
             entry={
                 "invenio-administration-actor-search": "./js/invenio_notify/src/administration/actor/index.js",
                 "invenio-notify-administration-search": "./js/invenio_notify/src/administration/notification/index.js",
+                "endorsements": "./js/invenio_notify/src/landing_page/endorsements.js",
+                "endorsement-request": "./js/invenio_notify/src/landing_page/endorsement-request.js",
             },
             dependencies={
                 "@babel/runtime": "^7.9.0",
