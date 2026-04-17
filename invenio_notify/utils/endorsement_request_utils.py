@@ -65,9 +65,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
     item.id = record.data["links"]["self_html"]
     item.media_type = "text/html"
     item.type = [ActivityStreamsTypes.PAGE, NotifyTypes.ABOUT_PAGE]
-    # FIXME: works around a bug in underlying coarnotifypy library
-    obj.set_property(NotifyProperties.ITEM, item.doc)
-    # obj.item = item
+    obj.item = item
 
     origin = NotifyService()
     origin.id = origin_id
@@ -80,9 +78,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
     target.type = ActivityStreamsTypes.SERVICE
 
     endorsement.actor = notify_actor
-    # FIXME: this works around a bug in the underlying coarnotifypy library
-    endorsement.set_property(Properties.OBJECT, obj.doc)
-    # endorsement.object = obj
+    endorsement.object = obj
     endorsement.origin = origin
     endorsement.target = target
 

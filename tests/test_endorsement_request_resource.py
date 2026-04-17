@@ -104,8 +104,9 @@ class TestSend:
                 # mock_read.read = AsyncMock(return_value=record)
                 return client.post(url, json={"actor_id": actor_id})
 
+    @patch('invenio_notify.utils.endorsement_request_utils.invenio_url_for', return_value='https://example.com/self-inbox')
     @patch.object(endorsement_request_resource.requests, 'post')
-    def test_success(self, mock_post, client, rdm_record, superuser_identity, create_actor, db):
+    def test_success(self, mock_post, mock_url_for, client, rdm_record, superuser_identity, create_actor, db):
         """Test successful endorsement request."""
         # Create actor with proper configuration
         actor = create_actor(
@@ -189,8 +190,9 @@ class TestSend:
 
         assert response.status_code == 400
 
+    @patch('invenio_notify.utils.endorsement_request_utils.invenio_url_for', return_value='https://example.com/self-inbox')
     @patch.object(endorsement_request_resource.requests, 'post')
-    def test_actor_inbox_request_fails(self, mock_post, client, rdm_record, superuser_identity, create_actor, db):
+    def test_actor_inbox_request_fails(self, mock_post, mock_url_for, client, rdm_record, superuser_identity, create_actor, db):
         """Test handling of actor inbox request failure."""
         actor = create_actor(
             inbox_url='https://example.com/inbox',

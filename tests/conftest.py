@@ -284,7 +284,7 @@ def mock_datacite_client():
 
 @pytest.fixture(scope="module")
 def app_config(app_config, mock_datacite_client):
-    app_config["NOTIFY_ORIGIN_ID"] = "yoooooooooooooooooooooo"
+    app_config["NOTIFY_ORIGIN_ID"] = "https://example.com/origin"
     app_config[NOTIFY_ENDORSEMENT_RECEIVE] = True
     app_config[NOTIFY_ENDORSEMENT_REQUEST] = True
     
