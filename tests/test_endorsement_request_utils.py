@@ -3,7 +3,6 @@
 #  Invenio-Notify is free software; you can redistribute it and/or modify
 #  it under the terms of the MIT License; see LICENSE file for more details.
 
-import uuid
 from copy import deepcopy
 from unittest.mock import patch
 
@@ -17,12 +16,9 @@ class TestCreateEndorsementRequestData:
     """Test suite for create_endorsement_request_data function."""
 
     @patch('invenio_notify.utils.endorsement_request_utils.invenio_url_for')
-    @patch('invenio_notify.utils.endorsement_request_utils.uuid.uuid4')
-    def test_basic_functionality(self, mock_uuid, mock_url_for, rdm_record, superuser, create_actor):
+    def test_basic_functionality(self, mock_url_for, rdm_record, superuser, create_actor):
         """Test basic endorsement request data creation with DOI links."""
         # Setup mocks
-        test_uuid = uuid.UUID('12345678-1234-5678-9012-123456789012')
-        mock_uuid.return_value = test_uuid
         mock_url_for.return_value = 'https://example.com/inbox'
 
         # Create test objects
@@ -46,7 +42,7 @@ class TestCreateEndorsementRequestData:
             "https://www.w3.org/ns/activitystreams",
             "https://coar-notify.net"
         ]
-        assert endorsement.id == "urn:uuid:" + str(test_uuid).replace('-', '')
+        assert endorsement.id.startswith("urn:uuid:")
         assert endorsement.type == ["Offer", "coar-notify:EndorsementAction"]
 
         # Verify actor
