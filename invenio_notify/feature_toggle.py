@@ -1,22 +1,27 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from functools import wraps
 
 from flask import Blueprint
 
-from .constants import NOTIFY_PCI_ENDORSEMENT, NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT
+from .constants import NOTIFY_ENDORSEMENT_RECEIVE, NOTIFY_ENDORSEMENT_REQUEST
 
 
 def is_pci_endorsement_enabled(app=None):
     if app is None:
         from flask import current_app
         app = current_app
-    return app.config.get(NOTIFY_PCI_ENDORSEMENT, False)
+    return app.config.get(NOTIFY_ENDORSEMENT_RECEIVE, False)
 
 
 def is_pci_announcement_of_endorsement_enabled(app=None):
     if app is None:
         from flask import current_app
         app = current_app
-    return is_pci_endorsement_enabled(app) and app.config.get(NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT, False)
+    return is_pci_endorsement_enabled(app) and app.config.get(NOTIFY_ENDORSEMENT_REQUEST, False)
 
 
 class NotifyFeatureBlueprintEnable:

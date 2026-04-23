@@ -1,3 +1,8 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from invenio_db.uow import unit_of_work
 
 from invenio_notify.records.models import EndorsementRequestModel
@@ -27,8 +32,8 @@ class EndorsementReplyService(BasicDbService):
         if 'endorsement_request_id' in data and 'status' in data:
             request_record = EndorsementRequestModel.get(data['endorsement_request_id'])
             EndorsementRequestModel.update(
-                {'latest_status': data['status']},
-                data['endorsement_request_id']
+                data={'latest_status': data['status']},
+                id=data['endorsement_request_id']
             )
 
         return result

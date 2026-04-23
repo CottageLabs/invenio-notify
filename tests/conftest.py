@@ -1,4 +1,11 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from collections import namedtuple
+import json
+from importlib.resources import files as pkg_files
 
 from invenio_access.models import ActionRoles, Role
 from invenio_access.permissions import superuser_access
@@ -6,12 +13,15 @@ from invenio_access.permissions import system_identity
 from invenio_administration.permissions import administration_access_action
 from invenio_app.factory import create_app as _create_app
 from invenio_files_rest.models import Location
+from invenio_rdm_records.proxies import current_rdm_records_service
 from invenio_rdm_records.services.pids import providers
+from invenio_search import current_search, current_search_client
+from invenio_search.utils import build_alias_name
 from invenio_vocabularies.proxies import current_service as vocabulary_service
 from invenio_vocabularies.records.api import Vocabulary
 
 from .fake_datacite_client import FakeDataCiteClient
-from invenio_notify.constants import NOTIFY_PCI_ENDORSEMENT, NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT
+from invenio_notify.constants import NOTIFY_ENDORSEMENT_RECEIVE, NOTIFY_ENDORSEMENT_REQUEST
 from tests.builders.inbox_test_data_builder import *  # noqa
 from tests.fixtures.endorsement_request_fixture import *  # noqa
 from tests.fixtures.inbox_fixture import *  # noqa
@@ -212,8 +222,49 @@ def location(db):
     return loc
 
 
+def _apply_notify_mapping():
+    """Apply notify field mappings to the configured RDM records index.
+
+    Derives the index name from the configured record class so this works
+    regardless of the invenio-rdm-records version (record-v7.0.0, v8.0.0, etc.).
+    Mirrors the production install step described in install.rst step 4.
+    """
+    ext_path = pkg_files("invenio_notify.records.mappings") / "notify-record-v8.0.0.json"
+    with open(str(ext_path)) as f:
+        body = json.load(f)
+
+    index_name = current_rdm_records_service.config.record_cls.index._name
+    index_alias = build_alias_name(index_name)
+    current_search_client.indices.put_mapping(index=index_alias, body=body)
+
+
+@pytest.fixture(scope="module")
+def search_with_notify_mapping(search, appctx):
+    """Extend the rdmrecords index mapping with notify fields after index creation.
+
+    Mirrors the production install step (install.rst step 4) which uses
+    PUT /<index>/_mapping to add endorsements/notify to the strict rdmrecords mapping.
+    """
+    _apply_notify_mapping()
+    return search
+
+
 @pytest.fixture
-def rdm_record(db, superuser_identity, minimal_record, resource_type_v, location):
+def search_clear(search_with_notify_mapping):
+    """Clear search indices after test finishes (function scope).
+
+    Overrides pytest-invenio's search_clear to depend on search_with_notify_mapping
+    so the notify field mappings are always applied before any test that indexes records.
+    """
+    yield search_with_notify_mapping
+    list(current_search.delete(ignore=[404]))
+    list(current_search.create())
+    current_search_client.indices.refresh()
+    _apply_notify_mapping()
+
+
+@pytest.fixture
+def rdm_record(search_with_notify_mapping, db, superuser_identity, minimal_record, resource_type_v, location):
     """Create and publish an RDM record for testing."""
     draft = current_rdm_records.records_service.create(superuser_identity, minimal_record)
     record = current_rdm_records.records_service.publish(superuser_identity, draft.id)
@@ -233,9 +284,9 @@ def mock_datacite_client():
 
 @pytest.fixture(scope="module")
 def app_config(app_config, mock_datacite_client):
-    app_config["NOTIFY_ORIGIN_ID"] = "yoooooooooooooooooooooo"
-    app_config[NOTIFY_PCI_ENDORSEMENT] = True
-    app_config[NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT] = True
+    app_config["NOTIFY_ORIGIN_ID"] = "https://example.com/origin"
+    app_config[NOTIFY_ENDORSEMENT_RECEIVE] = True
+    app_config[NOTIFY_ENDORSEMENT_REQUEST] = True
     
     # Enable DOI minting...
     app_config["DATACITE_ENABLED"] = True

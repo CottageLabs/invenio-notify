@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 # -*- coding: utf-8 -*-
-#
-# This file is part of Invenio.
-# Copyright (C) 2015-2020 CERN.
-# Copyright (C) 2022-2023 Graz University of Technology.
-#
-# Invenio is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
 
 # Usage:
 #   env DB=postgresql ./run-tests.sh
+
+#
+# Copyright (C) 2025-2026 Cottage Labs.
+#
+# Invenio-Notify is free software; you can redistribute it and/or modify
+# it under the terms of the MIT License; see LICENSE file for more details.
+#
+
 
 set -o errexit
 
@@ -45,7 +46,7 @@ fi
 
 export LC_TIME=en_US.UTF-8
 python -m check_manifest
-python -m sphinx.cmd.build -qnNW docs_sphinx docs_sphinx/_build/html
+python -m sphinx.cmd.build -qnNW docs docs/_build/html
 eval "$(docker-services-cli up --db ${DB:-postgresql} --search ${SEARCH:-opensearch} --mq ${MQ:-rabbitmq} --cache ${CACHE:-redis} --env)"
 # Note: expansion of pytest_args looks like below to not cause an unbound
 # variable error when 1) "nounset" and 2) the array is empty.

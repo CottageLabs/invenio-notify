@@ -1,3 +1,8 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from typing import List, Dict
 
 from flask import current_app
@@ -13,9 +18,7 @@ class EndorsementAdminService(BasicDbService):
     @staticmethod
     def get_endorsement_info(parent_id) -> List[Dict]:
         """Get the endorsement information for a record by its parent ID.
-        Note: This method is not actually called in this module, it is called in
-        InvenioRDMRecords by the EndorsementsDumperExt and as a backup for the
-        Endorsements system field getter.
+        Note: This method is called as a backup for the Endorsements system field getter.
 
         Args:
             parent_id: The UUID of the record
@@ -84,7 +87,7 @@ class EndorsementAdminService(BasicDbService):
     @staticmethod
     def get_notify_info(parent_id) -> Dict:
         """
-        designed for indexing and used by dumper on invenio-rdm-records
+        designed for indexing and used by dumper
         notify field contain information of notify for search purpose
         """
         return {

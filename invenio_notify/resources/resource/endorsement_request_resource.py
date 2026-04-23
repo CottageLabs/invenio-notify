@@ -1,4 +1,10 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 import requests
+from coarnotify.patterns import RequestEndorsement
 from flask import g, current_app
 from flask_resources import (
     Resource,
@@ -55,16 +61,16 @@ def create_endorsement_request_record(endorsement_request_data, record_id, user_
         EndorsementRequestModel: The created endorsement request record
     """
     return EndorsementRequestModel.create({
-        "notification_id": endorsement_request_data["id"],
+        "notification_id": endorsement_request_data.id,
         "record_id": record_id,
         "user_id": user_id,
         "actor_id": actor_id,
-        "raw": endorsement_request_data,
+        "raw": endorsement_request_data.to_jsonld(),
         "latest_status": constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT,
     })
 
 
-def send_to_actor_inbox(actor, endorsement_request_data: dict):
+def send_to_actor_inbox(actor, endorsement_request_data: RequestEndorsement):
     """Send endorsement request to actor's inbox.
     
     Args:
@@ -81,13 +87,13 @@ def send_to_actor_inbox(actor, endorsement_request_data: dict):
         raise ValueError('Actor inbox URL is not configured')
 
     try:
+        headers = {'Content-Type': 'application/ld+json'}
+        if actor.inbox_api_token:
+            headers['Authorization'] = f'Bearer {actor.inbox_api_token}'
         response = requests.post(
             actor.inbox_url,
-            json=endorsement_request_data,
-            headers={
-                'Content-Type': 'application/ld+json',
-                'Authorization': f'Bearer {actor.inbox_api_token}',
-            },
+            json=endorsement_request_data.to_jsonld(),
+            headers=headers,
             timeout=30
         )
 
@@ -137,7 +143,7 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
 
         actor = ActorModel.query.filter_by(id=actor_id).one()
 
-        if not actor or not actor.inbox_url or not actor.inbox_api_token:
+        if not actor or not actor.inbox_url:
             raise BadRequestError('Actor not available for endorsement request')
 
         record: RecordItem = record_utils.read_record_item(system_identity, pid_value)
@@ -159,11 +165,11 @@ class EndorsementRequestResource(ApiErrorHandlersMixin, Resource):
         if status and status != constants.WORKFLOW_STATUS_TENTATIVE_REJECT:
             raise BadRequestError(f'Actor not available for endorsement request')
 
-        endorsement_request_data = create_endorsement_request_data(user, record, actor)
-        send_to_actor_inbox(actor, endorsement_request_data)
+        endorsement_request = create_endorsement_request_data(user, record, actor)
+        send_to_actor_inbox(actor, endorsement_request)
 
         try:
-            create_endorsement_request_record(endorsement_request_data, record._record.model.id, user.id, actor_id)
+            create_endorsement_request_record(endorsement_request, record._record.model.id, user.id, actor_id)
             current_app.logger.info(f'Created endorsement request record for actor {actor_id}')
         except Exception as e:
             current_app.logger.error(f'Failed to create endorsement request record: {e}')

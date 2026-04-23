@@ -1,10 +1,12 @@
-import regex
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services import RecordService
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.base.utils import map_search_params
-
-re_url_record_id = regex.compile(r'/records/(.*?)$')
 
 
 class BasicDbService(RecordService):
@@ -84,7 +86,7 @@ class BasicDbService(RecordService):
             raise_errors=True,
         )
 
-        self.record_cls.update(valid_data, id)
+        self.record_cls.update(id=id, data=valid_data)
 
         return self.result_item(
             self,

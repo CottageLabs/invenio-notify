@@ -1,7 +1,13 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from typing import Iterable
 
 from invenio_accounts.models import User
 from invenio_db import db
+
 from sqlalchemy import and_, or_, func
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.orm import selectinload
@@ -10,8 +16,13 @@ from sqlalchemy_utils.types import JSONType, UUIDType, URLType
 from invenio_notify import constants
 from invenio_notify.constants import WORKFLOW_STATUS_AVAILABLE
 from invenio_notify.errors import NotExistsError
-from invenio_notify.records.mixins import UTCTimestamp
 from invenio_rdm_records.records.models import RDMRecordMetadata
+
+# TODO: when invenio_db.shared.Timestamp is available, this should be switched for our
+# own implementat.  This is a drop-in replacement.
+# from invenio_db.shared import Timestamp
+from invenio_notify.records.mixins import UTCTimestamp as Timestamp
+
 
 JSON = (
     db.JSON()
@@ -95,6 +106,11 @@ class DbOperationMixin:
         if search_params:
             page = search_params.get("page", 1)
             size = search_params.get("size", 25)
+
+            # cast, throws exception if not castable, implying upstream misuse (not attempting
+            # to handle exception)
+            page = int(page)
+            size = int(size)
             
             # Calculate offset
             offset = (page - 1) * size
@@ -103,7 +119,7 @@ class DbOperationMixin:
         return query
 
     @classmethod
-    def update(cls, data, id):
+    def update(cls, *, id, data):
         with db.session.begin_nested():
             # NOTE:
             # with db.session.get(cls, id) the model itself would be
@@ -111,7 +127,7 @@ class DbOperationMixin:
             db.session.query(cls).filter_by(id=id).update(data)
 
 
-class NotifyInboxModel(db.Model, UTCTimestamp, DbOperationMixin):
+class NotifyInboxModel(db.Model, Timestamp, DbOperationMixin):
     """
     Stores all valid COAR notifications from the inbox endpoint.
     """
@@ -165,10 +181,10 @@ class NotifyInboxModel(db.Model, UTCTimestamp, DbOperationMixin):
             offset += batch_size
 
 
-class ActorMapModel(db.Model, UTCTimestamp, DbOperationMixin):
+class ActorMapModel(db.Model, Timestamp, DbOperationMixin):
     """ Used to store actor membership mappings. """
 
-    __tablename__ = "actor_map"
+    __tablename__ = "notify_actor_map"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -205,13 +221,13 @@ class ActorMapModel(db.Model, UTCTimestamp, DbOperationMixin):
     def find_by_actor_id(cls, actor_id):
         return cls.query.filter(cls.actor_id == actor_id).all()
 
-    @classmethod
-    def find_review_id_by_user_id(cls, user_id):
-        """ Find a list of actor IDs by user ID. """
-        return [r[0] for r in db.session.query(cls.actor_id).filter(cls.user_id == user_id).all()]
+    # @classmethod
+    # def find_review_id_by_user_id(cls, user_id):
+    #     """ Find a list of actor IDs by user ID. """
+    #     return [r[0] for r in db.session.query(cls.actor_id).filter(cls.user_id == user_id).all()]
 
 
-class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
+class ActorModel(db.Model, Timestamp, DbOperationMixin):
     """
     An organization that provides a review service, e.g. PCI, COAR, etc.
 
@@ -318,10 +334,10 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         available_actor = (
             db.session.query(cls.id)
             .filter(
-                and_(
+                #and_(
                     cls.inbox_url.isnot(None),
-                    cls.inbox_api_token.isnot(None)
-                )
+                #    cls.inbox_api_token.isnot(None)
+                #)
             )
             .outerjoin(
                 latest_endorsement,
@@ -396,10 +412,10 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
                 latest_request.c.latest_status.label('request_status'),
             )
             .filter(
-                and_(
+                #and_(
                     cls.inbox_url.isnot(None),
-                    cls.inbox_api_token.isnot(None)
-                )
+                #    cls.inbox_api_token.isnot(None)
+                #)
             )
             .outerjoin(
                 latest_endorsement,
@@ -433,14 +449,14 @@ class ActorModel(db.Model, UTCTimestamp, DbOperationMixin):
         return actors
 
 
-class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
+class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     """
     Endorsement data for the record
 
     Both Review and Endorsement records from Actor will be stored here.
     """
 
-    __tablename__ = "endorsement"
+    __tablename__ = "notify_endorsement"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -476,11 +492,14 @@ class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
 
     endorsement_reply_id = db.Column(
         db.Integer,
-        db.ForeignKey("endorsement_reply.id", ondelete="SET NULL"),
+        db.ForeignKey("notify_endorsement_reply.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
-    endorsement_reply = db.relationship("EndorsementReplyModel", uselist=False)
+    # endorsement_reply = db.relationship("EndorsementReplyModel", foreign_keys=[endorsement_reply_id], uselist=False)
+    endorsement_reply = db.relationship("EndorsementReplyModel", foreign_keys="[EndorsementModel.endorsement_reply_id]",
+                                        primaryjoin="EndorsementModel.endorsement_reply_id == EndorsementReplyModel.id",
+                                        uselist=False)
 
     @classmethod
     def get_latest_status(cls, record_id, actor_id):
@@ -514,13 +533,13 @@ class EndorsementModel(db.Model, UTCTimestamp, DbOperationMixin):
         )
 
 
-class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
+class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
     """
     Endorsement Request that is sent by record owners to actors.
 
     It serves as an outbox of our repository system for COAR endorsement notifications.
     """
-    __tablename__ = "endorsement_request"
+    __tablename__ = "notify_endorsement_request"
 
     id = db.Column(db.Integer, primary_key=True)
 
@@ -622,11 +641,11 @@ class EndorsementRequestModel(db.Model, UTCTimestamp, DbOperationMixin):
 
         latest_status = latest_status or constants.WORKFLOW_STATUS_REQUEST_ENDORSEMENT
 
-        cls.update({'latest_status': latest_status}, endorsement_request_id)
+        cls.update(data={'latest_status': latest_status}, id=endorsement_request_id)
         return latest_status
 
 
-class EndorsementReplyModel(db.Model, UTCTimestamp, DbOperationMixin):
+class EndorsementReplyModel(db.Model, Timestamp, DbOperationMixin):
     """
     Stores replies to EndorsementRequestModel.
 
@@ -634,13 +653,13 @@ class EndorsementReplyModel(db.Model, UTCTimestamp, DbOperationMixin):
     Notifications that are not a reply to an endorsement request will not be stored here.
     """
 
-    __tablename__ = "endorsement_reply"
+    __tablename__ = "notify_endorsement_reply"
 
     id = db.Column(db.Integer, primary_key=True)
 
     endorsement_request_id = db.Column(
         db.Integer,
-        db.ForeignKey("endorsement_request.id", ondelete="CASCADE"),
+        db.ForeignKey("notify_endorsement_request.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )

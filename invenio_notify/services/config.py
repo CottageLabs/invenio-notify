@@ -1,3 +1,8 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from invenio_i18n import gettext as _
 from invenio_records_resources.services import RecordServiceConfig
 from invenio_records_resources.services.records.links import pagination_links
@@ -28,7 +33,7 @@ from invenio_notify.services.schemas import (
     DelMemberSchema,
     EndorsementReplySchema,
     EndorsementRequestSchema,
-    EndorsementSchema,
+    EndorsementAdminSchema,
     NotifyInboxSchema,
     ActorMapSchema,
     ActorSchema,
@@ -116,7 +121,7 @@ class NotifyInboxServiceConfig(RecordServiceConfig):
 class EndorsementAdminServiceConfig(RecordServiceConfig):
     result_list_cls = BasicDbModelRecordList
     record_cls = EndorsementModel
-    schema = EndorsementSchema
+    schema = EndorsementAdminSchema
     permission_policy_cls = EndorsementPermissionPolicy
 
     search = DefaultSearchOptions
@@ -130,11 +135,11 @@ class ActorMapSearchOptions(DefaultSearchOptions):
     sort_default = "user_id"
     sort_options = {
         "user_id": dict(
-            title=_("User id"),
+            title=_("User ID"),
             fields=["user_id"],
         ),
         "actor_id": dict(
-            title=_("Actor id"),
+            title=_("Actor ID"),
             fields=["actor_id"],
         ),
     }

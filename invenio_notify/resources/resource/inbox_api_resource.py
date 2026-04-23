@@ -1,3 +1,8 @@
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from flask import g
 from flask_resources import (
     Resource,
@@ -64,7 +69,7 @@ class InboxApiResource(Resource):
             raise ValueError("Request data is required")
 
         result = self.service.receive_notification(
+            g.identity,
             notification_raw=data,
-            identity=g.identity
         )
         return response_coar_notify_receipt(result)

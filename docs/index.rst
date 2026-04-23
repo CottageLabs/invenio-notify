@@ -11,8 +11,10 @@ Welcome to invenio-notify's documentation!
     :caption: Contents
 
     concepts/index
+    install
+    getting_started
+    general_administration
     inbox_api
-    how_to
     links
 
 

@@ -1,0 +1,14 @@
+{% if record.endorsements and config.NOTIFY_ENDORSEMENT_RECEIVE %}
+    <div class="sidebar-container">
+        <h2 class="ui medium top attached header mt-0">
+            <i class="icon comment alternate outline"></i>
+            {{ _('Endorsements')}}
+        </h2>
+        <div id="endorsement-display-record" class="ui bottom attached exports rdm-sidebar">
+
+            <div id="recordEndorsementDisplay"
+                 data-record='{{ record_ui | tojson }}'></div>
+        </div>
+    </div>
+    {{ webpack["endorsements.js"] }}
+{% endif %}

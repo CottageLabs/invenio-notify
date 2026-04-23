@@ -1,0 +1,18 @@
+{% if record|notify_enable_endorsement_request_section %}
+    <div class="sidebar-container">
+        <h2 class="ui medium top attached header mt-0">
+            <i class="icon paper plane outline"></i>
+            {{ _('Endorsement Request') }}
+        </h2>
+        <div id="endorsement-request-record" class="ui segment bottom attached exports rdm-sidebar">
+            <div
+                    id="recordEndorsementRequest"
+                    data-endorsement-request-endpoint="{{ record.links.endorsement_request }}"
+                    data-actor-option-endpoint="{{ record.links.endorsement_request_actors }}"
+                    data-available-actors='{{ config.get("NOTIFY_ENDORSEMENT_AVAILABLE_ACTORS", {}) | tojson }}'
+                    data-status-labels='{{ config.get("NOTIFY_ENDORSEMENT_STATUS_LABELS", {}) | tojson }}'
+            ></div>
+        </div>
+    </div>
+    {{ webpack["endorsement-request.js"] }}
+{% endif %}

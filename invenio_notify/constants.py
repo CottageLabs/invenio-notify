@@ -1,12 +1,16 @@
 """Constants for the Invenio-Notify module."""
 
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 # Notification types
 TYPE_REVIEW = 'coar-notify:ReviewAction'
 TYPE_ENDORSEMENT = 'coar-notify:EndorsementAction'
 TYPE_TENTATIVE_ACCEPT = 'TentativeAccept'
 TYPE_REJECT = 'Reject'
 TYPE_TENTATIVE_REJECT = 'TentativeReject'
-SUPPORTED_TYPES = [TYPE_REVIEW, TYPE_ENDORSEMENT, TYPE_TENTATIVE_ACCEPT, TYPE_REJECT, TYPE_TENTATIVE_REJECT]
 """ List of supported notification types that can be processed by the notify  """
 
 # Workflow status constants
@@ -28,5 +32,7 @@ STATUS_SERVER_ERROR = 500
 KEY_INBOX_REVIEW_URL = 'ietf:cite-as'
 
 # Feature toggle configuration keys
-NOTIFY_PCI_ENDORSEMENT = 'NOTIFY_PCI_ENDORSEMENT'
-NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT = 'NOTIFY_PCI_ANNOUNCEMENT_OF_ENDORSEMENT'
+NOTIFY_ENDORSEMENT_RECEIVE = 'NOTIFY_ENDORSEMENT_RECEIVE'
+NOTIFY_ENDORSEMENT_REQUEST = 'NOTIFY_ENDORSEMENT_REQUEST'
+NOTIFY_ENDORSEMENT_SIDEBAR_TEMPLATE = "NOTIFY_ENDORSEMENT_SIDEBAR_TEMPLATE"
+NOTIFY_ENDORSEMENT_REQUEST_SIDEBAR_TEMPLATE = "NOTIFY_ENDORSEMENT_REQUEST_SIDEBAR_TEMPLATE"

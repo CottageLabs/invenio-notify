@@ -1,8 +1,14 @@
-import uuid
+#  Copyright (C) 2025-2026 Cottage Labs.
+#
+#  Invenio-Notify is free software; you can redistribute it and/or modify
+#  it under the terms of the MIT License; see LICENSE file for more details.
+
 from copy import deepcopy
 from unittest.mock import patch
 
+from coarnotify.patterns import RequestEndorsement
 from coarnotify.factory import COARNotifyFactory
+from coarnotify.core.activitystreams2 import ActivityStreamsTypes
 from invenio_notify.utils.endorsement_request_utils import create_endorsement_request_data
 
 
@@ -10,12 +16,9 @@ class TestCreateEndorsementRequestData:
     """Test suite for create_endorsement_request_data function."""
 
     @patch('invenio_notify.utils.endorsement_request_utils.invenio_url_for')
-    @patch('invenio_notify.utils.endorsement_request_utils.uuid.uuid4')
-    def test_basic_functionality(self, mock_uuid, mock_url_for, rdm_record, superuser, create_actor):
+    def test_basic_functionality(self, mock_url_for, rdm_record, superuser, create_actor):
         """Test basic endorsement request data creation with DOI links."""
         # Setup mocks
-        test_uuid = uuid.UUID('12345678-1234-5678-9012-123456789012')
-        mock_uuid.return_value = test_uuid
         mock_url_for.return_value = 'https://example.com/inbox'
 
         # Create test objects
@@ -32,42 +35,41 @@ class TestCreateEndorsementRequestData:
 
         # Call function with origin_id
         origin_id = 'https://example.com/origin'
-        result = create_endorsement_request_data(user, record_item, actor, origin_id)
+        endorsement: RequestEndorsement = create_endorsement_request_data(user, record_item, actor, origin_id)
 
         # Verify basic structure
-        assert result['@context'] == [
+        assert endorsement.namespaces == [
             "https://www.w3.org/ns/activitystreams",
             "https://coar-notify.net"
         ]
-        assert result['id'] == f'urn:uuid:{test_uuid}'
-        assert result['type'] == ["Offer", "coar-notify:EndorsementAction"]
+        assert endorsement.id.startswith("urn:uuid:")
+        assert endorsement.type == ["Offer", "coar-notify:EndorsementAction"]
 
         # Verify actor
-        assert result['actor']['id'] == f'mailto:{user.email}'
-        assert result['actor']['name'] == user.username if user.username else user.email
-        assert result['actor']['type'] == 'Person'
+        assert endorsement.actor.id == f'mailto:{user.email}'
+        assert endorsement.actor.name == user.username if user.username else user.email
+        assert endorsement.actor.type == 'Person'
 
         # Verify object
-        assert result['object']['id'] == record_item.data['links']['self_html']
-        assert result['object']['type'] == ['Page', 'sorg:AboutPage']
+        assert endorsement.object.id == record_item.data['links']['self_html']
+        assert endorsement.object.type == ['Page', 'sorg:AboutPage']
 
         # Verify HTML record page is included (new behavior)
-        assert 'ietf:item' in result['object']
-        assert result['object']['ietf:item']['id'] == record_item.data['links']['self_html']
-        assert result['object']['ietf:item']['mediaType'] == 'text/html'
-        assert result['object']['ietf:item']['type'] == ['Page', 'sorg:AboutPage']
+        assert endorsement.object.item.id == record_item.data['links']['self_html']
+        assert endorsement.object.item.media_type == 'text/html'
+        assert endorsement.object.item.type == ['Page', 'sorg:AboutPage']
 
         # Verify DOI is included
-        assert result['object']['ietf:cite-as'] == 'https://doi.org/10.1234/test.doi'
+        assert endorsement.object.cite_as == 'https://doi.org/10.1234/test.doi'
 
         # Verify origin and target
-        assert result['origin']['id'] == origin_id
-        assert result['origin']['inbox'] == 'https://example.com/inbox'
-        assert result['origin']['type'] == 'Service'
+        assert endorsement.origin.id == origin_id
+        assert endorsement.origin.inbox == 'https://example.com/inbox'
+        assert endorsement.origin.type == ActivityStreamsTypes.SERVICE
 
-        assert result['target']['id'] == actor.actor_id
-        assert result['target']['inbox'] == actor.inbox_url
-        assert result['target']['type'] == 'Service'
+        assert endorsement.target.id == actor.actor_id
+        assert endorsement.target.inbox == actor.inbox_url
+        assert endorsement.target.type == ActivityStreamsTypes.SERVICE
 
         # test coar validation
-        COARNotifyFactory.get_by_object(deepcopy(result)).to_jsonld()
+        COARNotifyFactory.get_by_object(deepcopy(endorsement.to_jsonld())).to_jsonld()
