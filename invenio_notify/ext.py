@@ -20,9 +20,6 @@ from invenio_rdm_records.services import RDMRecordService, RDMRecordServiceConfi
 
 from invenio_rdm_records.proxies import current_rdm_records_service
 
-from invenio_records_resources.services.records.facets import TermsFacet
-from invenio_i18n import lazy_gettext as _
-
 from invenio_notify.notifications import builders
 
 
@@ -196,46 +193,6 @@ class NotifyRDMRecordSchemaMixin:
 class NotifyEnabledRDMRecordSchema(RDMRecordSchema, NotifyRDMRecordSchemaMixin):
     pass
 
-
-def finalize_app(app):
-    # Further extend RDMRecordService, which can't be done until after RDMRecordService.build has
-    # been called in some earlier init stage
-    # RDMRecordServiceConfig.record_cls.dumper._extensions.append(EndorsementsDumperExt("endorsements"))
-    # RDMRecordServiceConfig.record_cls.dumper._extensions.append(NotifyDumperExt("notify"))
-    #
-    # # Custom system fields on RDMRecord
-    # RDMRecordServiceConfig.record_cls.endorsements = EndorsementsField()
-    # RDMRecordServiceConfig.record_cls.notify = NotifyField()
-
-    # Custom schemas on RDMRecordSchema
-    # RDMRecordServiceConfig.schema.endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
-    # RDMRecordServiceConfig.schema.notify = NestedAttribute(NotifySchema, dump_only=True)
-    # now add our operational parameters to the various objects
-    # with app.app_context():
-    #     svc: RDMRecordService = current_rdm_records_service
-    #
-    #     # Links on RDMRecordServiceConfig
-    #     cfg: RDMRecordServiceConfig = svc.config
-    #     svc.config.links_item.update({
-    #         # Endorsements Requests
-    #         "endorsement_request": RecordEndpointLink("endorsement_request.send", when=is_record_owner),
-    #         "endorsement_request_actors": RecordEndpointLink("endorsement_request.list_actors", when=is_record_owner)
-    #     })
-    #
-    #     # Custom dumpers on RDMRecord SearchDumper
-    #     # Note that there's no API for adding extensions, so we are directly accessing a private
-    #     # variable
-    #     cfg.record_cls.dumper._extensions.append(EndorsementsDumperExt("endorsements"))
-    #     cfg.record_cls.dumper._extensions.append(NotifyDumperExt("notify"))
-    #
-    #     # Custom system fields on RDMRecord
-    #     cfg.record_cls.endorsements = EndorsementsField()
-    #     cfg.record_cls.notify = NotifyField()
-    #
-    #     # Custom schemas on RDMRecordSchema
-    #     cfg.schema.endorsements = fields.List(fields.Nested(EndorsementSchema), dump_only=True)
-    #     cfg.schema.notify = NestedAttribute(NotifySchema, dump_only=True)
-    pass
 
 def is_record_owner(record, ctx):
     from flask import g

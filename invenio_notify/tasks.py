@@ -19,38 +19,12 @@ WORKFLOWS = [endorsement]
 
 log = logging.getLogger(__name__)
 
-# def get_actor_by_actor_id(notification_raw: dict) -> ActorModel:
-#     """
-#     Extract actor data from notification by actor ID.
-#
-#     Args:
-#         notification_raw: The raw notification data
-#
-#     Returns:
-#         ActorModel if found
-#
-#     Raises:
-#         DataNotFound: If actor ID is not found or actor doesn't exist
-#     """
-#     # Extract actor ID from notification
-#     actor_id = notification_raw.get('actor', {}).get('id', None)
-#     if not actor_id:
-#         raise DataNotFound(f"Actor ID not found in notification, actor[{actor_id}]")
-#
-#     # Find ActorModel with matching actor_id
-#     actor = ActorModel.query.filter_by(actor_id=actor_id).first()
-#     if not actor:
-#         raise DataNotFound(f"Actor not found, actor_id[{actor_id}]")
-#
-#     return actor
-
-
 def get_actor_by_actor_id(notification: NotifyPattern) -> ActorModel:
     """
     Extract actor data from notification by actor ID.
 
     Args:
-        notification_raw: The raw notification data
+        notification: The notification data
 
     Returns:
         ActorModel if found

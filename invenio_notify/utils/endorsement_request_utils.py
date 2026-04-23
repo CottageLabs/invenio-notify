@@ -3,8 +3,6 @@
 #  Invenio-Notify is free software; you can redistribute it and/or modify
 #  it under the terms of the MIT License; see LICENSE file for more details.
 
-import uuid
-
 from coarnotify.core.notify import NotifyObject, NotifyTypes, NotifyItem, NotifyService, NotifyProperties
 from coarnotify.core.activitystreams2 import ActivityStreamsTypes, Properties
 from coarnotify.patterns import RequestEndorsement
@@ -65,9 +63,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
     item.id = record.data["links"]["self_html"]
     item.media_type = "text/html"
     item.type = [ActivityStreamsTypes.PAGE, NotifyTypes.ABOUT_PAGE]
-    # FIXME: works around a bug in underlying coarnotifypy library
-    obj.set_property(NotifyProperties.ITEM, item.doc)
-    # obj.item = item
+    obj.item = item
 
     origin = NotifyService()
     origin.id = origin_id
@@ -80,9 +76,7 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
     target.type = ActivityStreamsTypes.SERVICE
 
     endorsement.actor = notify_actor
-    # FIXME: this works around a bug in the underlying coarnotifypy library
-    endorsement.set_property(Properties.OBJECT, obj.doc)
-    # endorsement.object = obj
+    endorsement.object = obj
     endorsement.origin = origin
     endorsement.target = target
 
@@ -90,53 +84,3 @@ def create_endorsement_request_data(user, record: RecordItem, actor: ActorModel,
         endorsement.in_reply_to = noti_id
 
     return endorsement
-
-    # define the object structure
-    # noti_obj = {
-    #     "id": record.data["links"]["self_html"],
-    #     "type": ["Page", "sorg:AboutPage"],
-    #     "ietf:item": {
-    #         "id": record.data["links"]["self_html"],
-    #         "mediaType": "text/html",
-    #         "type": ["Page", "sorg:AboutPage"],
-    #     },
-    #     "ietf:cite-as": record.data["links"]["self_html"],
-    # }
-    #
-    # if 'doi' in record.data['links']:
-    #     noti_obj['ietf:cite-as'] = record.data['links']['doi']
-
-    # define full notification data structure
-    # data = {
-    #     "@context": [
-    #         "https://www.w3.org/ns/activitystreams",
-    #         "https://coar-notify.net"
-    #     ],
-    #     "actor": {
-    #         "id": f"mailto:{user.email}",
-    #         "name": _get_user_name(user),
-    #         "type": "Person"
-    #     },
-    #     "id": f"urn:uuid:{uuid.uuid4()}",
-    #     "object": noti_obj,
-    #     "origin": {
-    #         "id": origin_id,
-    #         "inbox": invenio_url_for('inbox_api.receive_notification'),
-    #         "type": "Service"
-    #     },
-    #     "target": {
-    #         "id": actor.actor_id,
-    #         "inbox": str(actor.inbox_url), # actor.inbox_url is a furl object
-    #         "type": "Service"
-    #     },
-    #     "type": [
-    #         "Offer",
-    #         "coar-notify:EndorsementAction"
-    #     ]
-    # }
-    
-    # Add inReplyTo if the last EndorsementRequest has TentativeReject status
-    # if status == WORKFLOW_STATUS_TENTATIVE_REJECT:
-    #     data["inReplyTo"] = noti_id
-
-    # return data

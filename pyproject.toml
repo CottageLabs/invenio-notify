@@ -79,9 +79,6 @@ invenio_notify = "invenio_notify.webpack:notify"
 [project.entry-points."invenio_jobs.jobs"]
 process_notify_inbox = "invenio_notify.jobs:ProcessNotifyInboxJob"
 
-[project.entry-points."invenio_base.finalize_app"]
-invenio_notify = "invenio_notify.ext:finalize_app"
-
 [tool.setuptools]
 include-package-data = true
 

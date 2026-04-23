@@ -77,28 +77,6 @@ The primary configuration you may want to set are as follows:
 * ``NOTIFY_ENDORSEMENT_REQUEST`` - defaults to `True` and enables the ability to send endorsement requests, and thus enables the full Endorsement workflow as documented here https://coar-notify.net/catalogue/workflows/repository-pci/.  For this to work ``NOTIFY_ENDORSEMENT_RECEIVE`` MUST be set to True.
 
 
-Webpack Setup
--------------
-
-In order to load the notify javascript widgets on the details pages, you will need to add the notify webpack settings.  In your ``site/<instance_name>/webpack.py` file, add/merge the following:
-
-.. code-block:: python
-
-    theme = WebpackThemeBundle(
-        __name__,
-        "assets",
-        default="semantic-ui",
-        themes={
-            "semantic-ui": dict(
-                entry={
-                    "notify": "./js/invenio_notify/src/landing_page/notify.js"
-                },
-            ),
-        },
-    )
-
-
-
 Search configuration
 --------------------
 
