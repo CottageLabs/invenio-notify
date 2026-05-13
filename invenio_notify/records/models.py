@@ -532,6 +532,23 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
             .filter(RDMRecordMetadata.parent_id == parent_id)
         )
 
+    @classmethod
+    def exists_by_parent_id(cls, parent_id) -> bool:
+        """Check if any endorsements exist for a parent's children.
+
+        Args:
+            parent_id: The UUID of the parent record
+
+        Returns:
+            True if at least one endorsement exists, False otherwise
+        """
+        return db.session.query(
+            db.session.query(cls.id)
+            .join(RDMRecordMetadata, cls.record_id == RDMRecordMetadata.id)
+            .filter(RDMRecordMetadata.parent_id == parent_id)
+            .exists()
+        ).scalar()
+
 
 class EndorsementRequestModel(db.Model, Timestamp, DbOperationMixin):
     """
