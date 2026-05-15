@@ -10,7 +10,6 @@ from invenio_db import db
 
 from sqlalchemy import and_
 from sqlalchemy.dialects import postgresql
-from sqlalchemy.orm import selectinload
 from sqlalchemy_utils.types import JSONType, UUIDType, URLType
 
 from invenio_notify import constants
@@ -451,36 +450,12 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
 
     @classmethod
     def query_by_parent_id(cls, parent_id):
-        """Get all endorsements for a parent's children.
-
-        Args:
-            parent_id: The UUID of the parent record
-
-        Returns:
-            Query result of all endorsements for the parent's children
-        """
-        return (
-            db.session.query(cls)
-            .join(RDMRecordMetadata, cls.record_id == RDMRecordMetadata.id)
-            .options(selectinload(cls.record))
-            .filter(RDMRecordMetadata.parent_id == parent_id)
-        )
+        return db.session.query(cls).filter(cls.parent_id == parent_id)
 
     @classmethod
     def exists_by_parent_id(cls, parent_id) -> bool:
-        """Check if any endorsements exist for a parent's children.
-
-        Args:
-            parent_id: The UUID of the parent record
-
-        Returns:
-            True if at least one endorsement exists, False otherwise
-        """
         return db.session.query(
-            db.session.query(cls.id)
-            .join(RDMRecordMetadata, cls.record_id == RDMRecordMetadata.id)
-            .filter(RDMRecordMetadata.parent_id == parent_id)
-            .exists()
+            cls.query.filter_by(parent_id=parent_id).exists()
         ).scalar()
 
 
