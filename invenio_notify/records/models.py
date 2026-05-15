@@ -16,7 +16,7 @@ from sqlalchemy_utils.types import JSONType, UUIDType, URLType
 from invenio_notify import constants
 from invenio_notify.constants import WORKFLOW_STATUS_AVAILABLE
 from invenio_notify.errors import NotExistsError
-from invenio_rdm_records.records.models import RDMRecordMetadata
+from invenio_rdm_records.records.models import RDMParentMetadata, RDMRecordMetadata
 
 # TODO: when invenio_db.shared.Timestamp is available, this should be switched for our
 # own implementat.  This is a drop-in replacement.
@@ -430,6 +430,10 @@ class EndorsementModel(db.Model, Timestamp, DbOperationMixin):
     endorsement_reply = db.relationship("EndorsementReplyModel", foreign_keys="[EndorsementModel.endorsement_reply_id]",
                                         primaryjoin="EndorsementModel.endorsement_reply_id == EndorsementReplyModel.id",
                                         uselist=False)
+
+    parent_id = db.Column(UUIDType, db.ForeignKey(
+        RDMParentMetadata.id, ondelete="CASCADE",
+    ), index=True, nullable=True, )
 
     @classmethod
     def get_latest_status(cls, record_id, actor_id):

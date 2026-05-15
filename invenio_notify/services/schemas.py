@@ -37,6 +37,7 @@ class ApiNotifyInboxSchema(BaseRecordSchema):
 
 class EndorsementAdminSchema(BaseRecordSchema):
     record_id = fields.String(required=True)
+    parent_id = fields.String(required=True)
     actor_id = fields.Integer(required=True)
     review_type = fields.String(required=True)
     inbox_id = fields.Integer(required=True)

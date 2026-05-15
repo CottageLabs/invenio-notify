@@ -127,6 +127,7 @@ def upgrade():
     op.create_table('notify_endorsement',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+                    sa.Column('parent_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
                     sa.Column('actor_id', sa.Integer(), nullable=True),
                     sa.Column('review_type', sa.Text(), nullable=True),
                     sa.Column('inbox_id', sa.Integer(), nullable=True),
@@ -153,6 +154,7 @@ def upgrade():
     op.create_index(op.f('ix_notify_endorsement_endorsement_reply_id'), 'notify_endorsement', ['endorsement_reply_id'],
                     unique=False)
     op.create_index(op.f('ix_notify_endorsement_record_id'), 'notify_endorsement', ['record_id'], unique=False)
+    op.create_index(op.f('ix_notify_endorsement_parent_id'), 'notify_endorsement', ['parent_id'], unique=False)
     # ### end Alembic commands ###
 
 

@@ -479,7 +479,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
 
     # Handle both string record_id and RDMRecordMetadata object
     if isinstance(record_item, str):
-        record = None  # Will be queried only if needed for endorsement type
+        record = get_record_by_id(record_item)
         record_id = record_item
     else:
         # record_item is RDMRecordMetadata object
@@ -495,6 +495,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     # Create the endorsement record data
     endorsement_data = {
         'record_id': record_id,
+        'parent_id': str(record.parent.id),
         'actor_id': actor_id,
         'review_type': noti_type,
         'inbox_id': inbox_id,
@@ -507,8 +508,6 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     actor_name = actor.name
 
     if noti_type == constants.TYPE_ENDORSEMENT:
-        # Get the record if we don't have it yet
-        record = record or get_record_by_id(record_id)
         uow.register(
             NotificationOp(
                 NewEndorsementNotificationBuilder.build(
