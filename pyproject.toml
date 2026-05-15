@@ -9,7 +9,7 @@ classifiers = [
 ]
 
 dependencies = [
-  "coarnotify==1.0.1.3"
+  "coarnotify==1.0.1.4"
 ]
 
 [project.optional-dependencies]
@@ -27,7 +27,7 @@ dev = [
 ]
 
 [[project.authors]]
-name = "someone"
+name = "Cottage Labs"
 
 [build-system]
 requires = ["setuptools", ]
