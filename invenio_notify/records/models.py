@@ -291,10 +291,15 @@ class ActorModel(db.Model, Timestamp, DbOperationMixin):
 
     @classmethod
     def has_available_actors(cls, record_id) -> bool:
-        """Check if there are any available actors for endorsement requests.
+        """Check if there are any available actors to display in the sidebar.
 
-        An actor is available if it has an inbox_url and no EndorsementModel
-        or EndorsementRequestModel records exist for it against the given record.
+        This can mean an actor either to make an endorsement request (see
+        NOTIFY_ENDORSEMENT_AVAILABLE_ACTORS in config for the conditions) or
+        to display the status af an already initiated workflow.
+
+        An actor is available if it has:
+         1. inbox_url configured
+         2. no EndorsementModel records exist against the given record.
 
         Args:
             record_id: UUID of the record
@@ -313,14 +318,6 @@ class ActorModel(db.Model, Timestamp, DbOperationMixin):
                 )
             )
             .filter(EndorsementModel.id.is_(None))
-            .outerjoin(
-                EndorsementRequestModel,
-                and_(
-                    EndorsementRequestModel.actor_id == cls.id,
-                    EndorsementRequestModel.record_id == record_id,
-                )
-            )
-            .filter(EndorsementRequestModel.id.is_(None))
             .exists()
         )
 
@@ -331,6 +328,9 @@ class ActorModel(db.Model, Timestamp, DbOperationMixin):
         """Get list of all actors that:
               1. Have inbox_url configured
               2. Have no endorsements
+
+            Join with EndorsementRequest to retrieve the latest status if a workflow
+            has been initiated or otherwise return as available.
 
         Args:
             record_id: UUID of the record

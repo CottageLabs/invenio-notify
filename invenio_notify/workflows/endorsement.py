@@ -127,7 +127,7 @@ def handle_endorsement_reply(inbox_record: NotifyInboxModel,
 
     Args:
         inbox_record: The inbox record to process
-        notification_raw: The raw notification data
+        notification: The notification data
 
     Returns:
         bool: True if processing was successful, False otherwise
