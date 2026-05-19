@@ -7,6 +7,7 @@ from invenio_i18n import lazy_gettext as _
 
 from invenio_notify.constants import WORKFLOW_STATUS_REQUEST_ENDORSEMENT, WORKFLOW_STATUS_TENTATIVE_ACCEPT, \
     WORKFLOW_STATUS_TENTATIVE_REJECT, WORKFLOW_STATUS_REJECT, WORKFLOW_STATUS_AVAILABLE
+from invenio_notify.workflows.endorsement import EndorsementWorkflow
 
 ###############################
 ## General Notify configuration
@@ -43,6 +44,11 @@ NOTIFY_RECORD_ID_ALT_URL_REGEX = regex.compile(r'/records/([^/]+)/?')
 """
 Regexes which can extract Record IDs from the URL space.  You may need to override these if your Invenio
 instance has customised the URL space
+"""
+
+NOTIFY_WORKFLOWS = [EndorsementWorkflow]
+"""
+A list of the workflow engines to use to process the notifications that arrive in the inbox.
 """
 
 ##############################

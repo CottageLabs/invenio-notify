@@ -14,6 +14,7 @@ from invenio_notifications.services.uow import NotificationOp
 
 from invenio_notify.notifications.builders import EndorsementUpdateNotificationBuilder, \
     NewEndorsementNotificationBuilder
+from invenio_notify.proxies import current_endorsement_service
 from invenio_rdm_records.proxies import current_rdm_records_service
 
 from invenio_rdm_records.records.models import RDMRecordMetadata
@@ -248,7 +249,7 @@ def create_endorsement_record(identity, record_item: Union[str, RDMRecordMetadat
     Returns:
         The created endorsement record
     """
-    endorsement_service = current_app.extensions["invenio-notify"].endorsement_service
+    endorsement_service = current_endorsement_service
 
     actor_id = actor.id
     log.info(f"Found actor ID {actor_id} for actor_id '{actor.actor_id}'")
