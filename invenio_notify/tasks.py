@@ -11,11 +11,11 @@ from coarnotify.factory import COARNotifyFactory
 
 from invenio_notify.records.models import NotifyInboxModel, ActorModel
 
-from invenio_notify.workflows import endorsement
+from invenio_notify.workflows.endorsement import EndorsementWorkflow
 from invenio_notify.workflows.core import mark_as_processed, DataNotFound
 
 # Workflows available for notify
-WORKFLOWS = [endorsement]
+WORKFLOWS = [EndorsementWorkflow]
 
 log = logging.getLogger(__name__)
 

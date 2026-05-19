@@ -24,7 +24,7 @@ from invenio_notify.constants import TYPE_REVIEW, TYPE_ENDORSEMENT, TYPE_TENTATI
     TYPE_TENTATIVE_REJECT
 from invenio_notify.records.models import NotifyInboxModel, EndorsementReplyModel, EndorsementRequestModel, ActorModel
 from invenio_notify.workflows.core import mark_as_processed, DataNotFound, resolve_record_from_notification, \
-    get_record_by_id, get_user_id_by_record, identify_supported_type
+    get_record_by_id, get_user_id_by_record, identify_supported_type, NotifyWorkflow
 
 from invenio_access.permissions import system_identity
 
@@ -32,31 +32,33 @@ log = logging.getLogger(__name__)
 
 SUPPORTED_TYPES = [TYPE_REVIEW, TYPE_ENDORSEMENT, TYPE_TENTATIVE_ACCEPT, TYPE_REJECT, TYPE_TENTATIVE_REJECT]
 
-def process_next_notification(inbox_record, notification, actor):
+class EndorsementWorkflow(NotifyWorkflow):
+    @staticmethod
+    def process_next_notification(inbox_record, notification, actor):
 
-    # notification_raw: dict = notification.to_jsonld()
-    noti_type = identify_supported_type(notification, supported=SUPPORTED_TYPES)
+        # notification_raw: dict = notification.to_jsonld()
+        noti_type = identify_supported_type(notification, supported=SUPPORTED_TYPES)
 
-    # Check if the notification type is supported
-    if not noti_type:
-        log.error(f'Unknown type: [{inbox_record.id=}]{notification.type}')
-        #mark_as_processed(inbox_record, "Notification type not supported")
-        return
+        # Check if the notification type is supported
+        if not noti_type:
+            log.error(f'Unknown type: [{inbox_record.id=}]{notification.type}')
+            #mark_as_processed(inbox_record, "Notification type not supported")
+            return
 
-    try:
-        reply = handle_endorsement_reply(inbox_record, notification)
-        if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
-            endo_reply_id = reply.id if reply else None
-            handle_endorsement_and_review(inbox_record, notification, actor, endo_reply_id)
+        try:
+            reply = handle_endorsement_reply(inbox_record, notification)
+            if noti_type in {constants.TYPE_REVIEW, constants.TYPE_ENDORSEMENT}:
+                endo_reply_id = reply.id if reply else None
+                handle_endorsement_and_review(inbox_record, notification, actor, endo_reply_id)
 
-        # Mark inbox as processed after successful reply creation
-        mark_as_processed(inbox_record)
-    except DataNotFound as e:
-        log.warning(f"Failed to process inbox record {inbox_record.id}: {e}")
-        mark_as_processed(inbox_record, e.message)
-    except ValidationError as e:
-        log.warning(f"Failed to process inbox record {inbox_record.id}, validation error: {e}")
-        mark_as_processed(inbox_record, str(e))
+            # Mark inbox as processed after successful reply creation
+            mark_as_processed(inbox_record)
+        except DataNotFound as e:
+            log.warning(f"Failed to process inbox record {inbox_record.id}: {e}")
+            mark_as_processed(inbox_record, e.message)
+        except ValidationError as e:
+            log.warning(f"Failed to process inbox record {inbox_record.id}, validation error: {e}")
+            mark_as_processed(inbox_record, str(e))
 
 
 @unit_of_work()
