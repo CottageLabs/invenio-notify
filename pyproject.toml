@@ -9,7 +9,9 @@ classifiers = [
 ]
 
 dependencies = [
-  "coarnotify==1.0.1.4"
+  "coarnotify==1.0.1.4",
+  "invenio-base",
+  "invenio-rdm-records"
 ]
 
 [project.optional-dependencies]
