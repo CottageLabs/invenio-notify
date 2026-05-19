@@ -14,12 +14,12 @@ from invenio_records_resources.resources.records.resource import (
 )
 
 from invenio_rdm_records.proxies import current_rdm_records_service
-from .basic_db_resource import BasicDbResource
+from .notify_resource import NotifyResource
 from ...records.models import EndorsementModel, EndorsementReplyModel, EndorsementRequestModel
 from ...utils import record_utils
 
 
-class EndorsementAdminResource(BasicDbResource):
+class EndorsementAdminResource(NotifyResource):
 
     def create_url_rules(self):
         """Create the URL rules for the endorsement admin resource."""
