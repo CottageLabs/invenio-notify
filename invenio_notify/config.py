@@ -2,7 +2,7 @@
 #
 #  Invenio-Notify is free software; you can redistribute it and/or modify
 #  it under the terms of the MIT License; see LICENSE file for more details.
-
+import regex
 from invenio_i18n import lazy_gettext as _
 
 from invenio_notify.constants import WORKFLOW_STATUS_REQUEST_ENDORSEMENT, WORKFLOW_STATUS_TENTATIVE_ACCEPT, \
@@ -36,6 +36,13 @@ RDMRecordSchema with NotifyEnabledRDMRecordSchema.  If set to false you MUST spe
 of RDMRecordSchema using the RDM_RECORD_SCHEMA config variable, and that implementation MUST include 
 the Notify extension, which can be done by extending the NotifyRDMRecordSchemaMixin class as well as the RDMRecordSchema class.
 See the documentation for more details.
+"""
+
+NOTIFY_RECORD_ID_URL_REGEX = regex.compile(r'/records/(.*?)$')
+NOTIFY_RECORD_ID_ALT_URL_REGEX = regex.compile(r'/records/([^/]+)/?')
+"""
+Regexes which can extract Record IDs from the URL space.  You may need to override these if your Invenio
+instance has customised the URL space
 """
 
 ##############################

@@ -46,10 +46,6 @@ class BasicAdminResourceConfig(RecordResourceConfig):
 class InboxAdminResourceConfig(BasicAdminResourceConfig):
     blueprint_name = "notify_inbox"
     url_prefix = "/notify-inbox"
-    # request_extra_args = {
-    #     "active": ma.fields.Boolean(),
-    #     "url_path": ma.fields.String(),
-    # }
 
 
 

@@ -10,8 +10,6 @@ from marshmallow import Schema, fields, pre_load, validate, EXCLUDE
 from marshmallow_utils.fields import TZDateTime, EDTFDateTimeString, SanitizedUnicode
 from marshmallow.fields import URL
 
-from invenio_notify.records.dumpers import NotifyDumperExt, EndorsementsDumperExt
-
 
 def create_current_utc_datetime():
     return datetime.now(timezone.utc)

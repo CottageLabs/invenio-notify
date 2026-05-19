@@ -179,12 +179,6 @@ class InboxCOARBinding(COARNotifyServiceBinding):
             current_app.logger.warning(f'Actor ID did not match with user: {actor_id}, {self._identity.id}')
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
 
-        # FIXME: we need to chase down all the usages of the raw notification, and use the library properly
-        # raw = notification.to_jsonld()
-        # if not identify_supported_type(notification):
-        #     current_app.logger.info(f'Unknown type: [{record_id=}]{raw.get("type")}')
-        #     raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
-
         records_service: RDMRecordService = current_rdm_records_service
         records_service.record_cls.pid.resolve(record_id)
 

@@ -16,9 +16,7 @@ from invenio_notify.records.dumpers import EndorsementsDumperExt, NotifyDumperEx
 from invenio_notify.records.models import ActorModel
 from invenio_notify.records.systemfields import NotifyField, EndorsementsField
 from invenio_notify.services.schemas import NotifySchema, EndorsementSchema
-from invenio_rdm_records.services import RDMRecordService, RDMRecordServiceConfig
-
-from invenio_rdm_records.proxies import current_rdm_records_service
+from invenio_rdm_records.services import RDMRecordServiceConfig
 
 from invenio_notify.notifications import builders
 
