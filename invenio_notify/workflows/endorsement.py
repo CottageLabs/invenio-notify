@@ -41,8 +41,7 @@ class EndorsementWorkflow(NotifyWorkflow):
 
         # Check if the notification type is supported
         if not noti_type:
-            log.error(f'Unknown type: [{inbox_record.id=}]{notification.type}')
-            #mark_as_processed(inbox_record, "Notification type not supported")
+            log.debug(f'Unknown type: [{inbox_record.id=}]{notification.type}')
             return
 
         try:
