@@ -29,6 +29,7 @@ def test_record_indexing_with_endorsements(search_with_notify_mapping, db, super
     # Create an endorsement for the record
     endorsement_data = {
         'record_id': record.id,
+        'parent_id': record.parent.id,
         'actor_id': actor.id,
         'review_type': TYPE_ENDORSEMENT,
         'result_url': 'https://test-actor.example.com/endorsement/123',
@@ -100,6 +101,7 @@ def test_record_indexing_with_mixed_endorsements_and_reviews(search_with_notify_
     # Create an endorsement
     endorsement_data = {
         'record_id': record.id,
+        'parent_id': record.parent.id,
         'actor_id': actor.id,
         'review_type': TYPE_ENDORSEMENT,
         'result_url': 'https://mixed-actor.example.com/endorsement/456',
@@ -109,6 +111,7 @@ def test_record_indexing_with_mixed_endorsements_and_reviews(search_with_notify_
     # Create a review
     review_data = {
         'record_id': record.id,
+        'parent_id': record.parent.id,
         'actor_id': actor.id,
         'review_type': TYPE_REVIEW,
         'result_url': 'https://mixed-actor.example.com/review/456',
@@ -168,6 +171,7 @@ def test_record_indexing_with_multiple_actors(search_with_notify_mapping, db, su
     # Create endorsements from both actors
     endorsement1_data = {
         'record_id': record.id,
+        'parent_id': record.parent.id,
         'actor_id': actor1.id,
         'review_type': TYPE_ENDORSEMENT,
         'result_url': 'https://first-actor.example.com/endorsement/789',
@@ -176,6 +180,7 @@ def test_record_indexing_with_multiple_actors(search_with_notify_mapping, db, su
     
     endorsement2_data = {
         'record_id': record.id,
+        'parent_id': record.parent.id,
         'actor_id': actor2.id,
         'review_type': TYPE_ENDORSEMENT,
         'result_url': 'https://second-actor.example.com/endorsement/789',
