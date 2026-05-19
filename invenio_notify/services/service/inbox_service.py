@@ -6,6 +6,7 @@
 from flask import current_app, g
 from idutils.normalizers import normalize_doi
 from idutils.validators import is_doi
+from invenio_access.permissions import system_identity
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 from sqlalchemy.exc import IntegrityError
@@ -138,7 +139,7 @@ class NotifyInboxService(BasicDbService):
             pids_service = current_rdm_records.records_service.pids
 
             try:
-                record = pids_service.resolve(g.identity, normalized_doi, "doi")
+                record = pids_service.resolve(system_identity, normalized_doi, "doi")
                 return record["id"]
             except PIDDoesNotExistError as e:
                 current_app.logger.error(f'No record with the DOI {record_url} exists: {e}')
