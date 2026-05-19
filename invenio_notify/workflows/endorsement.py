@@ -217,16 +217,14 @@ def create_endorsement_update_notification(record_id: str, actor_name: str,
                                            noti_type: str, uow) -> None:
     record = get_record_by_id(record_id)
     record_owner_user_id = get_user_id_by_record(record)
-    uow.register(
-        NotificationOp(
-            EndorsementUpdateNotificationBuilder.build(
-                record=record,
-                actor_name=actor_name,
-                user_id=record_owner_user_id,
-                endorsement_status=noti_type,
-            ),
-        )
-    )
+    notification = EndorsementUpdateNotificationBuilder.build(
+                        record=record,
+                        actor_name=actor_name,
+                        user_id=record_owner_user_id,
+                        endorsement_status=noti_type,
+                    )
+    if notification is not None:
+        uow.register(NotificationOp(notification))
 
 
 @unit_of_work()
