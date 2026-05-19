@@ -147,6 +147,9 @@ def upgrade():
                     sa.ForeignKeyConstraint(['record_id'], ['rdm_records_metadata.id'],
                                             name=op.f('fk_notify_endorsement_record_id_rdm_records_metadata'),
                                             ondelete='CASCADE'),
+                    sa.ForeignKeyConstraint(['parent_id'], ['rdm_parents_metadata.id'],
+                                            name=op.f('fk_notify_endorsement_record_id_rdm_parents_metadata'),
+                                            ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('id', name=op.f('pk_notify_endorsement')),
                     sa.UniqueConstraint('inbox_id', name=op.f('uq_notify_endorsement_inbox_id'))
                     )
