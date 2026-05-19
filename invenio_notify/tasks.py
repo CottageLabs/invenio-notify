@@ -48,8 +48,8 @@ def get_actor_by_actor_id(notification: NotifyPattern) -> ActorModel:
     return actor
 
 def inbox_processing():
-    for workflow in WORKFLOWS:
-        for inbox_record in NotifyInboxModel.unprocessed_records():
+    for inbox_record in NotifyInboxModel.unprocessed_records():
+        for workflow in WORKFLOWS:
             try:
                 notification = COARNotifyFactory.get_by_object(inbox_record.raw)
             except Exception as e:
@@ -77,6 +77,9 @@ def inbox_processing():
             except Exception as e:
                 mark_as_processed(inbox_record, "an unspecified error occurred processing the notification")
 
+        # if no workflow has processed the notification, mark is as processed here
+        if not inbox_record.process_date:
+            mark_as_processed(inbox_record, "No workflow processed the notification")
 
 
 @shared_task
