@@ -5,18 +5,16 @@
 
 from flask_resources import route
 
-from .basic_db_resource import BasicDbResource
+from .notify_resource import NotifyResource
 
 
-class InboxAdminResource(BasicDbResource):
+class InboxAdminResource(NotifyResource):
 
     def create_url_rules(self):
         """Create the URL rules for the record resource."""
         routes = self.config.routes
         return [
-            # route("POST", routes["list"], self.create),
             route("GET", routes["item"], self.read),
             route("GET", routes["list"], self.search),
             route("DELETE", routes["item"], self.delete),
-            # route("PUT", routes["item"], self.update),
         ]

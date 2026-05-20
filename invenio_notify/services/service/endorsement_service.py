@@ -91,5 +91,5 @@ class EndorsementAdminService(BasicDbService):
         notify field contain information of notify for search purpose
         """
         return {
-            'has_reviews': EndorsementModel.query_by_parent_id(parent_id).count() > 0
+            'has_reviews': EndorsementModel.exists_by_parent_id(parent_id)
         }

@@ -8,14 +8,10 @@ import logging
 from celery import shared_task
 from coarnotify.core.notify import NotifyPattern
 from coarnotify.factory import COARNotifyFactory
+from invenio_notify import constants
 
 from invenio_notify.records.models import NotifyInboxModel, ActorModel
-
-from invenio_notify.workflows import endorsement
 from invenio_notify.workflows.core import mark_as_processed, DataNotFound
-
-# Workflows available for notify
-WORKFLOWS = [endorsement]
 
 log = logging.getLogger(__name__)
 
@@ -47,9 +43,14 @@ def get_actor_by_actor_id(notification: NotifyPattern) -> ActorModel:
 
     return actor
 
-def inbox_processing():
-    for workflow in WORKFLOWS:
-        for inbox_record in NotifyInboxModel.unprocessed_records():
+def inbox_processing(app=None):
+    if app is None:
+        from flask import current_app
+        app = current_app
+
+    workflows = app.config.get(constants.NOTIFY_WORKFLOWS)
+    for inbox_record in NotifyInboxModel.unprocessed_records():
+        for workflow in workflows:
             try:
                 notification = COARNotifyFactory.get_by_object(inbox_record.raw)
             except Exception as e:
@@ -77,6 +78,9 @@ def inbox_processing():
             except Exception as e:
                 mark_as_processed(inbox_record, "an unspecified error occurred processing the notification")
 
+        # if no workflow has processed the notification, mark is as processed here
+        if not inbox_record.process_date:
+            mark_as_processed(inbox_record, "No workflow processed the notification")
 
 
 @shared_task

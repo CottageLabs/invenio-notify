@@ -127,6 +127,7 @@ def upgrade():
     op.create_table('notify_endorsement',
                     sa.Column('id', sa.Integer(), nullable=False),
                     sa.Column('record_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
+                    sa.Column('parent_id', sqlalchemy_utils.types.uuid.UUIDType(), nullable=True),
                     sa.Column('actor_id', sa.Integer(), nullable=True),
                     sa.Column('review_type', sa.Text(), nullable=True),
                     sa.Column('inbox_id', sa.Integer(), nullable=True),
@@ -146,6 +147,9 @@ def upgrade():
                     sa.ForeignKeyConstraint(['record_id'], ['rdm_records_metadata.id'],
                                             name=op.f('fk_notify_endorsement_record_id_rdm_records_metadata'),
                                             ondelete='CASCADE'),
+                    sa.ForeignKeyConstraint(['parent_id'], ['rdm_parents_metadata.id'],
+                                            name=op.f('fk_notify_endorsement_record_id_rdm_parents_metadata'),
+                                            ondelete='CASCADE'),
                     sa.PrimaryKeyConstraint('id', name=op.f('pk_notify_endorsement')),
                     sa.UniqueConstraint('inbox_id', name=op.f('uq_notify_endorsement_inbox_id'))
                     )
@@ -153,6 +157,7 @@ def upgrade():
     op.create_index(op.f('ix_notify_endorsement_endorsement_reply_id'), 'notify_endorsement', ['endorsement_reply_id'],
                     unique=False)
     op.create_index(op.f('ix_notify_endorsement_record_id'), 'notify_endorsement', ['record_id'], unique=False)
+    op.create_index(op.f('ix_notify_endorsement_parent_id'), 'notify_endorsement', ['parent_id'], unique=False)
     # ### end Alembic commands ###
 
 

@@ -5,10 +5,10 @@
 
 from flask_resources import route
 
-from .basic_db_resource import BasicDbResource
+from .notify_resource import NotifyResource
 
 
-class EndorsementRequestAdminResource(BasicDbResource):
+class EndorsementRequestAdminResource(NotifyResource):
 
     def create_url_rules(self):
         """Create the URL rules for the endorsement request admin resource."""

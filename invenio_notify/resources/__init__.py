@@ -12,7 +12,7 @@ from .config import (
     EndorsementAdminResourceConfig,
 )
 from .resource import (
-    BasicDbResource,
+    NotifyResource,
     EndorsementRequestAdminResource,
     EndorsementRequestResource,
     EndorsementAdminResource,
@@ -23,7 +23,7 @@ from .resource import (
 
 __all__ = [
     # Resources
-    "BasicDbResource",
+    "NotifyResource",
     "InboxAdminResource", 
     "ActorAdminResource",
     "InboxApiResource",
