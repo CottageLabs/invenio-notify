@@ -5,7 +5,7 @@
 #  Invenio-Notify is free software; you can redistribute it and/or modify
 #  it under the terms of the MIT License; see LICENSE file for more details.
 
-from .basic_db_resource import BasicDbResource
+from .notify_resource import NotifyResource
 from .endorsement_request_admin_resource import EndorsementRequestAdminResource
 from .endorsement_request_resource import EndorsementRequestResource
 from .endorsement_admin_resource import EndorsementAdminResource
@@ -14,7 +14,7 @@ from .inbox_api_resource import InboxApiResource
 from .actor_admin_resource import ActorAdminResource
 
 __all__ = [
-    "BasicDbResource",
+    "NotifyResource",
     "EndorsementRequestAdminResource", 
     "EndorsementRequestResource",
     "EndorsementAdminResource",

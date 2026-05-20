@@ -15,10 +15,26 @@ from invenio_rdm_records.proxies import current_rdm_records_service
 
 from invenio_rdm_records.records import RDMRecord
 
-from invenio_notify.records.models import NotifyInboxModel
+from invenio_notify.records.models import NotifyInboxModel, ActorModel
 from invenio_notify.utils.notify_utils import get_recid_by_record_url
 
 log = logging.getLogger(__name__)
+
+class NotifyWorkflow:
+    @staticmethod
+    def process_next_notification(inbox_record:NotifyInboxModel, notification:NotifyPattern, actor:ActorModel):
+        """
+        Subclasses must implement this method in order to be able to successfully process notifications
+        distributed by the notification handler task.
+
+        Notifications will be supplied in date order.  If the workflow does not wish to process the notification
+        it should return from this method without any action.
+
+        If the workflow does wish to process the method, it MUST mark it as processed using `mark_as_processed`
+        when finished.
+        """
+        raise NotImplementedError
+
 
 @unit_of_work()
 def mark_as_processed(inbox_record: NotifyInboxModel, comment=None, uow=None):

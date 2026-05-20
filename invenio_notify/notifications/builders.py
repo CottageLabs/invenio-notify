@@ -147,11 +147,14 @@ class EndorsementUpdateNotificationBuilder(NotificationBuilder):
         Returns:
             Notification: A notification object with the context from the parameters
         """
-        record_title = "Unknown"
-        record_url = "Unknown"
+        record_title = None
+        record_url = None
         if record:
             record_title = get_record_title(record)
             record_url = get_record_url(record)
+
+        if not record_title or not record_url:
+            return None
 
         context = {
             'record_title': record_title,

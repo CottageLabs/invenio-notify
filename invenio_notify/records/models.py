@@ -220,11 +220,6 @@ class ActorMapModel(db.Model, Timestamp, DbOperationMixin):
     def find_by_actor_id(cls, actor_id):
         return cls.query.filter(cls.actor_id == actor_id).all()
 
-    # @classmethod
-    # def find_review_id_by_user_id(cls, user_id):
-    #     """ Find a list of actor IDs by user ID. """
-    #     return [r[0] for r in db.session.query(cls.actor_id).filter(cls.user_id == user_id).all()]
-
 
 class ActorModel(db.Model, Timestamp, DbOperationMixin):
     """

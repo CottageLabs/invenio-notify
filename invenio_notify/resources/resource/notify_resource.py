@@ -19,7 +19,7 @@ from invenio_records_resources.resources.records.resource import (
 from ..errors import ErrorHandlersMixin
 
 
-class BasicDbResource(ErrorHandlersMixin, Resource):
+class NotifyResource(ErrorHandlersMixin, Resource):
 
     def __init__(self, config, service):
         """Constructor."""
