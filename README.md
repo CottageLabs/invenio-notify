@@ -1,16 +1,6 @@
 # Invenio Notify
 
-This is an extension to the [InvenioRDM](https://inveniosoftware.org/products/rdm/) platform which enables support 
-for the [COAR Notify](https://coar-notify.net/) standard for message exchange in Scholarly Infrastructure..
-
-## Installation
-
-See `docs/install.rst <docs/install.rst>`_ for detailed instructions on how to install and set up the package.
-
-## Outline of Capabilities
-
-### Endorsement Workflow
-
-See the [notify workflow diagram](docs/diagram/notify_workflow.mmd) to understand the complete notification process flow.
+**IMPORTANT NOTE**:  This repository was used for development of this integration for InvenioRDM.  The code
+has now been moved to the Invenio Software github space, and you should look at [https://github.com/inveniosoftware/invenio-notify](https://github.com/inveniosoftware/invenio-notify) for the latest code and documentation.
 
 
