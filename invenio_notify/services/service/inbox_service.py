@@ -6,6 +6,7 @@
 from flask import current_app, g
 from idutils.normalizers import normalize_doi
 from idutils.validators import is_doi
+from invenio_access.permissions import system_identity
 from invenio_db.uow import unit_of_work
 from invenio_records_resources.services.records.schema import ServiceSchemaWrapper
 from sqlalchemy.exc import IntegrityError
@@ -138,7 +139,7 @@ class NotifyInboxService(BasicDbService):
             pids_service = current_rdm_records.records_service.pids
 
             try:
-                record = pids_service.resolve(g.identity, normalized_doi, "doi")
+                record = pids_service.resolve(system_identity, normalized_doi, "doi")
                 return record["id"]
             except PIDDoesNotExistError as e:
                 current_app.logger.error(f'No record with the DOI {record_url} exists: {e}')
@@ -177,12 +178,6 @@ class InboxCOARBinding(COARNotifyServiceBinding):
         if not ActorModel.has_member(self._identity.id, actor_id):
             current_app.logger.warning(f'Actor ID did not match with user: {actor_id}, {self._identity.id}')
             raise COARProcessFail(constants.STATUS_FORBIDDEN, 'Actor Id mismatch')
-
-        # FIXME: we need to chase down all the usages of the raw notification, and use the library properly
-        # raw = notification.to_jsonld()
-        # if not identify_supported_type(notification):
-        #     current_app.logger.info(f'Unknown type: [{record_id=}]{raw.get("type")}')
-        #     raise COARProcessFail(constants.STATUS_NOT_ACCEPTED, 'Notification type not supported')
 
         records_service: RDMRecordService = current_rdm_records_service
         records_service.record_cls.pid.resolve(record_id)

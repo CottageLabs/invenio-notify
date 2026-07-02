@@ -15,10 +15,10 @@ from invenio_records_resources.resources.records.resource import (
     request_view_args,
 )
 
-from .basic_db_resource import BasicDbResource
+from .notify_resource import NotifyResource
 
 
-class ActorAdminResource(BasicDbResource):
+class ActorAdminResource(NotifyResource):
 
     def create_url_rules(self):
         """Create the URL rules for the record resource."""

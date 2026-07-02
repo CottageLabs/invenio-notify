@@ -10,8 +10,6 @@ from marshmallow import Schema, fields, pre_load, validate, EXCLUDE
 from marshmallow_utils.fields import TZDateTime, EDTFDateTimeString, SanitizedUnicode
 from marshmallow.fields import URL
 
-from invenio_notify.records.dumpers import NotifyDumperExt, EndorsementsDumperExt
-
 
 def create_current_utc_datetime():
     return datetime.now(timezone.utc)
@@ -37,6 +35,7 @@ class ApiNotifyInboxSchema(BaseRecordSchema):
 
 class EndorsementAdminSchema(BaseRecordSchema):
     record_id = fields.String(required=True)
+    parent_id = fields.String(required=True)
     actor_id = fields.Integer(required=True)
     review_type = fields.String(required=True)
     inbox_id = fields.Integer(required=True)

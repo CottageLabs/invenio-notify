@@ -3,13 +3,11 @@
 #  Invenio-Notify is free software; you can redistribute it and/or modify
 #  it under the terms of the MIT License; see LICENSE file for more details.
 
-import regex
 import urllib.parse
 
-re_url_record_id = regex.compile(r'/records/(.*?)$')
-re_url_record_id_alt = regex.compile(r'/records/([^/]+)/?')
+from invenio_notify import constants
 
-def get_recid_by_record_url(url):
+def get_recid_by_record_url(url, app=None):
     """Extract record ID from URL.
     
     Args:
@@ -20,7 +18,14 @@ def get_recid_by_record_url(url):
     """
     if not url:
         return None
-        
+
+    if app is None:
+        from flask import current_app
+        app = current_app
+
+    re_url_record_id = app.config.get(constants.NOTIFY_RECORD_ID_URL_REGEX)
+    re_url_record_id_alt = app.config.get(constants.NOTIFY_RECORD_ID_ALT_URL_REGEX)
+
     # Parse URL to handle any URL encoding
     parsed_url = urllib.parse.urlparse(url)
     path = parsed_url.path

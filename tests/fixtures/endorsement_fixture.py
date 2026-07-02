@@ -29,6 +29,7 @@ def create_endorsement(db):
     def _create_endorsement(
             record_id,
             actor_id,
+            parent_id,
             inbox_id=None,
             review_type=constants.TYPE_ENDORSEMENT,
             result_url="https://example.com/result",
@@ -38,6 +39,7 @@ def create_endorsement(db):
         data = {
             'record_id': record_id,
             'actor_id': actor_id,
+            'parent_id': parent_id,
             'review_type': review_type,
             'inbox_id': inbox_id,
             'result_url': result_url,

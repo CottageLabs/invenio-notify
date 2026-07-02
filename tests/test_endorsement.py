@@ -48,9 +48,11 @@ def test_service_create(db, superuser_identity, minimal_record, test_app, create
     inbox = create_inbox(record_id='r1')
 
     record_id = str(record.id)
+    parent_id = str(record.parent.id)
     actor_id = create_actor().id
     create_endorsement(
         record_id=record_id,
+        parent_id=parent_id,
         actor_id=actor_id,
         inbox_id=inbox.id
     )
@@ -78,6 +80,7 @@ def test_service_update(db, superuser_identity, minimal_record, test_app, create
     # Create endorsement data as a dictionary first
     endorsement_data = {
         'record_id': str(record.id),
+        'parent_id': str(record.parent.id),
         'actor_id': actor.id,
         'inbox_id': inbox.id,
         'review_type': constants.TYPE_ENDORSEMENT,
@@ -113,6 +116,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     service = proxies.current_endorsement_service
 
     record_id = str(record.id)
+    parent_id = str(record.parent.id)
     actor1 = create_actor(name="Actor One")
     actor2 = create_actor(name="Actor Two")
 
@@ -120,6 +124,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     inbox1 = create_inbox(record_id='r1')
     create_endorsement(
         record_id=record_id,
+        parent_id=parent_id,
         actor_id=actor1.id,
         inbox_id=inbox1.id,
         review_type=constants.TYPE_ENDORSEMENT,
@@ -129,6 +134,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     inbox2 = create_inbox(record_id='r2')
     create_endorsement(
         record_id=record_id,
+        parent_id=parent_id,
         actor_id=actor1.id,
         inbox_id=inbox2.id,
         review_type=constants.TYPE_REVIEW,
@@ -139,6 +145,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     inbox3 = create_inbox(record_id='r3')
     create_endorsement(
         record_id=str(not_related_record.id),
+        parent_id=str(not_related_record.parent.id),
         actor_id=actor1.id,
         inbox_id=inbox3.id
     )
@@ -146,6 +153,7 @@ def test_get_endorsement_info(db, superuser_identity, minimal_record, test_app, 
     inbox4 = create_inbox(record_id='r4')
     create_endorsement(
         record_id=record_id,
+        parent_id=parent_id,
         actor_id=actor2.id,
         inbox_id=inbox4.id,
         result_url='https://example.com/endorsement2'
